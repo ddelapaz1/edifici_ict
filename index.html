@@ -1947,7 +1947,7 @@ def({id:'pi_fo', fam:'punt', layer:'punts', svc:'fo', floor:0, zone:'comuna', pa
  where:'Dins del registre principal òptic, al RITI.',
  connects:'Xarxa d\'alimentació de fibra (entrada) ↔ xarxa de distribució de fibra (sortida). Els connectors de sortida estan etiquetats per habitatge.',
  example:'Donar servei al 2n A vol dir posar un latiguillo entre el repartidor de l\'operador i el connector «2n A» del panell de sortida.',
- confusion:'Punt, registre i recinte són tres coses diferents: el punt d\'interconnexió és dins del registre principal, que és dins del RITI.',
+ confusion:'Punt, registre i recinte són tres coses diferents: el punt d\'interconnexió és dins del registre principal, que és dins del RITI. Al model es veu com tres caixes terminals òptiques (CTO) murals: la de dalt, amb etiqueta blava, és el panell de sortida de l\'edifici; les de sota, amb etiqueta taronja i el número de l\'operador, són els repartidors d\'entrada de dos operadors. Els latiguillos grocs les uneixen pel lateral dret.',
  nets:['xal_fo','xd_fo'], links:['rp_fo']});
 def({id:'rp_pt', fam:'recinte', layer:'registres', svc:'pt', floor:0, zone:'comuna', parent:'riti', container:true, lid:true,
  name:'Registre principal de parells trenats', sigla:'',
@@ -3071,6 +3071,66 @@ function buildEnclosures(){
   iBox('riti',3.6,0.12,0.03,1.45,2.06,-4.4,0x8C96A0,{pick:false});
 }
 
+/* ---------- punt d'interconnexió òptic: caixes terminals òptiques (CTO) murals ----------
+   Tres CTO apilades dins del registre principal òptic: a dalt, la de l'edifici (panell de sortida, etiqueta blava);
+   a sota, una per operador (repartidor d'entrada, etiqueta taronja). Cada CTO té un cos principal (empalmaments)
+   i un compartiment lateral (connectors), premsaestopes al costat esquerre i a la base, i els latiguillos grocs
+   pugen pel canal de la dreta des de cada operador fins a la CTO de sortida. */
+const CTO_FO = (()=>{
+  const x0=1.66, wm=0.6, ws=0.26, gap=0.008, zb=-4.725, zf=-4.575, zc=-4.65, h=0.36;
+  const xs=x0+wm+gap, gx=j=>xs+0.035+0.045*j;
+  const ops=[{y0:1.0, num:'598005', gz:-4.68, cords:[0,1,2]}, {y0:0.5, num:'570074', gz:-4.62, cords:[3,4]}];
+  for(const o of ops) o.gland=[x0-0.032, o.y0+0.13, o.gz];
+  return {x0, wm, ws, xs, gap, zb, zf, zc, h, gx, ops, outY0:1.5, cx:1.585, out:[x0+0.12, 1.5+h+0.032, zc]};
+})();
+let LASER_TEX=null;
+function laserTex(){ return canvasTex(128,112,(g,w,hh)=>{ g.clearRect(0,0,w,hh);
+  const tri=(p,c)=>{ g.fillStyle=c; g.beginPath(); g.moveTo(w/2,p); g.lineTo(w-p*1.1,hh-p*0.75); g.lineTo(p*1.1,hh-p*0.75); g.closePath(); g.fill(); };
+  tri(2,'#1A1A1A'); tri(14,'#F2C200');
+  g.strokeStyle='#1A1A1A'; g.fillStyle='#1A1A1A'; g.lineWidth=4; g.beginPath(); g.arc(w/2,hh*0.64,7,0,7); g.fill();
+  for(let a=0;a<8;a++){ const t=a*Math.PI/4; g.beginPath(); g.moveTo(w/2+Math.cos(t)*11,hh*0.64+Math.sin(t)*11); g.lineTo(w/2+Math.cos(t)*(a===0?40:18),hh*0.64+Math.sin(t)*(a===0?0:18)); g.stroke(); } }); }
+function ctoBox(y0, o){
+  const K=CTO_FO, {x0,wm,ws,xs,zb,zf,zc,h}=K, el='pi_fo', y1=y0+h;
+  const GREY=0xD3D8DC, DOOR=0xDDE2E5, HINGE=0xBCC3C9, ZAM=0xB4BBC1, DARK=0x2A2D31;
+  /* cossos i portes (la porta, lleugerament reculada, marca el junt perimetral) */
+  for(const [a,b] of [[x0,x0+wm],[xs,xs+ws]]){
+    rBox(el,a,b,y0,y1,zb,zf-0.007,GREY,'plastic',{pick:true,cast:true});
+    rBox(el,a+0.005,b-0.005,y0+0.005,y1-0.005,zf-0.008,zf,DOOR,'plastic');
+  }
+  /* frontisses del cos principal (a dalt i a baix, com les tapes abatibles reals) */
+  const nh=7; for(let i=0;i<nh;i++){ const cx=x0+0.06+i*(wm-0.12)/(nh-1);
+    for(const yy of [y1-0.005,y0+0.005]) rBox(el,cx-0.018,cx+0.018,yy-0.008,yy+0.008,zf-0.004,zf+0.006,HINGE,'plastic'); }
+  /* panys de clau triangular */
+  const lock=(x,y,r)=>{ rCyl(el,r,0.008,V(x,y,zf+0.003),V(0,0,1),ZAM,'zamak'); rCyl(el,r*0.5,0.01,V(x,y,zf+0.005),V(0,0,1),DARK,'zamakDark',{seg:3}); };
+  lock(x0+0.055,y1-0.06,0.017); lock(x0+wm-0.055,y1-0.06,0.017); lock(xs+0.05,y1-0.06,0.014);
+  /* passacables rodó del compartiment lateral */
+  rCyl(el,0.03,0.008,V(xs+ws/2,y0+h*0.5,zf+0.003),V(0,0,1),0xF1F3F4,'plastic'); rCyl(el,0.017,0.01,V(xs+ws/2,y0+h*0.5,zf+0.005),V(0,0,1),DARK,'rubber');
+  /* etiqueta, marca de color i senyal de làser */
+  rPlane(el,0.24,0.072,V(x0+wm*0.46,y0+h*0.33,zf+0.0012),V(0,0,1),textTex([o.num],{w:320,h:96,size:o.num.length>8?40:64,bold:[true],border:'#1A1A1A',bw:3}));
+  rBox(el,xs+ws-0.065,xs+ws-0.025,y0+0.03,y0+0.07,zf,zf+0.002,o.tag,'plastic');
+  rBox(el,x0+0.03,x0+0.07,y0+0.03,y0+0.07,zf,zf+0.002,o.tag,'plastic');
+  rPlane(el,0.06,0.052,V(xs+ws/2,y1-0.075,zf+0.0012),V(0,0,1),LASER_TEX||(LASER_TEX=laserTex())).material.alphaTest=0.5;
+  /* premsaestopes: dos al costat esquerre (cables d'operador o de distribució) i un a la base del compartiment lateral per latiguillo */
+  const gland=(pos,dir,r=0.014)=>{ const d=dir.clone().normalize();
+    rHex(el,r+0.006,0.01,pos.clone().addScaledVector(d,0.005),d,0xC9CED2,'plastic');
+    rCyl(el,r,0.026,pos.clone().addScaledVector(d,0.02),d,DARK,'rubber',{r2:r*0.75}); };
+  for(const z of [-4.68,-4.62]) gland(V(x0,y0+0.13,z),V(-1,0,0));
+  gland(V(x0,y0+0.25,zc),V(-1,0,0),0.01);
+  for(const j of o.cords) gland(V(K.gx(j),y0,zc),V(0,-1,0),0.008);
+  if(o.top) gland(V(o.top[0],y1,zc),V(0,1,0),0.012);
+}
+function buildRITIFibre(){
+  const K=CTO_FO;
+  ctoBox(K.outY0,{num:'SORTIDA', tag:0x2F6FDE, cords:[0,1,2,3,4], top:K.out});
+  for(const op of K.ops) ctoBox(op.y0,{num:op.num, tag:0xE07B24, cords:op.cords});
+  /* latiguillos: de la base de cada CTO d'operador, pel canal de la dreta, fins a la base de la CTO de sortida */
+  let n=0;
+  for(const op of K.ops) op.cords.forEach((j,i)=>{
+    const gx=K.gx(j), yl=op.y0-0.07-0.015*i, zi=-4.69+0.025*j, xr=2.552, yt=K.outY0-0.06;
+    cable(`pi_fo_l${n++}`,'pi_fo',[[gx,op.y0-0.026,K.zc],[gx,yl,K.zc],[xr,yl,zi],[xr,yt,zi],[gx,yt,K.zc],[gx,K.outY0-0.026,K.zc]],{tram:'usr',tech:'fo',r:0.0045});
+  });
+}
+
 /* ===================================================================
    ICT: geometria + connexions
    =================================================================== */
@@ -3097,22 +3157,21 @@ function buildICT(){
   /* Registre d'enllaç inferior */
   regBox('reg_enllac_inf',0.5,0.5,0.25,ax,0.62,4.6,C.reg,C.regLid);
   /* Xarxes d'alimentació (fibra x-0.03, parells x+0.03) */
-  for(const [k,dx,el,end] of [['fo',-0.035,'xal_fo',[2.3,1.95,-4.55]],['pt',0.035,'xal_pt',[3.1,1.95,-4.55]]]){
-    const x=ax+dx;
+  /* fibra: dos operadors, cadascun amb el seu cable fins al premsaestopes de la seva CTO (vegeu CTO_FO) */
+  const foTail = op => { const g=CTO_FO.ops[op].gland; return [[CTO_FO.cx,2.05,g[2]],[CTO_FO.cx,g[1]+0.05,g[2]],[CTO_FO.cx+0.02,g[1],g[2]],g]; };
+  for(const [k,dx,el,tail] of [['fo',-0.035,'xal_fo',foTail(0)],['fo2',-0.075,'xal_fo',foTail(1)],['pt',0.035,'xal_pt',[[3.1,2.05,-4.45],[3.1,1.95,-4.55]]]]){
+    const x=ax+dx, tx=tail[0][0];
     cable(`xal_${k}_1`, el, [[x,-0.55,14],[x,-0.55,7.55],[x,-0.75,7.2],[x,-0.75,6.8]], {from:'operador', to:'arqueta'});
     cable(`xal_${k}_2`, el, [[x,-0.75,6.8],[x,-0.5,6.5],[x,-0.5,5.0]], {from:'arqueta', to:'peg', via:'canal_ext'});
-    cable(`xal_${k}_3`, el, [[x,-0.5,5.0],[x,-0.5,4.62],[x,0.62,4.62],[x,2.55,4.62],[x,2.55,-3.48+dx],[end[0],2.55,-3.48+dx],[end[0],2.05,-4.45],end], {from:'peg', to: k==='fo'?'pi_fo':'pi_pt', via:'canal_enllac_inf'});
+    cable(`xal_${k}_3`, el, [[x,-0.5,5.0],[x,-0.5,4.62],[x,0.62,4.62],[x,2.55,4.62],[x,2.55,-3.48+dx],[tx,2.55,-3.48+dx],...tail], {from:'peg', to: el==='xal_fo'?'pi_fo':'pi_pt', via:'canal_enllac_inf'});
   }
   /* --- RITI: registres principals i punts d'interconnexió --- */
-  regBox('rp_fo',0.8,1.0,0.3,2.05,1.45,-4.6,C.reg,C.regLid);
-  iBox('pi_fo',0.6,0.22,0.08,2.05,1.68,-4.66,0xE07B24);   // repartidor d'entrada (operador)
-  iBox('pi_fo',0.6,0.22,0.08,2.05,1.25,-4.66,0x2F6FDE);   // panell de sortida (edifici)
-  for(let i=0;i<5;i++) cable(`pi_fo_l${i}`,'pi_fo',[[1.85+i*0.1,1.6,-4.6],[1.8+i*0.1,1.45,-4.56],[1.85+i*0.1,1.33,-4.6]],{tram:'usr',tech:'fo',r:0.006});
-  regBox('rp_pt',0.6,1.0,0.3,2.95,1.45,-4.6,C.reg,C.regLid);
+  regBox('rp_fo',1.1,1.6,0.3,2.05,1.15,-4.6,C.reg,C.regLid);   // les CTO del punt d'interconnexió òptic es construeixen a buildRITIFibre()
+  regBox('rp_pt',0.6,1.6,0.3,2.95,1.15,-4.6,C.reg,C.regLid);
   iBox('pi_pt',0.45,0.22,0.08,2.95,1.68,-4.66,0xE07B24);
   iBox('pi_pt',0.45,0.22,0.08,2.95,1.25,-4.66,0x2F6FDE);
   for(let i=0;i<4;i++) cable(`pi_pt_l${i}`,'pi_pt',[[2.8+i*0.1,1.6,-4.6],[2.76+i*0.1,1.45,-4.56],[2.8+i*0.1,1.33,-4.6]],{tram:'usr',tech:'pt',r:0.012});
-  buildEnclosures(); buildRITS();
+  buildEnclosures(); buildRITS(); buildRITIFibre();
   /* --- Canalització principal: 4 tubs, interromputs pels registres secundaris --- */
   const breaks=[[2.2,3.95],[5.65,6.95],[8.65,9.95],[11.65,12.95],[14.65,14.96]];
   for(const [k,x] of Object.entries(RX)) for(const [y0,y1] of breaks)
@@ -3139,7 +3198,8 @@ function buildICT(){
   }
   /* --- Xarxa de distribució de fibra (de baix a dalt) --- */
   const foIn = y => [[RX.fo,y+1.0,RZ],[0.95,y+1.2,-4.6],[0.95,y+1.33,-4.62]];
-  cable('xd_fo_0','xd_fo',[[2.05,1.95,-4.55],[2.05,2.05,-4.52],[RX.fo,2.05,RZ],...foIn(3)],{from:'pi_fo', to:'cseg_1', via:'canal_principal'});
+  const go=CTO_FO.out;
+  cable('xd_fo_0','xd_fo',[go,[go[0],2.05,go[2]],[RX.fo,2.05,RZ],...foIn(3)],{from:'pi_fo', to:'cseg_1', via:'canal_principal'});
   for(const f of [1,2,3]) cable(`xd_fo_${f}`,'xd_fo',[[0.95,yb(f)+1.67,-4.62],[0.95,yb(f)+1.8,-4.6],[RX.fo,yb(f)+2.0,RZ],...foIn(yb(f+1))],{from:`cseg_${f}`, to:`cseg_${f+1}`, via:'canal_principal'});
   /* --- Parells trenats: feix vertical en estrella --- */
   cable('xd_pt_0','xd_pt',[[2.95,1.95,-4.55],[2.95,2.12,-4.52],[RX.pt,2.12,RZ],[RX.pt,yb(1)+1.5,RZ]],{from:'pi_pt', to:'rs_1', via:'canal_principal', r:0.046});

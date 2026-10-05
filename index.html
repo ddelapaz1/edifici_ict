@@ -3077,11 +3077,12 @@ function buildEnclosures(){
    i un compartiment lateral (connectors), premsaestopes al costat esquerre i a la base, i els latiguillos grocs
    pugen pel canal de la dreta des de cada operador fins a la CTO de sortida. */
 const CTO_FO = (()=>{
-  const x0=1.66, wm=0.6, ws=0.26, gap=0.008, zb=-4.725, zf=-4.575, zc=-4.65, h=0.36;
-  const xs=x0+wm+gap, gx=j=>xs+0.035+0.045*j;
-  const ops=[{y0:1.0, num:'598005', gz:-4.68, cords:[0,1,2]}, {y0:0.5, num:'570074', gz:-4.62, cords:[3,4]}];
-  for(const o of ops) o.gland=[x0-0.032, o.y0+0.13, o.gz];
-  return {x0, wm, ws, xs, gap, zb, zf, zc, h, gx, ops, outY0:1.5, cx:1.585, out:[x0+0.12, 1.5+h+0.032, zc]};
+  /* mides reals d'una CTO multioperador de 48 SC (p. ex. 450 × 180 × 150 mm): cos principal 300 mm + compartiment lateral 145 mm */
+  const x0=1.78, wm=0.30, ws=0.145, gap=0.005, zb=-4.725, zf=-4.575, zc=-4.65, h=0.18;
+  const xs=x0+wm+gap, gx=j=>xs+0.022+0.024*j;
+  const ops=[{y0:1.37, num:'598005', gz:-4.68, cords:[0,1,2]}, {y0:1.08, num:'570074', gz:-4.62, cords:[3,4]}];
+  for(const o of ops) o.gland=[x0-0.022, o.y0+0.065, o.gz];
+  return {x0, wm, ws, xs, gap, zb, zf, zc, h, gx, ops, outY0:1.66, cx:1.725, xr:xs+ws+0.025, out:[x0+0.06, 1.66+h+0.022, zc]};
 })();
 let LASER_TEX=null;
 function laserTex(){ return canvasTex(128,112,(g,w,hh)=>{ g.clearRect(0,0,w,hh);
@@ -3094,30 +3095,30 @@ function ctoBox(y0, o){
   const GREY=0xD3D8DC, DOOR=0xDDE2E5, HINGE=0xBCC3C9, ZAM=0xB4BBC1, DARK=0x2A2D31;
   /* cossos i portes (la porta, lleugerament reculada, marca el junt perimetral) */
   for(const [a,b] of [[x0,x0+wm],[xs,xs+ws]]){
-    rBox(el,a,b,y0,y1,zb,zf-0.007,GREY,'plastic',{pick:true,cast:true});
-    rBox(el,a+0.005,b-0.005,y0+0.005,y1-0.005,zf-0.008,zf,DOOR,'plastic');
+    rBox(el,a,b,y0,y1,zb,zf-0.005,GREY,'plastic',{pick:true,cast:true});
+    rBox(el,a+0.003,b-0.003,y0+0.003,y1-0.003,zf-0.006,zf,DOOR,'plastic');
   }
   /* frontisses del cos principal (a dalt i a baix, com les tapes abatibles reals) */
-  const nh=7; for(let i=0;i<nh;i++){ const cx=x0+0.06+i*(wm-0.12)/(nh-1);
-    for(const yy of [y1-0.005,y0+0.005]) rBox(el,cx-0.018,cx+0.018,yy-0.008,yy+0.008,zf-0.004,zf+0.006,HINGE,'plastic'); }
+  const nh=6; for(let i=0;i<nh;i++){ const cx=x0+0.03+i*(wm-0.06)/(nh-1);
+    for(const yy of [y1-0.003,y0+0.003]) rBox(el,cx-0.009,cx+0.009,yy-0.004,yy+0.004,zf-0.003,zf+0.003,HINGE,'plastic'); }
   /* panys de clau triangular */
-  const lock=(x,y,r)=>{ rCyl(el,r,0.008,V(x,y,zf+0.003),V(0,0,1),ZAM,'zamak'); rCyl(el,r*0.5,0.01,V(x,y,zf+0.005),V(0,0,1),DARK,'zamakDark',{seg:3}); };
-  lock(x0+0.055,y1-0.06,0.017); lock(x0+wm-0.055,y1-0.06,0.017); lock(xs+0.05,y1-0.06,0.014);
+  const lock=(x,y,r)=>{ rCyl(el,r,0.005,V(x,y,zf+0.002),V(0,0,1),ZAM,'zamak'); rCyl(el,r*0.5,0.006,V(x,y,zf+0.003),V(0,0,1),DARK,'zamakDark',{seg:3}); };
+  lock(x0+0.028,y1-0.03,0.009); lock(x0+wm-0.028,y1-0.03,0.009); lock(xs+0.025,y1-0.03,0.008);
   /* passacables rodó del compartiment lateral */
-  rCyl(el,0.03,0.008,V(xs+ws/2,y0+h*0.5,zf+0.003),V(0,0,1),0xF1F3F4,'plastic'); rCyl(el,0.017,0.01,V(xs+ws/2,y0+h*0.5,zf+0.005),V(0,0,1),DARK,'rubber');
+  rCyl(el,0.015,0.005,V(xs+ws/2,y0+h*0.5,zf+0.002),V(0,0,1),0xF1F3F4,'plastic'); rCyl(el,0.0085,0.006,V(xs+ws/2,y0+h*0.5,zf+0.003),V(0,0,1),DARK,'rubber');
   /* etiqueta, marca de color i senyal de làser */
-  rPlane(el,0.24,0.072,V(x0+wm*0.46,y0+h*0.33,zf+0.0012),V(0,0,1),textTex([o.num],{w:320,h:96,size:o.num.length>8?40:64,bold:[true],border:'#1A1A1A',bw:3}));
-  rBox(el,xs+ws-0.065,xs+ws-0.025,y0+0.03,y0+0.07,zf,zf+0.002,o.tag,'plastic');
-  rBox(el,x0+0.03,x0+0.07,y0+0.03,y0+0.07,zf,zf+0.002,o.tag,'plastic');
-  rPlane(el,0.06,0.052,V(xs+ws/2,y1-0.075,zf+0.0012),V(0,0,1),LASER_TEX||(LASER_TEX=laserTex())).material.alphaTest=0.5;
+  rPlane(el,0.12,0.036,V(x0+wm*0.46,y0+h*0.33,zf+0.001),V(0,0,1),textTex([o.num],{w:320,h:96,size:64,bold:[true],border:'#1A1A1A',bw:3}));
+  rBox(el,xs+ws-0.033,xs+ws-0.013,y0+0.015,y0+0.035,zf,zf+0.0015,o.tag,'plastic');
+  rBox(el,x0+0.015,x0+0.035,y0+0.015,y0+0.035,zf,zf+0.0015,o.tag,'plastic');
+  rPlane(el,0.03,0.026,V(xs+ws/2,y1-0.038,zf+0.001),V(0,0,1),LASER_TEX||(LASER_TEX=laserTex())).material.alphaTest=0.5;
   /* premsaestopes: dos al costat esquerre (cables d'operador o de distribució) i un a la base del compartiment lateral per latiguillo */
-  const gland=(pos,dir,r=0.014)=>{ const d=dir.clone().normalize();
-    rHex(el,r+0.006,0.01,pos.clone().addScaledVector(d,0.005),d,0xC9CED2,'plastic');
-    rCyl(el,r,0.026,pos.clone().addScaledVector(d,0.02),d,DARK,'rubber',{r2:r*0.75}); };
-  for(const z of [-4.68,-4.62]) gland(V(x0,y0+0.13,z),V(-1,0,0));
-  gland(V(x0,y0+0.25,zc),V(-1,0,0),0.01);
-  for(const j of o.cords) gland(V(K.gx(j),y0,zc),V(0,-1,0),0.008);
-  if(o.top) gland(V(o.top[0],y1,zc),V(0,1,0),0.012);
+  const gland=(pos,dir,r=0.008)=>{ const d=dir.clone().normalize();
+    rHex(el,r+0.004,0.006,pos.clone().addScaledVector(d,0.003),d,0xC9CED2,'plastic');
+    rCyl(el,r,0.016,pos.clone().addScaledVector(d,0.012),d,DARK,'rubber',{r2:r*0.75}); };
+  for(const z of [-4.68,-4.62]) gland(V(x0,y0+0.065,z),V(-1,0,0));
+  gland(V(x0,y0+0.125,zc),V(-1,0,0),0.006);
+  for(const j of o.cords) gland(V(K.gx(j),y0,zc),V(0,-1,0),0.005);
+  if(o.top) gland(V(o.top[0],y1,zc),V(0,1,0),0.007);
 }
 function buildRITIFibre(){
   const K=CTO_FO;
@@ -3126,8 +3127,8 @@ function buildRITIFibre(){
   /* latiguillos: de la base de cada CTO d'operador, pel canal de la dreta, fins a la base de la CTO de sortida */
   let n=0;
   for(const op of K.ops) op.cords.forEach((j,i)=>{
-    const gx=K.gx(j), yl=op.y0-0.07-0.015*i, zi=-4.69+0.025*j, xr=2.552, yt=K.outY0-0.06;
-    cable(`pi_fo_l${n++}`,'pi_fo',[[gx,op.y0-0.026,K.zc],[gx,yl,K.zc],[xr,yl,zi],[xr,yt,zi],[gx,yt,K.zc],[gx,K.outY0-0.026,K.zc]],{tram:'usr',tech:'fo',r:0.0045});
+    const gx=K.gx(j), yl=op.y0-0.035-0.008*i, zi=-4.69+0.025*j, yt=K.outY0-0.04;
+    cable(`pi_fo_l${n++}`,'pi_fo',[[gx,op.y0-0.016,K.zc],[gx,yl,K.zc],[K.xr,yl,zi],[K.xr,yt,zi],[gx,yt,K.zc],[gx,K.outY0-0.016,K.zc]],{tram:'usr',tech:'fo',r:0.003});
   });
 }
 
@@ -3166,8 +3167,8 @@ function buildICT(){
     cable(`xal_${k}_3`, el, [[x,-0.5,5.0],[x,-0.5,4.62],[x,0.62,4.62],[x,2.55,4.62],[x,2.55,-3.48+dx],[tx,2.55,-3.48+dx],...tail], {from:'peg', to: el==='xal_fo'?'pi_fo':'pi_pt', via:'canal_enllac_inf'});
   }
   /* --- RITI: registres principals i punts d'interconnexió --- */
-  regBox('rp_fo',1.1,1.6,0.3,2.05,1.15,-4.6,C.reg,C.regLid);   // les CTO del punt d'interconnexió òptic es construeixen a buildRITIFibre()
-  regBox('rp_pt',0.6,1.6,0.3,2.95,1.15,-4.6,C.reg,C.regLid);
+  regBox('rp_fo',0.75,1.0,0.3,2.05,1.45,-4.6,C.reg,C.regLid);   // les CTO del punt d'interconnexió òptic es construeixen a buildRITIFibre()
+  regBox('rp_pt',0.6,1.0,0.3,2.95,1.45,-4.6,C.reg,C.regLid);
   iBox('pi_pt',0.45,0.22,0.08,2.95,1.68,-4.66,0xE07B24);
   iBox('pi_pt',0.45,0.22,0.08,2.95,1.25,-4.66,0x2F6FDE);
   for(let i=0;i<4;i++) cable(`pi_pt_l${i}`,'pi_pt',[[2.8+i*0.1,1.6,-4.6],[2.76+i*0.1,1.45,-4.56],[2.8+i*0.1,1.33,-4.6]],{tram:'usr',tech:'pt',r:0.012});

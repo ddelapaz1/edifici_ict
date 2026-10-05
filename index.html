@@ -14,6 +14,7 @@ button{cursor:pointer;border:1px solid var(--bd);background:var(--bg);border-rad
 button:hover{background:var(--sec)}
 button[aria-pressed="true"],button.on{background:var(--blue);border-color:var(--blue);color:#fff}
 button.primary{border-color:#1A5FB4;color:#1A5FB4;font-weight:600}
+button.primary[aria-pressed="true"],button.primary.on{background:#1A5FB4;border-color:#1A5FB4;color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}
 :focus-visible{outline:3px solid #1A5FB4;outline-offset:2px}
 select{border:1px solid var(--bd);border-radius:8px;padding:6px 8px;background:#fff;min-height:36px}
@@ -75,34 +76,17 @@ header h1 small{display:block;font-weight:400;color:var(--tx2);font-size:.75rem}
 #leafChip button{min-height:36px}
 .note{left:10px;bottom:8px;font-size:11px;background:rgba(255,255,255,.85);padding:2px 8px;border-radius:6px;color:#4A4843;max-width:min(560px,70%)}
 .app.leftOpen .note{left:calc(var(--lw) + 10px)}
-.app.bottomOpen .note{display:none}
-#help{left:50%;bottom:16px;transform:translateX(-50%);background:#fff;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;max-width:560px;width:calc(100% - 32px);box-shadow:0 4px 18px rgba(0,0,0,.14);font-size:.88rem}
+#help{right:16px;bottom:16px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;max-width:420px;width:calc(100% - 32px);box-shadow:0 4px 18px rgba(0,0,0,.14);font-size:.88rem}
 #help h2{margin:0 0 4px;font-size:.98rem}
 #help ul{padding-left:18px;margin:4px 0 8px}
 #help li{margin:1px 0}
-.app.bottomOpen #help{display:none}
 #nogl{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:24px;background:#F9F8F7;z-index:9}
-/* primera persona */
-#povHud{left:50%;transform:translateX(-50%);bottom:12px;background:rgba(32,36,42,.86);color:#fff;border-radius:12px;padding:8px 12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 20px);font-size:.85rem}
-#povHud button{background:rgba(255,255,255,.95);color:#222;min-height:44px}
-.pad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px);gap:4px}
-.pad button{padding:0;font-size:1.1rem}
-.pad .u{grid-column:2;grid-row:1}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
-#povInfo{max-width:330px}
-#povDoor{color:#FFD27A;min-height:1.2em}
-#liftPanel{right:10px;bottom:120px;background:#fff;border:2px solid #1F3A5F;border-radius:12px;padding:8px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
-#liftBtns{display:grid;grid-template-columns:repeat(2,48px);gap:6px;margin-top:4px}
-#liftBtns button{min-height:44px;font-weight:700}
-.app.pov #navbtns,.app.pov .note{display:none}
-.crossh{left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.4);pointer-events:none}
 /* calaixos (superposats a l'escena) */
 .drawer{position:absolute;background:#fff;z-index:10;overflow:auto;box-shadow:0 4px 18px rgba(0,0,0,.16);transition:transform .2s;visibility:hidden}
 .drawer.open{visibility:visible}
 #left{left:0;top:0;bottom:0;width:var(--lw);border-right:1px solid var(--bd);padding:8px 12px;transform:translateX(-105%)}
 #right{right:0;top:0;bottom:0;width:var(--rw);border-left:1px solid var(--bd);padding:8px 14px;transform:translateX(105%)}
-#bottom{left:0;right:0;bottom:0;border-top:1px solid var(--bd);padding:6px 10px;max-height:46%;transform:translateY(105%);display:flex;flex-direction:column;gap:6px}
-.app.leftOpen #bottom{left:var(--lw)} .app.rightOpen #bottom{right:var(--rw)}
-#left.open,#right.open,#bottom.open{transform:none}
+#left.open,#right.open{transform:none}
 .drawer.open{transform:none}
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:-8px;background:#fff;padding:2px 0 4px;z-index:2}
 .dhead h2{margin:0;font-size:.98rem}
@@ -126,17 +110,10 @@ details.fam.sub>summary{font-weight:500;font-size:.86rem;padding:5px 8px}
 .item .hid{margin-left:auto;font-size:.72rem;color:var(--tx2);white-space:nowrap}
 .row{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .legend{font-size:.8rem;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.pop .legend{flex-direction:column;align-items:flex-start;gap:3px;margin-top:6px}
 .sw{display:inline-block;width:22px;height:8px;border-radius:4px;vertical-align:middle;margin-right:4px}
 .sw.tube{height:12px;background:rgba(150,150,150,.35);border:1px solid #888}
 .sw.box{width:12px;height:12px;border-radius:2px;background:#6F7F8F}
-.route{font-size:.84rem}
-.route select{font-size:.84rem;min-height:34px;padding:3px 6px}
-.route button{font-size:.84rem;padding:4px 8px;min-height:36px}
-#rtStatus{font-weight:600}
-#rtStatus.paused{color:var(--orange)}
-#rtStatus.playing{color:var(--green)}
-#rtText{font-size:.88rem;background:var(--soft);border:1px solid var(--bd);border-radius:8px;padding:5px 8px;min-height:30px;flex:1 1 300px}
-details.leg summary{cursor:pointer;font-size:.84rem;font-weight:600;color:#1A5FB4}
 .card{border:1px solid var(--bd);border-radius:10px;padding:12px;background:#fff;margin-bottom:10px}
 .card h2{margin:0 0 2px;font-size:1.05rem}
 .fambadge{display:inline-block;font-size:.75rem;background:var(--sec);border-radius:6px;padding:1px 6px;margin:2px 4px 4px 0}
@@ -165,6 +142,7 @@ details.more summary{cursor:pointer;font-weight:600;color:#1A5FB4;padding:4px 0}
 .qlist{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
 .qlist button{min-width:40px}
 .qlist button.done{background:var(--greenS);border-color:#9CCBB0}
+.qlist button.done.on{background:var(--green);border-color:var(--green);color:#fff}
 dialog{border:1px solid var(--bd);border-radius:12px;max-width:760px;width:calc(100% - 32px);max-height:85vh;padding:16px 20px}
 dialog::backdrop{background:rgba(0,0,0,.3)}
 dialog h2{margin-top:0}
@@ -180,23 +158,19 @@ dialog h2{margin-top:0}
  header{gap:4px;padding:4px 6px}
  header h1{display:none}
  .seg button,.hgroup button{padding:4px 7px;font-size:.78rem;min-height:34px}
- #left,#right,#bottom{left:0!important;right:0!important;top:auto!important;bottom:0;width:auto!important;max-height:58%;border-top:1px solid var(--bd);border-radius:14px 14px 0 0;transform:translateY(105%)}
- #left.open,#right.open,#bottom.open{transform:none}
- header{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
- #povHud{left:8px;right:8px;transform:none;bottom:8px;justify-content:space-between}
- #povHud .pad{grid-template-columns:repeat(3,42px);grid-template-rows:repeat(2,42px)}
- #povHud>button{min-height:40px;padding:4px 8px;font-size:.8rem}
+ #left,#right{left:0!important;right:0!important;top:auto!important;bottom:0;width:auto!important;max-height:58%;border-top:1px solid var(--bd);border-radius:14px 14px 0 0;transform:translateY(105%)}
+ #left.open,#right.open{transform:none}
+ header{flex-wrap:wrap;row-gap:4px}
+ header .seg{flex:1 1 100%} header .seg button{flex:1 1 0;min-width:0}
+ header .hgroup{flex:1 1 auto} header .hgroup button{flex:1 1 auto;padding:4px 5px}
  .app.leftOpen #tl,.app.leftOpen .pop{left:10px}
  .app.rightOpen #navbtns{right:10px}
- .app.leftOpen #navbtns,.app.rightOpen #navbtns,.app.bottomOpen #navbtns{display:none}
+ .app.leftOpen #navbtns,.app.rightOpen #navbtns{display:none}
  .pop{max-height:calc(100% - 74px);width:calc(100% - 20px)}
  .ibtn .lt{display:none}
  .note{display:none}
- #help{bottom:8px;font-size:.82rem}
+ #help{bottom:8px;right:8px;left:8px;width:auto;max-width:none;font-size:.82rem}
  #leafChip{top:auto;bottom:70px;max-width:calc(100% - 20px)}
- #liftPanel{bottom:auto;top:110px}
- #povHud{gap:8px;padding:6px 8px}
- #povInfo{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -207,13 +181,11 @@ dialog h2{margin-top:0}
  <h1>ICT · Explora l'edifici<small>Infraestructura comuna de telecomunicacions · Instal·lacions de Telecomunicacions (grau mitjà)</small></h1>
  <div class="seg" role="group" aria-label="Mode d'aprenentatge">
   <button data-learn="free" aria-pressed="true">Exploració lliure</button>
-  <button data-learn="tour" aria-pressed="false">Visita guiada</button>
   <button data-learn="quiz" aria-pressed="false">Comprova què has après</button>
  </div>
  <div class="hgroup" role="group" aria-label="Panells">
   <button id="btnLeft" aria-controls="left" aria-expanded="false">Elements</button>
   <button id="btnRight" aria-controls="right" aria-expanded="false">Fitxa</button>
-  <button id="btnBottom" aria-controls="bottom" aria-expanded="false">Recorreguts</button>
  </div>
  <div class="hgroup">
   <button id="btnConcepts">Conceptes</button>
@@ -231,7 +203,6 @@ dialog h2{margin-top:0}
     <button id="btnEye" class="ibtn sq" aria-label="Què es veu: capes, servei i opcions" aria-controls="eyePanel" aria-expanded="false" title="Què es veu (capes, servei i opcions)"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg></button>
     <button id="vBack" class="ibtn sq" aria-label="Tornar a la vista anterior" title="Torna a la vista anterior (tecla Retrocés)" disabled><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M10 5l-7 7 7 7M3.5 12H21" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="backN" aria-hidden="true"></span></button>
     <button id="btnViews" class="ibtn" aria-controls="viewMenu" aria-expanded="false" title="Vistes i plantes">Vistes <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-    <button id="btnPov" class="ibtn" aria-pressed="false" title="Camina per l'edifici amb les fletxes del teclat"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="13" cy="4" r="2.2" fill="currentColor"/><path d="M10 22l2.2-7 2.8 2.6V22M9 12.5l1.6-5 3.4.5 2.4 3.4 2.6.6M10.6 7.5L7 9.5l-1 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lt">Primera persona</span></button>
     <button id="btnHelp" class="ibtn sq" aria-label="Ajuda de navegació" title="Ajuda de navegació">?</button>
    </div>
    <div class="statusChip" id="statusChip" aria-live="polite"></div>
@@ -252,6 +223,7 @@ dialog h2{margin-top:0}
    <fieldset><legend>Color dels cables</legend>
     <label class="opt"><input type="radio" name="colorBy" value="tram" checked> Per tram de xarxa</label>
     <label class="opt"><input type="radio" name="colorBy" value="tech"> Per tecnologia</label>
+    <div class="legend" id="legend" aria-label="Llegenda"></div>
    </fieldset>
    <fieldset><legend>Opcions</legend>
     <label class="opt"><input type="checkbox" id="optNav"> Navegació interactiva (un clic apropa la càmera)</label>
@@ -296,23 +268,13 @@ dialog h2{margin-top:0}
   <span id="statusNav" class="sr-only" aria-live="polite"></span>
   <div class="note ov">Model didàctic simplificat: no és un projecte d'arquitectura ni de telecomunicacions. Alguns elements estan fora d'escala.</div>
 
-  <div id="povHud" class="ov hidden" role="region" aria-label="Controls de primera persona">
-   <div class="pad" role="group" aria-label="Moviment">
-    <button class="u" data-pk="ArrowUp" aria-label="Endavant">▲</button><button class="l" data-pk="ArrowLeft" aria-label="Girar a l'esquerra">◀</button><button class="d" data-pk="ArrowDown" aria-label="Endarrere">▼</button><button class="r" data-pk="ArrowRight" aria-label="Girar a la dreta">▶</button>
-   </div>
-   <div id="povInfo"><b id="povWhere"></b><div>Fletxes: caminar i girar · Maj: més ràpid · Arrossega: mirar · E: porta del davant · Esc: sortir</div><div id="povDoor" aria-live="polite"></div></div>
-   <button id="povDoorBtn">Obrir o tancar la porta</button>
-   <button id="povExit">Sortir</button>
-  </div>
-  <div id="liftPanel" class="ov hidden" role="group" aria-label="Botonera de l'ascensor"><b>Ascensor</b><div id="liftBtns"></div></div>
-
   <div id="help" class="ov" role="dialog" aria-labelledby="helpT">
    <h2 id="helpT">Com es navega</h2>
    <ul>
     <li><b>Clic</b> en un element: se selecciona i la càmera s'hi apropa. <b>◀</b> (o Retrocés) torna a la vista anterior.</li>
     <li><b>Doble clic</b> en una porta, armari o tapa: s'obre; un altre doble clic la tanca.</li>
     <li><b>Arrossegar</b>: girar · <b>roda o pinça</b>: zoom · <b>botó dret o dos dits</b>: desplaçar.</li>
-    <li><b>Ull</b>: què es veu · <b>Vistes</b>: plantes i habitatges · <b>Primera persona</b>: caminar amb les fletxes.</li>
+    <li><b>Ull</b>: què es veu i llegenda de colors · <b>Vistes</b>: plantes, habitatges i interior del RITS.</li>
    </ul>
    <button id="helpOk" class="on">D'acord</button>
   </div>
@@ -336,24 +298,6 @@ dialog h2{margin-top:0}
   <div id="infoPanel"></div>
  </aside>
 
- <section id="bottom" class="drawer" aria-label="Recorreguts del senyal">
-  <div class="dhead"><h2>Segueix el servei</h2><button class="drawerClose" data-close="bottom" aria-label="Tanca els recorreguts">×</button></div>
-  <div class="row route" role="group" aria-label="Segueix el servei">
-   <select id="rtSvc" aria-label="Servei"><option value="rtv">RTV: antena → televisor</option><option value="fo">Fibra: operador → PAU</option><option value="fopc">Fibra: operador → equip de dades (RJ45)</option></select>
-   <select id="rtUnit" aria-label="Habitatge de destinació"></select>
-   <select id="rtRoom" aria-label="Presa de destinació"></select>
-   <button id="rtPlay">▶ Iniciar</button>
-   <button id="rtPause">Pausar</button>
-   <button id="rtReset">Reiniciar</button>
-   <button id="rtPrev">◀ Pas anterior</button>
-   <button id="rtNext">Pas següent ▶</button>
-   <label class="slider">Velocitat <input id="rtSpeed" type="range" min="0.3" max="2.5" step="0.1" value="1" aria-label="Velocitat de l'animació"></label>
-   <label class="opt" style="min-height:0"><input type="checkbox" id="rtFollow" checked> Seguir amb la càmera</label>
-   <span id="rtStatus" aria-live="polite">Aturat</span>
-  </div>
-  <div class="row"><div id="rtText">Tria un servei, un habitatge i una presa, i prem «Iniciar».</div></div>
-  <details class="leg" open><summary>Llegenda</summary><div class="row legend" id="legend" aria-label="Llegenda"></div></details>
- </section>
 </div>
 </div>
 
@@ -2504,101 +2448,143 @@ RD({id:'rits_suport', fam:'punt', layer:'equips',
  confusion:'La placa no forma part del circuit de senyal. Els equips i connectors que hi ha al damunt estan ampliats ×2 per poder-los veure (ampliació didàctica).',
  links:['capcalera','cap_rep','rits_equip']});
 RD({id:'cap_avant', fam:'punt', layer:'equips', parent:'capcalera', variant:'A',
- name:'Centraleta programable (exemple: Televes AVANT 12, ref. 532201)',
- what:'Amplificador programable compacte amb xassís de zamac i aletes de dissipació. Té quatre entrades VHF+UHF i una d\'FM, filtres digitals programables, filtre LTE/5G i una sola sortida de TV, amb sortida de test a −30 dB.',
- purpose:'Selecciona i iguala els canals de TDT, la ràdio DAB i l\'FM de les antenes i lliura un senyal net i amb el nivell adequat a la xarxa de distribució.',
- where:'Placa de muntatge, paret del fons del RITS. Entrades a la part superior; alimentació, FM, TV i test a la part inferior.',
- connects:'Entrada 1 ← cable de TDT. Entrada 2 ← cable de DAB (banda III). Entrades 3 i 4 tancades amb càrregues amb bloqueig de CC (aquestes entrades poden donar 12 V). Entrada FM ← cable d\'FM. El cable de satèl·lit no hi entra: queda en reserva al costat. Sortida TV → latiguillo → repartidor. Alimentació 230 V c.a. amb cable de figura 8 (classe II). Borne de terra funcional a la barra de terra.',
- example:'L\'instal·lador prem el botó taronja d\'autoajust (o usa l\'aplicació per Bluetooth) i la centraleta ajusta els filtres i els nivells dels múltiplexs rebuts.',
- confusion:'Una centraleta programable fa en un sol equip el que en una capçalera modular fan diversos amplificadors, ponts i una font. Segons el fabricant, cal deixar entrades i sortides carregades perquè l\'ajust sigui correcte.',
- links:['cab_capt_int','cab_dab_int','cab_fm_int','cap_jump','cap_carregues','rits_cordo','rits_bases_cap','rits_terra']});
-const T12 = [
- {n:'Amplificador monocanal 1 · UHF canal 27 (exemple: Televes T12, ref. 509812)', w:'Mòdul amplificador UHF selectiu d\'un sol canal de la sèrie T12, amb xassís de zamac negre, dos connectors F d\'entrada, dos de sortida, interruptor de CC, LED i potenciòmetre de guany.',
-  p:'Amplifica només el canal 27 de TDT (exemple) i en permet ajustar el nivell sense afectar els altres.',
-  c:'Entrada superior ← filtre LTE/5G ← cable interior de TDT. L\'entrada inferior passa la TDT al mòdul 2 amb un pont F. Les sortides s\'acumulen cap al mòdul 4 amb ponts F (connexió en Z); la sortida inferior queda tancada amb una càrrega. Alimentació 24 V c.c. per latiguillo des de la font.'},
- {n:'Amplificador multicanal 2 · UHF canals 34‑47 (exemple: Televes T12, ref. 508612)', w:'Mòdul amplificador UHF multicanal de la sèrie T12, amb xassís de zamac negre, dos connectors F d\'entrada, dos de sortida, interruptor de CC, LED i potenciòmetre de guany.',
-  p:'Amplifica un grup de canals de TDT (aquí, d\'exemple, del 34 al 47) i n\'ajusta el nivell.',
-  c:'Rep la TDT del mòdul 1 per un pont F a l\'entrada inferior; l\'entrada superior lliure es tanca amb una càrrega amb bloqueig de CC. Passa la sortida acumulada als mòduls veïns amb ponts F. Alimentació 24 V c.c. pel latiguillo del mòdul 1.'},
- {n:'Amplificador 3 · DAB, banda III (exemple de la sèrie T12)', w:'Mòdul amplificador de la banda III (VHF) per a ràdio digital DAB, amb el mateix format de la sèrie T12.',
-  p:'Amplifica i ajusta el nivell dels blocs de ràdio digital DAB rebuts per l\'antena DAB.',
-  c:'Entrada superior ← cable interior de DAB (entrada pròpia, sense pont amb la TDT). L\'entrada inferior es tanca amb una càrrega. La sortida s\'acumula amb la dels mòduls veïns amb ponts F. Alimentació 24 V c.c. pel latiguillo del mòdul 2.'},
- {n:'Amplificador 4 · FM, 87,5‑108 MHz (exemple de la sèrie T12)', w:'Mòdul amplificador de la banda II per a ràdio FM, amb el mateix format de la sèrie T12.',
-  p:'Amplifica i ajusta el nivell de les emissores d\'FM rebudes pel dipol circular.',
-  c:'Entrada superior ← cable interior d\'FM. L\'entrada inferior es tanca amb una càrrega. Rep la sortida acumulada del mòdul 3 per ponts F; la seva sortida superior és la sortida general de la capçalera → latiguillo → repartidor.'}
-];
-for(let i=1;i<=4;i++){ const t=T12[i-1];
+ name:"Centraleta programable amb FI (exemple: Televes AVANT 12 PRO SAT, ref. 532204)",
+ what:"Amplificador programable compacte amb xassís de zamac. Té quatre entrades VHF+UHF, una entrada d'FM i una entrada de satèl·lit (FI) amb amplificador de FI integrat. Té dues sortides: TV (només senyal terrestre) i TV+SAT (terrestre + satèl·lit).",
+ purpose:"Selecciona i iguala els canals de TDT, la DAB i l'FM i, a més, amplifica la FI d'una sortida de l'LNB. És el primer amplificador de FI de la capçalera.",
+ where:"Placa de muntatge, paret del fons del RITS. Entrades terrestres i de satèl·lit a la part superior; alimentació, entrada FM i sortides a la part inferior.",
+ connects:"Entrada 1 ← TDT. Entrada 2 ← DAB. Entrades 3 i 4 tancades amb càrregues amb bloqueig de CC. Entrada FM ← FM. Entrada SAT ← sortida A de l'LNB (la centraleta alimenta l'LNB per aquest cable). Sortida TV+SAT → directament al cable de distribució 1. Sortida TV (només terrestre) → latiguillo → entrada TERR del mesclador, on s'hi afegeix la FI del segon amplificador → cable de distribució 2.",
+ example:"Si la parabòlica es desorienta, la TDT, la DAB i l'FM continuen arribant per tots dos cables de distribució: només desapareix la FI.",
+ confusion:"Les dues sortides no són iguals: la TV+SAT ja porta la FI i va directa al cable 1; la sortida TV és només terrestre i cal mesclar-la amb la FI del segon amplificador per fer el cable 2. Les posicions dels connectors del model són aproximades.",
+ links:['cab_capt_int','cab_dab_int','cab_fm_int','cab_sat_int','cap_fi_2','cap_jump','cap_mix','xd_rtv','cap_carregues','rits_cordo','rits_bases_cap','rits_terra']});
+const TDTCH=[23,26,27,29,32,34,36,38,40,45];
+for(let i=1;i<=10;i++){
   RD({id:`cap_t12_${i}`, fam:'punt', layer:'equips', parent:'capcalera', variant:'B',
-   name:t.n, what:t.w, purpose:t.p,
-   where:`Muntat al carril de suport de la placa, posició ${i} començant per l'esquerra (al costat de la font).`,
-   connects:t.c,
-   example: i<=2 ? 'Si un múltiplex canvia de canal, només cal reajustar o substituir el mòdul d\'aquell canal.' : 'Cada banda de ràdio (DAB o FM) té el seu mòdul i la seva entrada; si una falla, la TDT no es veu afectada.',
-   confusion:'Els canals són un exemple didàctic; en una instal·lació real depenen dels senyals que es reben a la zona. L\'ordre exacte dels ponts en Z s\'ha de comprovar al manual d\'instal·lació del fabricant.',
-   links:['cap_ponts','cap_dc','cap_font','cap_rail', i===1?'cap_filtre':null, i===3?'cab_dab_int':null, i===4?'cab_fm_int':null, i===4?'cap_jump':null].filter(Boolean)});
+   name:`Amplificador monocanal TDT ${i} · UHF canal ${TDTCH[i-1]} (exemple: Televes T12, ref. 509812)`,
+   what:"Mòdul amplificador UHF selectiu d'un sol canal de la sèrie T12, amb xassís de zamac negre, dos connectors F d'entrada, dos de sortida, interruptor de CC, LED i potenciòmetre de guany.",
+   purpose:`Amplifica només el canal ${TDTCH[i-1]} de TDT (canal d'exemple) i en permet ajustar el nivell sense afectar els altres múltiplexs.`,
+   where:`Carril de suport de la placa de muntatge, posició ${i+2} començant per l'esquerra (després dels dos amplificadors de FI).`,
+   connects: i===1 ? "Entrada superior ← filtre LTE/5G ← cable interior de TDT: és l'única entrada des de l'antena UHF. L'altra entrada passa el senyal al mòdul 2 amb un pont F (connexió en Z). La sortida s'acumula amb la dels veïns; la sortida lliure es tanca amb una càrrega. Alimentació 24 V c.c. des de la font 1."
+     : i===10 ? "Rep la TDT del mòdul 9 per un pont F; l'entrada lliure es tanca amb una càrrega amb bloqueig de CC. La sortida s'acumula amb les dels veïns amb ponts F. Alimentació 24 V c.c. des de la font 2."
+     : `Rep la TDT del mòdul ${i-1} per un pont F i la passa al mòdul ${i+1} (connexió en Z). La seva sortida s'acumula amb la dels veïns amb ponts F. Alimentació 24 V c.c. des de la font ${i<=5?1:2}.`,
+   example:"Si un múltiplex canvia de canal, només cal reajustar o substituir el mòdul d'aquell canal.",
+   confusion:"Els canals són un exemple didàctic; en una instal·lació real depenen dels múltiplexs que es reben a la zona. L'ordre exacte dels ponts en Z s'ha de comprovar al manual d'instal·lació del fabricant.",
+   links:['cap_ponts','cap_dc','cap_font','cap_rail', i===1?'cap_filtre':null, i===1?'cab_capt_int':null].filter(Boolean)});
 }
-RD({id:'cap_font', fam:'punt', layer:'equips', parent:'capcalera', variant:'B',
- name:'Font d\'alimentació (exemple: Televes ref. 549812, 24 V c.c., 2,5 A)',
- what:'Font d\'alimentació commutada de la sèrie T12, de classe II, amb sortida de 24 V de corrent continu (fins a 2,5 A) i cable amb clavilla europea.',
- purpose:'Alimenta els mòduls amplificadors amb 24 V c.c. a través de latiguillos d\'alimentació.',
- where:'Carril de suport, a l\'esquerra dels amplificadors.',
- connects:'Entrada 230 V c.a. ← base de corrent de la capçalera (clavilla sense terra, equip de classe II). Sortida 24 V c.c. → latiguillo → mòdul 1 → mòdul 2 → mòdul 3 → mòdul 4.',
- example:'Amb quatre mòduls de 195 mA cadascun la font treballa molt per sota del seu límit; encara admetria més mòduls.',
- confusion:'La font no amplifica el senyal: només alimenta els equips. Com que és de classe II, el seu cable no porta conductor de protecció.',
- links:['cap_dc','rits_cordo','rits_bases_cap','cap_rail']});
-RD({id:'cap_rail', fam:'punt', layer:'equips', parent:'capcalera', variant:'B',
- name:'Carril de suport dels mòduls (exemple: ref. 5071)',
- what:'Perfil metàl·lic de 500 mm fixat a la placa, on s\'enganxen la font i els amplificadors modulars.',
- purpose:'Manté els mòduls alineats a la distància justa perquè hi encaixin els ponts F.',
- where:'Placa de muntatge de la capçalera.',
- connects:'Suporta la font i els quatre amplificadors. Té un cargol unit a la barra de terra.',
- example:'Per afegir un mòdul, es penja al carril al costat de l\'últim i s\'hi connecten els ponts.',
- confusion:'El carril és un suport mecànic, no un bus de senyal.',
- links:['cap_font','cap_t12_1','cap_t12_4','rits_terra']});
+RD({id:'cap_t12_dab', fam:'punt', layer:'equips', parent:'capcalera', variant:'B',
+ name:"Amplificador DAB · banda III (exemple: Televes T12, ref. 508312)",
+ what:"Mòdul amplificador de la banda III (174‑230 MHz) per a ràdio digital DAB, amb el mateix format de la sèrie T12.",
+ purpose:"Amplifica i ajusta el nivell dels blocs de ràdio digital DAB rebuts per l'antena DAB.",
+ where:"Carril de suport, a la dreta del darrer mòdul de TDT.",
+ connects:"Entrada superior ← cable interior de DAB (entrada pròpia, des de la seva antena). L'altra entrada es tanca amb una càrrega. La sortida s'acumula amb les dels veïns amb ponts F. Alimentació 24 V c.c. des de la font 2.",
+ example:"Si l'antena DAB s'avaria, la TDT i l'FM no es veuen afectades: cada banda té el seu mòdul i el seu cable.",
+ confusion:"La DAB no entra pel pont de TDT: té cable i entrada propis.",
+ links:['cab_dab_int','cap_ponts','cap_dc','cap_font','cap_rail']});
+RD({id:'cap_t12_fm', fam:'punt', layer:'equips', parent:'capcalera', variant:'B',
+ name:"Amplificador FM · 87,5‑108 MHz (exemple de la sèrie T12)",
+ what:"Mòdul amplificador de la banda II per a ràdio FM, amb el mateix format de la sèrie T12.",
+ purpose:"Amplifica i ajusta el nivell de les emissores d'FM rebudes pel dipol circular.",
+ where:"Carril de suport, darrer mòdul terrestre (a l'esquerra de la font 2).",
+ connects:"Entrada superior ← cable interior d'FM. L'altra entrada es tanca amb una càrrega. Rep la sortida acumulada dels mòduls terrestres per ponts F; la seva sortida lliure és la sortida MATV de la capçalera → latiguillo → entrada TERR del mesclador. Alimentació 24 V c.c. des de la font 2.",
+ example:"Mesurant a la sortida MATV es veuen alhora la TDT, la DAB i l'FM, abans d'afegir-hi la FI.",
+ confusion:"La sortida MATV només porta senyals terrestres: la FI de satèl·lit s'hi afegeix després, al mesclador.",
+ links:['cab_fm_int','cap_ponts','cap_dc','cap_font','cap_rail','cap_jump']});
+RD({id:'cap_fi_1', fam:'punt', layer:'equips', parent:'capcalera', variant:'B',
+ name:"Amplificador de FI 1 · SAT A (exemple: Televes T12, ref. 508012)",
+ what:"Mòdul amplificador de freqüència intermèdia de satèl·lit (950‑2150 MHz) de la sèrie T12, amb una entrada i una sortida F, regulació de guany i equalitzador.",
+ purpose:"Amplifica la FI de la sortida A de l'LNB i alimenta l'LNB (13‑17 V c.c.) pel mateix cable.",
+ where:"Carril de suport, primera posició a la dreta de la font 1.",
+ connects:"Entrada ← cable interior de satèl·lit A. Sortida → latiguillo → entrada SAT A del mesclador. Alimentació 24 V c.c. des de la font 1.",
+ example:"Encara que la comunitat no hagi instal·lat la parabòlica, l'amplificador ja és a la capçalera: només caldrà connectar-hi el cable de l'LNB.",
+ confusion:"No amplifica TDT: la FI de satèl·lit va per un camí separat fins al mesclador. Sense parabòlica, la seva entrada queda lliure.",
+ links:['cab_sat_int','cap_mix','cap_dc','cap_font','cap_rail']});
+RD({id:'cap_fi_2', fam:'punt', layer:'equips', parent:'capcalera',
+ name:"Amplificador de FI 2 · SAT B (exemple: Televes T12, ref. 508012)",
+ what:"Mòdul amplificador de freqüència intermèdia de satèl·lit (950‑2150 MHz) de la sèrie T12, amb una entrada i una sortida F, regulació de guany i equalitzador.",
+ purpose:"Amplifica la FI de la sortida B de l'LNB i alimenta l'LNB pel mateix cable.",
+ where:"Carril de suport de la placa de muntatge.",
+ connects:"Entrada ← cable interior de satèl·lit B. Sortida → latiguillo → entrada SAT del mesclador.",
+ example:"Encara que la comunitat no hagi instal·lat la parabòlica, l'amplificador ja és a la capçalera.",
+ confusion:"Cada cable de distribució porta una FI diferent (A o B): per això calen dos amplificadors de FI.",
+ links:['cab_sat2_int','cap_mix','cap_dc','cap_font','cap_rail'],
+ vt:{A:{where:"Carril de suport, a la dreta de la centraleta i de la font d'alimentació.", connects:"Entrada ← cable interior de satèl·lit B. Sortida → latiguillo → entrada SAT del mesclador MATV‑FI. Alimentació 24 V c.c. des de la font. El primer amplificador de FI és el que porta integrat la centraleta."},
+     B:{where:"Carril de suport, segona posició a la dreta de la font 1.", connects:"Entrada ← cable interior de satèl·lit B. Sortida → latiguillo → entrada SAT B del mesclador. Alimentació 24 V c.c. des de la font 1."}}});
+RD({id:'cap_font', fam:'punt', layer:'equips', parent:'capcalera',
+ name:"Font d'alimentació de 24 V c.c. (exemple: Televes ref. 549812, 2,5 A)",
+ what:"Font d'alimentació commutada de la sèrie T12, de classe II, amb sortida de 24 V de corrent continu (fins a 2,5 A) i cable amb clavilla europea.",
+ purpose:"Alimenta els mòduls amplificadors amb 24 V c.c. a través de latiguillos d'alimentació.",
+ where:"Carril de suport.",
+ connects:"Entrada 230 V c.a. ← base de corrent de la capçalera (clavilla sense terra, equip de classe II). Sortida 24 V c.c. → latiguillos → mòduls.",
+ example:"Abans d'afegir mòduls, se suma el consum de tots (inclòs el de l'LNB que alimenten els amplificadors de FI) i es comprova que no supera el de la font.",
+ confusion:"La font no amplifica el senyal: només alimenta els equips. Com que és de classe II, el seu cable no porta conductor de protecció.",
+ links:['cap_dc','rits_cordo','rits_bases_cap','cap_rail'],
+ vt:{A:{name:"Font d'alimentació de 24 V c.c. de l'amplificador de FI 2 (exemple: Televes ref. 549812)", connects:"Entrada 230 V c.a. ← base de corrent de la capçalera. Sortida 24 V c.c. → latiguillo → amplificador de FI 2. La centraleta té la seva pròpia alimentació."},
+     B:{name:"Fonts d'alimentació de 24 V c.c. (2 × exemple: Televes ref. 549812, 2,5 A)", connects:"Font 1 (esquerra) → amplificadors de FI 1 i 2 i mòduls de TDT 1 a 5. Font 2 (dreta) → mòduls FM, DAB i TDT 10 a 6. Cada font, a una base de corrent de la capçalera.",
+       example:"Catorze mòduls (dotze de 195 mA i dos de FI de fins a 350 mA amb l'LNB) superen els 2,5 A d'una sola font: per això n'hi ha dues, cadascuna per sota del seu límit."}}});
+RD({id:'cap_rail', fam:'punt', layer:'equips', parent:'capcalera',
+ name:"Carril de suport dels mòduls T12 (exemple: ref. 5071)",
+ what:"Perfil metàl·lic fixat a la placa, on s'enganxen les fonts i els amplificadors modulars.",
+ purpose:"Manté els mòduls alineats a la distància justa perquè hi encaixin els ponts F.",
+ where:"Placa de muntatge de la capçalera.",
+ connects:"Suporta les fonts i els mòduls. Té un cargol unit a la barra de terra.",
+ example:"Per afegir un mòdul, es penja al carril al costat de l'últim i s'hi connecten els ponts.",
+ confusion:"El carril és un suport mecànic, no un bus de senyal.",
+ links:['cap_font','rits_terra']});
 RD({id:'cap_filtre', fam:'punt', layer:'equips', parent:'capcalera', variant:'B',
  name:'Filtre LTE/5G (exemple: Televes ref. 403201)',
  what:'Filtre passiu endollable amb connectors F que deixa passar fins a 694 MHz i atenua la banda de telefonia mòbil de 733 a 862 MHz.',
  purpose:'Evita que els senyals de mòbil (4G/5G) saturin els amplificadors de TDT.',
- where:'Endollat directament a l\'entrada superior del mòdul 1.',
- connects:'Cable interior de captació → filtre → entrada del mòdul 1. Deixa passar la tensió contínua.',
+ where:"Endollat directament a l'entrada superior del mòdul de TDT 1.",
+ connects:"Cable interior de TDT → filtre → entrada del mòdul de TDT 1, que reparteix la TDT a la resta per ponts F. Deixa passar la tensió contínua.",
  example:'Si a prop hi ha una antena de telefonia, sense filtre la TDT pot pixelar a tot l\'edifici.',
  confusion:'A la centraleta programable aquest filtre ja és intern; per això només apareix a la capçalera modular.',
  links:['cab_capt_int','cap_t12_1']});
 RD({id:'cap_ponts', fam:'punt', layer:'punts', parent:'capcalera', variant:'B',
- name:'Ponts F d\'interconnexió (exemple: ref. 5074, 75 Ω)',
- what:'Ponts en forma d\'U amb dos connectors F mascle que uneixen connectors veïns de dos mòduls.',
- purpose:'Passen el senyal d\'entrada d\'un mòdul al següent i acumulen les sortides de tots els mòduls cap a una sola sortida general.',
- where:'Davant dels mòduls amplificadors, alternant connectors superiors i inferiors (connexió en Z).',
- connects:'Entrades: mòdul 1 ↔ 2 ↔ 3 ↔ 4. Sortides: mòdul 1 ↔ 2 ↔ 3 ↔ 4. Els extrems lliures porten càrregues de 75 Ω.',
- example:'Si falta un pont, els canals dels mòduls següents desapareixen de la sortida.',
- confusion:'L\'alternança exacta de connectors és una interpretació del sistema en Z del fabricant: s\'ha de verificar al manual d\'instal·lació abans de fer servir el model com a pauta de muntatge.',
- links:['cap_t12_1','cap_t12_2','cap_t12_3','cap_t12_4','cap_carregues']});
-RD({id:'cap_dc', fam:'punt', layer:'equips', parent:'capcalera', variant:'B', svc:'all', noRoute:true,
- name:'Latiguillos d\'alimentació de 24 V c.c.',
- what:'Cables curts de dos conductors amb connector que porten els 24 V de corrent continu de la font a cada mòdul.',
- purpose:'Alimenten els amplificadors en cadena des d\'una sola font.',
- where:'A la part frontal dels mòduls, a l\'alçada dels connectors d\'alimentació.',
- connects:'Font → mòdul 1 → mòdul 2 → mòdul 3 → mòdul 4.',
- example:'Si el LED d\'un mòdul no s\'encén, cal revisar el seu latiguillo d\'alimentació i l\'interruptor.',
- confusion:'Són cables d\'alimentació, no de senyal: no porten RF.',
- links:['cap_font','cap_t12_1','cap_t12_4']});
-RD({id:'cap_rep', fam:'punt', layer:'equips', parent:'capcalera',
- name:'Repartidor de 2 sortides (exemple: Televes ref. 519602)',
- what:'Repartidor passiu de zamac amb una entrada i dues sortides F al mateix costat, amb unes pèrdues d\'uns 4,5 dB per sortida i un cargol de terra.',
- purpose:'Divideix el senyal de la capçalera en els dos cables de la xarxa de distribució.',
- where:'Placa de muntatge, a la dreta de la capçalera.',
- connects:'Entrada ← latiguillo des de la sortida de la capçalera. Sortida 1 → distribució 1. Sortida 2 → distribució 2. Cargol de terra → barra de terra.',
- example:'Amb un repartidor de 2 sortides, cada cable de distribució rep aproximadament la mateixa part del senyal.',
- confusion:'No és un derivador: no hi ha sortida principal i sortida derivada, sinó dues sortides equivalents. No deixa passar corrent continu.',
- links:['cap_jump','xd_rtv','rits_corr_out','rits_equip']});
+ name:"Ponts F d'interconnexió (exemple: ref. 5074, 75 Ω)",
+ what:"Ponts en forma d'U amb dos connectors F mascle que uneixen connectors veïns de dos mòduls.",
+ purpose:"Passen la TDT de l'únic mòdul que rep l'antena a la resta de mòduls de TDT, i acumulen les sortides de tots els mòduls terrestres (TDT, DAB i FM) cap a una sola sortida MATV.",
+ where:"Davant dels mòduls terrestres, alternant connectors superiors i inferiors (connexió en Z).",
+ connects:"Entrades: mòdul de TDT 1 ↔ 2 ↔ … ↔ 10. Sortides: TDT 1 ↔ … ↔ 10 ↔ DAB ↔ FM. Els extrems lliures porten càrregues de 75 Ω. Els amplificadors de FI no hi estan connectats.",
+ example:"Si falta un pont d'entrada, els canals dels mòduls següents desapareixen de la sortida.",
+ confusion:"L'alternança exacta de connectors és una interpretació del sistema en Z del fabricant: s'ha de verificar al manual d'instal·lació abans de fer servir el model com a pauta de muntatge.",
+ links:['cap_t12_1','cap_t12_10','cap_t12_dab','cap_t12_fm','cap_carregues']});
+RD({id:'cap_dc', fam:'punt', layer:'equips', parent:'capcalera', svc:'all', noRoute:true,
+ name:"Latiguillos d'alimentació de 24 V c.c.",
+ what:"Cables curts de dos conductors amb connector que porten els 24 V de corrent continu de la font a cada mòdul.",
+ purpose:"Alimenten els amplificadors en cadena des de la font.",
+ where:"A la part frontal dels mòduls, a l'alçada dels connectors d'alimentació.",
+ connects:"Font → mòdul → mòdul → …",
+ example:"Si el LED d'un mòdul no s'encén, cal revisar el seu latiguillo d'alimentació i l'interruptor.",
+ confusion:"Són cables d'alimentació, no de senyal: no porten RF.",
+ links:['cap_font','cap_rail'],
+ vt:{B:{connects:"Font 1 → FI 1 → FI 2 → TDT 1 → … → TDT 5. Font 2 → FM → DAB → TDT 10 → … → TDT 6."}, A:{connects:"Font → amplificador de FI 2."}}});
+RD({id:'cap_mix', fam:'punt', layer:'equips', parent:'capcalera',
+ name:"Mesclador de la capçalera",
+ what:"Mesclador passiu de zamac amb connectors F que combina la sortida terrestre (MATV) amb la FI de satèl·lit.",
+ purpose:"Posa en un mateix cable de distribució els senyals terrestres i els de satèl·lit, que viatgen en bandes diferents.",
+ where:"Placa de muntatge, a la part baixa dreta, damunt del tub corrugat de sortida.",
+ connects:"Entrades terrestre i de satèl·lit → sortides cap als cables de distribució.",
+ example:"Cada entrada de satèl·lit deixa passar la tensió de l'LNB des de la sortida, perquè l'LNB es pugui alimentar.",
+ confusion:"Un mesclador no és un repartidor: no divideix un senyal en dos, sinó que ajunta bandes diferents.",
+ links:['cap_jump','xd_rtv','rits_corr_out','rits_equip','cap_fi_2'],
+ vt:{A:{name:"Mesclador MATV‑FI de 2 entrades (exemple: Televes ref. 745210)",
+        what:"Mesclador passiu de zamac amb dues entrades (TERR i SAT) i una sortida, amb connectors F.",
+        connects:"Entrada TERR ← sortida TV (només terrestre) de la centraleta. Entrada SAT ← amplificador de FI 2. Sortida → cable de distribució 2. El cable de distribució 1 surt directament de la sortida TV+SAT de la centraleta.",
+        example:"Pèrdues d'inserció d'exemple: 1,5 dB a la via terrestre i 1,8 dB a la de satèl·lit."},
+     B:{name:"Mesclador TERR + 2 SAT, 3 entrades i 2 sortides (exemple: Televes ref. 740710)",
+        what:"Mesclador passiu de zamac de tres entrades (TERR, SAT A i SAT B) i dues sortides (OUT A i OUT B), amb connectors F.",
+        connects:"Entrada TERR ← sortida MATV dels mòduls (latiguillo). Entrada SAT A ← amplificador de FI 1. Entrada SAT B ← amplificador de FI 2. OUT A (TERR + SAT A) → cable de distribució 1. OUT B (TERR + SAT B) → cable de distribució 2.",
+        example:"Pèrdues d'inserció d'exemple: 5,5 dB a la via terrestre (es reparteix a les dues sortides) i 1 dB a la de satèl·lit."}}});
 RD({id:'cap_jump', fam:'xarxa', layer:'xarxes', parent:'capcalera', tram:'capt', tech:'coax',
- name:'Latiguillo coaxial capçalera → repartidor',
- what:'Tram curt de coaxial blanc amb dos connectors F mascle.',
- purpose:'Porta el senyal ja amplificat i filtrat fins a l\'entrada del repartidor.',
- where:'Placa de muntatge, per sota dels equips.',
- connects:'Sortida de la capçalera → entrada del repartidor.',
- example:'És el primer cable que es desconnecta per mesurar la sortida de la capçalera.',
- confusion:'Encara és dins de la capçalera: la xarxa de distribució comença a les sortides del repartidor.',
- links:['cap_rep','capcalera'],
- vt:{A:{connects:'Sortida TV de la centraleta → entrada del repartidor.'}, B:{connects:'Sortida general (mòdul 4) → entrada del repartidor.'}}});
+ name:"Latiguillos coaxials de la capçalera",
+ what:"Trams curts de coaxial blanc amb dos connectors F mascle.",
+ purpose:"Uneixen les sortides dels amplificadors amb les entrades del mesclador.",
+ where:"Placa de muntatge, per sota dels equips.",
+ connects:"Sortida terrestre → entrada TERR del mesclador. Sortides dels amplificadors de FI → entrades SAT del mesclador.",
+ example:"Són els primers cables que es desconnecten per mesurar el nivell de cada sortida.",
+ confusion:"Encara són dins de la capçalera: la xarxa de distribució comença a les sortides cap als dos cables que baixen per l'edifici.",
+ links:['cap_mix','capcalera'],
+ vt:{A:{connects:"Sortida TV de la centraleta → entrada TERR del mesclador. Sortida de l'amplificador de FI 2 → entrada SAT del mesclador."},
+     B:{connects:"Sortida MATV (mòdul FM) → entrada TERR del mesclador. Amplificador de FI 1 → SAT A. Amplificador de FI 2 → SAT B."}}});
 RD({id:'cap_conF', fam:'punt', layer:'punts', parent:'capcalera',
  name:'Connectors F de compressió (exemple: ref. 4104)',
  what:'Connectors F mascle de compressió amb femella hexagonal, muntats als extrems dels cables coaxials.',
@@ -2607,7 +2593,7 @@ RD({id:'cap_conF', fam:'punt', layer:'punts', parent:'capcalera',
  connects:'Cables coaxials ↔ connectors F femella dels equips.',
  example:'Un connector mal rematat amb la malla tocant el conductor central pot curtcircuitar l\'alimentació d\'antena.',
  confusion:'Al model els connectors estan ampliats ×2, com els equips, perquè es puguin veure.',
- links:['cap_rep','rits_ff']});
+ links:['cap_mix','rits_ff']});
 RD({id:'cap_carregues', fam:'punt', layer:'punts', parent:'capcalera',
  name:'Càrregues de 75 Ω',
  what:'Taps amb una resistència de 75 Ω que tanquen els connectors que no es fan servir.',
@@ -2711,7 +2697,7 @@ RE({id:'rits_placa', name:'Placa d\'identificació del recinte (exemple didàcti
  links:[]});
 
 /* textos actualitzats d'elements existents */
-Object.assign(EL.rits, {
+Object.assign(EL.rits, { svc:'all',
  what:'És el local d\'obra de la coberta on s\'allotgen els equips que adapten i distribueixen els senyals de RTV. Té parets arrebossades, terra que dissipa les càrregues electrostàtiques, porta metàl·lica, safata perimetral, quadre elèctric, bases de corrent, llum normal i d\'emergència, ventilació i anell de terra.',
  purpose:'Hi arriben els cables de les antenes i hi comença la xarxa de distribució de RTV cap a les plantes.',
  where:'Coberta, sobre el nucli d\'escala, a prop de les antenes.',
@@ -2784,6 +2770,82 @@ Object.assign(EL.xd_rtv, {
  canals:['rits_corr_out','canal_principal'], links:['cap_rep','deriv_1','deriv_2','deriv_3','deriv_4']});
 EL.canal_principal.links.push('rits_corr_out');
 
+RD({id:'cab_sat2_int', fam:'xarxa', layer:'xarxes', tram:'capt', tech:'coax', optional:true,
+ name:"Cable coaxial interior de satèl·lit B (PVC blanc)",
+ what:"Tram interior, amb coberta de PVC blanca, que continua el cable de la sortida B de l'LNB des de la seva unió F‑F fins a l'amplificador de FI 2.",
+ purpose:"Porta la FI de satèl·lit B fins a la capçalera.",
+ where:"Interior del RITS, dins del tub corrugat d'entrada, amb els altres cables de captació.",
+ connects:"Unió F‑F del registre d'enllaç → entrada de l'amplificador de FI 2.",
+ example:"Si només falla el satèl·lit al cable de distribució 2, es comprova aquest cable i l'amplificador de FI 2.",
+ confusion:"És un cable independent del de satèl·lit A: cada sortida de l'LNB té el seu.",
+ canals:['rits_corr_in'], links:['rits_ff','cap_fi_2','cab_sat2']});
+def({id:'cab_sat2', fam:'xarxa', layer:'xarxes', svc:'rtv', tram:'capt', tech:'coax', floor:5, zone:'comuna (coberta)', optional:true,
+ name:"Cable coaxial de l'LNB · sortida B (exterior, PE negre)", sigla:'',
+ what:"Segon cable coaxial d'exterior, de polietilè negre, que surt de la sortida B de l'LNB doble. Porta la FI de satèl·lit.",
+ purpose:"Porta la segona FI de satèl·lit fins al RITS, on l'amplifica l'amplificador de FI 2.",
+ where:"Baixa pel braç de l'LNB i pel suport de la parabòlica al costat del cable A, passa per la base de la torre i entra al tub d'enllaç superior.",
+ connects:"LNB (sortida B) → tub d'enllaç superior → registre d'enllaç (unió F‑F) → amplificador de FI 2.",
+ example:"Amb dues sortides de l'LNB, cada cable de distribució pot portar una FI diferent.",
+ confusion:"Els dos cables de l'LNB fan el mateix camí però no porten el mateix senyal: cadascun surt d'una sortida diferent de l'LNB.",
+ canals:['canal_enllac_sup'], links:['lnb','parabola','reg_enllac_sup','rits_ff','cab_sat2_int']});
+Object.assign(EL.cab_sat, {name:"Cable coaxial de l'LNB · sortida A (exterior, PE negre)",
+ what:"Cable coaxial d'exterior, de polietilè negre, que surt de la sortida A de l'LNB doble de la parabòlica. Porta la freqüència intermèdia (FI) de satèl·lit.",
+ connects:"LNB (sortida A) → tub d'enllaç superior → registre d'enllaç (unió F‑F) → primer amplificador de FI de la capçalera.",
+ example:"Si es treu la parabòlica, els amplificadors de FI es queden a la capçalera amb l'entrada lliure, preparats per quan es torni a connectar.",
+ confusion:"La recepció per satèl·lit és opcional, però la capçalera del model ja té els dos amplificadors de FI: cada cable de l'LNB acaba en un d'ells."});
+Object.assign(EL.cab_sat_int, {name:"Cable coaxial interior de satèl·lit A (PVC blanc)",
+ what:"Tram interior, amb coberta de PVC blanca, que continua el cable de la sortida A de l'LNB des de la seva unió F‑F fins al primer amplificador de FI.",
+ purpose:"Porta la FI de satèl·lit A fins a la capçalera.",
+ where:"Interior del RITS, dins del tub corrugat d'entrada, amb els altres cables de captació.",
+ connects:"Unió F‑F del registre d'enllaç → primer amplificador de FI (integrat a la centraleta o mòdul de FI 1, segons la capçalera).",
+ example:"Si només falla el satèl·lit al cable de distribució 1, es comprova aquest cable i el primer amplificador de FI.",
+ confusion:"Ja no queda en reserva: va connectat al primer amplificador de FI.",
+ links:['rits_ff','cab_sat','cap_avant','cap_fi_1'],
+ vt:{A:{connects:"Unió F‑F del registre d'enllaç → entrada SAT de la centraleta, que té l'amplificador de FI integrat."}, B:{connects:"Unió F‑F del registre d'enllaç → entrada de l'amplificador de FI 1."}}});
+Object.assign(EL.lnb, {name:"LNB doble (convertidor de baix soroll, dues sortides)",
+ what:"Capçal amb botzina i cos de plàstic situat al focus de la parabòlica, mirant cap al reflector, amb dues sortides F independents (A i B).",
+ connects:"Reflector → LNB → sortida A (cable de satèl·lit A) i sortida B (cable de satèl·lit B).",
+ confusion:"Cada sortida rep l'alimentació pel seu cable des de l'amplificador de FI corresponent de la capçalera.", links:['parabola','cab_sat','cab_sat2']});
+EL.parabola.nets=['cab_sat','cab_sat2']; EL.parabola.connects="Reflector → LNB doble → dos cables coaxials (sortides A i B) → RITS.";
+EL.torre.connects="Suporta el màstil (a la part superior), la parabòlica (en un lateral) i els cinc cables coaxials, subjectats amb brides a una de les cares."; EL.torre.links.push('cab_sat2');
+Object.assign(EL.cab_capt, {confusion:"Cada sortida d'antena té el seu propi cable fins al RITS: els cinc coaxials comparteixen el tub d'enllaç, però no s'uneixen fins a la capçalera."});
+Object.assign(EL.canal_enllac_sup, {where:"Coberta: des del peu de la torre d'antenes, subjectat al terra amb suports i a la paret del RITS amb brides. Hi passen els cinc coaxials de captació: TDT, DAB, FM i les dues sortides de l'LNB.",
+ connects:"Torre d'antenes → passamurs i registre d'enllaç superior → RITS. Hi passen cinc coaxials independents.", nets:['cab_capt','cab_dab','cab_fm','cab_sat','cab_sat2']});
+Object.assign(EL.reg_enllac_sup, {what:"Passamurs encastat a la paret lateral del RITS i caixa de registre interior amb tapa, on es fan les cinc unions F‑F entre els cables exteriors i els interiors.",
+ connects:"Tub d'enllaç superior → passamurs → registre (cinc unions F‑F: TDT, DAB, FM, SAT A i SAT B) → tub corrugat d'entrada.", nets:['cab_capt','cab_dab','cab_fm','cab_sat','cab_sat2']});
+Object.assign(EL.rits_ff, {name:"Unions F‑F (transició exterior‑interior, 5)",
+ what:"Cinc adaptadors F femella‑femella, un per cable (TDT, DAB, FM, SAT A i SAT B). A cadascun s'hi rosquen dos connectors F mascle: el del cable exterior negre i el del cable interior blanc.",
+ connects:"Per a cada cable: exterior (PE negre) ↔ interior (PVC blanc). Els cinc senyals continuen separats."});
+EL.rits_ff.links.push('cab_sat2','cab_sat2_int');
+EL.rits_corr_in.nets.push('cab_sat2_int');
+Object.assign(EL.rits_corr_out, {what:"Tub corrugat negre que recull els dos cables de distribució a les sortides de la capçalera i els porta fins al tub de RTV de la canalització principal.",
+ where:"Interior del RITS: de sota del mesclador, per la part baixa de la paret del fons, fins al pas del forjat.",
+ connects:"Sortides de la capçalera (mesclador i, amb centraleta, també la sortida TV+SAT) → tub de RTV de la canalització principal. Allotja els dos cables de distribució.",
+ example:"Amb «Destacar sortides de distribució» es ressalten les sortides de la capçalera, aquest tub i els dos cables que baixen per l'edifici.", links:['cap_mix','canal_principal']});
+Object.assign(EL.rits_suport, {connects:"Suporta l'equip de capçalera, els amplificadors de FI i el mesclador. Està connectada a la barra de terra.", links:['capcalera','cap_mix','rits_equip']});
+Object.assign(EL.rits_equip, {where:"Des de la barra col·lectora fins a la safata, la placa, el mesclador, el quadre i el borne de l'equip de capçalera.",
+ connects:"Barra col·lectora ↔ safata, placa de muntatge, mesclador, quadre i capçalera.",
+ example:"El cargol de terra del mesclador es connecta a la barra perquè la malla dels coaxials quedi al mateix potencial.", links:['rits_terra','rits_safata','rits_suport','cap_mix']});
+EL.rits_terra.connects=EL.rits_terra.connects.replace('el repartidor','el mesclador');
+Object.assign(EL.capcalera, {
+ what:"Conjunt d'equips que adapten els senyals de les antenes abans de distribuir-los: amplificació, filtratge, alimentació i mescla de senyals terrestres i de satèl·lit.",
+ connects:"Entrades: cables interiors de TDT, DAB, FM i les dues sortides de l'LNB (SAT A i SAT B). Hi ha dos amplificadors de FI encara que no hi hagi parabòlica. Sortides: dos cables de distribució, cadascun amb el senyal terrestre i una FI de satèl·lit.",
+ example:"Prova a canviar el «Tipus de capçalera» al panell del RITS: el model reconstrueix els equips i les connexions.",
+ nets:['cab_capt_int','cab_dab_int','cab_fm_int','cab_sat_int','cab_sat2_int','cap_jump'], links:['cap_mix','rits_suport','rits'],
+ vt:{A:{name:"Equip de capçalera de RTV · centraleta programable amb FI", what:"Capçalera feta amb una centraleta programable amb FI integrada (exemple: Televes AVANT 12 PRO SAT, ref. 532204), un segon amplificador de FI (T12, ref. 508012) amb la seva font i un mesclador MATV‑FI (ref. 745210). Cable 1: sortida TV+SAT de la centraleta. Cable 2: sortida TV de la centraleta + FI del segon amplificador, pel mesclador."},
+     B:{name:"Equip de capçalera de RTV · amplificadors monocanal", what:"Capçalera modular T12: deu amplificadors monocanal de TDT (una sola entrada des de l'antena UHF i ponts F en Z), un mòdul de DAB i un d'FM amb la seva antena cadascun, dos amplificadors de FI (ref. 508012), dues fonts de 24 V i un mesclador TERR + 2 SAT (ref. 740710). Cable 1: TERR + SAT A. Cable 2: TERR + SAT B."}}});
+Object.assign(EL.xd_rtv, {what:"Són els dos cables coaxials que surten de la capçalera, al RITS, i baixen per la canalització principal passant per tots els registres secundaris. Cadascun porta els senyals terrestres i una FI de satèl·lit.",
+ purpose:"Reparteix el senyal de ràdio i televisió per totes les plantes. Comença a les sortides de la capçalera i acaba als derivadors.",
+ connects:"Uneix les dues sortides de la capçalera amb els derivadors de cada planta. El darrer derivador de cada cable té la sortida final tancada amb una càrrega.",
+ links:['cap_mix','deriv_1','deriv_2','deriv_3','deriv_4']});
+EL.rits.connects=EL.rits.connects.replace('capçalera i repartidor','capçalera (amplificadors, amplificadors de FI i mesclador)');
+EL.cab_dab_int.vt.B={connects:"Unió F‑F del registre d'enllaç → entrada del mòdul amplificador de DAB (banda III)."};
+EL.cab_fm_int.vt.B={connects:"Unió F‑F del registre d'enllaç → entrada del mòdul amplificador d'FM."};
+EL.cab_capt_int.vt.B={connects:"Unió F‑F del registre d'enllaç → filtre LTE/5G → entrada del mòdul de TDT 1, l'única entrada de TDT de la capçalera."};
+EL.cap_avant.vt={A:{}};
+EL.cap_carregues.vt={A:{where:"Entrades 3 i 4 de la centraleta (amb bloqueig de CC, ref. 4061).", connects:"Entrades lliures de la centraleta."},
+ B:{where:"Entrada lliure del mòdul de TDT 10, de la DAB i de l'FM (amb bloqueig de CC, ref. 4061) i sortida lliure del mòdul de TDT 1 (ref. 4058).", connects:"Extrems lliures de la cadena de ponts en Z."}};
+
 /* contenidors inversos */
 for (const e of Object.values(EL)) e.children = [];
 for (const e of Object.values(EL)) if (e.parent) EL[e.parent].children.push(e.id);
@@ -2803,40 +2865,6 @@ const CONCEPTS = [
  ['PAU, ONT i encaminador', 'El <b>PAU</b> és la frontera entre la xarxa comuna i la interior. L\'<b>ONT</b> converteix la llum de la fibra en senyal elèctric. L\'<b>encaminador</b> crea la xarxa local. ONT i encaminador són equips associats al servei de l\'usuari, no part de la ICT comuna.']
 ];
 
-/* ---------------- Visites guiades ---------------- */
-const TOURS = [
- {title:'1. Entrada dels operadors i RITI', steps:[
-  {t:'L\'arqueta d\'entrada', x:'Els operadors arriben per sota la vorera fins a l\'arqueta d\'entrada. Aquí comença la ICT de l\'edifici.', focus:'arqueta', hl:['arqueta','xal_fo','xal_pt'], open:['arqueta']},
-  {t:'Canalització externa', x:'Des de l\'arqueta, uns tubs soterrats porten els cables fins a la façana. Fixa\'t que el tub (gris translúcid) i els cables (de colors) són coses diferents.', focus:'canal_ext', hl:['canal_ext','xal_fo','xal_pt']},
-  {t:'Punt d\'entrada general', x:'És l\'accés físic: el lloc on els tubs travessen la façana. No hi ha cap connexió.', focus:'peg', hl:['peg']},
-  {t:'Enllaç inferior', x:'Dins de l\'edifici, la canalització d\'enllaç inferior porta els cables fins al RITI, amb un registre d\'enllaç per facilitar l\'estesa.', focus:'canal_enllac_inf', hl:['canal_enllac_inf','reg_enllac_inf']},
-  {t:'El RITI', x:'El RITI és el local. A dins hi ha els registres principals, i dins dels registres, els punts d\'interconnexió on l\'operador connecta la seva xarxa a la de l\'edifici.', focus:'riti', hl:['riti','rp_fo','rp_pt'], open:['riti','rp_fo','rp_pt']},
-  {t:'Punt d\'interconnexió', x:'Aquí acaba la xarxa d\'alimentació (taronja) i comença la xarxa de distribució (blava). És la frontera de responsabilitats entre operador i propietat.', focus:'pi_fo', hl:['pi_fo','pi_pt','xal_fo','xd_fo'], open:['riti','rp_fo','rp_pt']}
- ]},
- {title:'2. Captació de RTV i RITS', steps:[
-  {t:'Les antenes de la coberta', x:'La RTV no entra pel carrer: es capta a la coberta. Una torre de 6 m, arriostrada amb tres tirants, sosté el màstil amb l\'antena TDT, la DAB i el dipol FM, i al lateral hi ha la parabòlica amb l\'LNB. Cada antena té el seu cable coaxial negre (polietilè resistent als raigs UV).', focus:'torre', frameAll:true, hl:['torre','mastil','tirants','antena','antena_dab','antena_fm','parabola','lnb','cab_capt','cab_dab','cab_fm','cab_sat']},
-  {t:'Enllaç superior', x:'El cable entra en un tub corrugat per una boca girada cap avall perquè no hi entri l\'aigua. El tub recorre la coberta i travessa la paret del RITS per un passamurs.', focus:'canal_enllac_sup', hl:['canal_enllac_sup','cab_capt','cab_dab','cab_fm','cab_sat','reg_enllac_sup']},
-  {t:'El RITS per dins', x:'S\'ha retirat el sostre per veure l\'interior: parets arrebossades, safata perimetral, tub corrugat d\'entrada, placa de muntatge amb la capçalera i tub de sortida cap a la canalització principal. Davant de la placa queda espai lliure per treballar.', focus:'rits', hl:['rits_safata','rits_corr_in','rits_corr_out','rits_suport'], rits:{roof:true, view:'ritsIn'}},
-  {t:'Equip de capçalera', x:'La capçalera amplifica i filtra els senyals. Un latiguillo la uneix amb el repartidor de 2 sortides, on comencen els dos cables de distribució. Pots canviar el tipus de capçalera al panell «Configuració del RITS».', focus:'capcalera', hl:['cab_capt_int','cap_jump','cap_rep','xd_rtv'], rits:{roof:true, view:'ritsIn'}},
-  {t:'Alimentació, terra i llum', x:'El quadre de protecció és a prop de la porta i té circuits separats per a la llum, les bases de servei i la capçalera. L\'anell de terra verd i groc recorre tot el recinte i acaba a la barra col·lectora de coure.', focus:'rits_quadre', hl:['rits_quadre','rits_bases_cap','rits_bases_srv','rits_terra','rits_llum','rits_tub_elec'], rits:{roof:true, light:true, view:'ritsElec'}}
- ]},
- {title:'3. Distribució vertical i dispersió a una planta', steps:[
-  {t:'Canalització principal', x:'Quatre tubs verticals uneixen RITI, registres secundaris i RITS: RTV, fibra, parells trenats i reserva.', focus:'canal_principal', hl:['canal_principal'], view:'complet'},
-  {t:'Xarxes de distribució', x:'Per dins hi ha les xarxes de distribució (blau): coaxials de RTV, cable multifibra i cables de parells trenats.', focus:'canal_principal', hl:['xd_rtv','xd_fo','xd_pt']},
-  {t:'Registre secundari de la 2a planta', x:'A cada planta hi ha un registre secundari. Obre\'l per veure què conté.', focus:'rs_2', hl:['rs_2'], open:['rs_2']},
-  {t:'Punts de distribució', x:'Derivadors de RTV i caixa de segregació de fibra són punts de distribució. Els parells trenats hi passen sense connexió (només bucle de reserva).', focus:'rs_2', hl:['deriv_2','cseg_2','bucle_2'], open:['rs_2']},
-  {t:'Canalització secundària', x:'Des del registre secundari, cada habitatge rep tres tubs que pugen fins al sostre del distribuïdor i porten els cables de dispersió (verd) fins al seu registre de terminació de xarxa. A cada planta n\'hi ha quatre grups: A, B, C i D.', focus:'cs_2A', hl:['cs_2A','cs_2B','cs_2C','cs_2D','xs_rtv_2A','xs_fo_2A','xs_pt_2A','xs_rtv_2D','xs_fo_2D','xs_pt_2D']}
- ]},
- {title:'4. Registre de terminació de xarxa i xarxa interior', steps:[
-  {t:'Registre de terminació de xarxa', x:'Al rebedor del 2n A hi ha el registre de terminació de xarxa: la caixa on acaba la instal·lació comuna. Al costat hi ha el registre de presa configurable.', focus:'rtr_2A', hl:['rtr_2A','rconf_2A'], mode:'habitatge', unit:'2A'},
-  {t:'Els PAU', x:'Dins del registre hi ha un PAU per servei: RTV (amb el repartidor), roseta òptica i roseta RJ45 amb multiplexor. També hi ha el distribuïdor coaxial de TBA.', focus:'rtr_2A', hl:['pau_rtv_2A','pau_fo_2A','pau_pt_2A','rep_rtv_2A','div_tba_2A'], open:['rtr_2A'], mode:'habitatge', unit:'2A'},
-  {t:'Xarxa interior en estrella', x:'Des del registre surten catorze tubs independents, un per registre de presa: quatre de RTV, sis de parells trenats, dos de coaxial de TBA, un de fibra òptica i un cap al registre configurable.', focus:'ci_2A', hl:['ci_2A','xi_rtv_2A','xi_dat_2A','xi_tba_2A','xi_fo_2A'], mode:'habitatge', unit:'2A'},
-  {t:'Preses de la sala d\'estar', x:'La sala és l\'estància principal: una presa de RTV, una de TBA coaxial, dues de parells trenats (una amb BAT doble) i la presa de fibra òptica, a menys de 50 cm de la BAT doble.', focus:'rp_fo_sala_2A', hl:['rp_rtv_sala_2A','bat_rtv_sala_2A','rp_tba_sala_2A','bat_tba_sala_2A','rp_dat_sala_2A','bat_dat_sala_2A','rp_dat2_sala_2A','bat_dat2_sala_2A','rp_fo_sala_2A','bat_fo_sala_2A'], frameAll:true, mode:'habitatge', unit:'2A'},
-  {t:'ONT i encaminador a la sala', x:'Gràcies a la presa òptica, l\'ONT i l\'encaminador són a la sala. Són equips de l\'usuari: converteixen la llum en dades elèctriques i creen la xarxa local. Tornen dades al registre per la BAT doble.', focus:'ont_2A', hl:['ont_2A','router_2A','bat_fo_sala_2A','bat_dat_sala_2A'], mode:'habitatge', unit:'2A'},
-  {t:'Resta d\'estàncies', x:'El dormitori 1 (l\'altra estància principal) té RTV, TBA i dues preses de parells trenats, una amb BAT doble. La cuina i el dormitori 2 tenen una presa de RTV i una de parells trenats. El bany no en té.', focus:'rp_dat_d1_2A', hl:['rp_rtv_d1_2A','rp_tba_d1_2A','rp_dat_d1_2A','rp_dat2_d1_2A','rp_rtv_cuina_2A','rp_dat_cuina_2A','rp_rtv_d2_2A','rp_dat_d2_2A'], frameAll:true, mode:'habitatge', unit:'2A'}
- ]}
-];
-
 /* ---------------- Activitats ---------------- */
 const QUIZ = [
  {type:'pick', q:'Localitza el RITI al model o a la llista d\'elements.', ok:id=>id==='riti',
@@ -2846,7 +2874,7 @@ const QUIZ = [
   hint:id=> /^xs/.test(id) ? 'Has triat els cables de dispersió (xarxa). La canalització és el tub que els allotja.' : id==='canal_principal' ? 'Aquesta és la canalització principal (vertical). La secundària va horitzontal fins als habitatges.' : /^ci_/.test(id) ? 'Aquesta és la canalització interior d\'usuari. La secundària va del registre secundari al registre de terminació de xarxa.' : 'Busca els tubs horitzontals que surten del registre secundari cap als habitatges.',
   good:'Correcte! La canalització secundària va del registre secundari al registre de terminació de xarxa.'},
  {type:'pick', q:'Troba un PAU de l\'habitatge 2n A.', ok:id=>/^pau_(rtv|fo|pt)_2A$/.test(id),
-  hint:id=> id==='rtr_2A' ? 'Has triat el registre de terminació de xarxa, que és la caixa. El PAU és a dins: obre\'l amb el botó «Obrir» del panell.' : /ont|router/.test(id) ? 'Aquest és un equip de l\'usuari, no el PAU. El PAU és dins del registre de terminació de xarxa.' : 'Ves a la vista «Interior de l\'habitatge», obre el registre del rebedor del 2n A i tria un dels punts que hi ha a dins.',
+  hint:id=> id==='rtr_2A' ? 'Has triat el registre de terminació de xarxa, que és la caixa. El PAU és a dins: obre\'l amb el botó «Obrir» del panell.' : /ont|router/.test(id) ? 'Aquest és un equip de l\'usuari, no el PAU. El PAU és dins del registre de terminació de xarxa.' : 'Obre el menú «Vistes», tria la 2a planta i la porta A i prem «Veure l\'habitatge». Després obre el registre del rebedor i tria un dels punts que hi ha a dins.',
   good:'Correcte! Has trobat un PAU, dins del registre de terminació de xarxa.'},
  {type:'mcq', q:'Què és una BAT i on s\'allotja?', opts:[
    'Una caixa encastada que allotja els cables de l\'habitatge.',
@@ -2889,12 +2917,10 @@ const SIMPLIFICATIONS = [
  'Els envans interiors es mostren a mitja alçada per veure l\'interior. El RITI es representa tancat amb dues portes abatibles, com un armari. El RITS és un recinte d\'obra amb porta metàl·lica; el sostre i la paret frontal es poden retirar des del panell «Configuració del RITS».',
  'RITS: el recinte és a escala real, però els equips, connectors i cables de dins estan ampliats ×2 (ampliació didàctica). Els equips són exemples comercials documentats (Televes), no una recomanació; les formes dels connectors i les posicions dels ports són aproximades.',
  'RITS: els colors dels cables i tubs són els d\'una instal·lació real habitual (exterior PE negre, interior PVC blanc, corrugat negre, tub elèctric gris); és una tria de representació, no una obligació. Fora del RITS els cables tornen al codi de colors didàctic de la llegenda.',
- 'RITS: els canals dels amplificadors modulars (27, 34, 40 i 42‑47) són d\'exemple. L\'alternança dels ponts F en Z és una interpretació del sistema del fabricant i s\'ha de verificar al manual d\'instal·lació.',
+ 'RITS: els canals dels amplificadors monocanal (23, 26, 27, 29, 32, 34, 36, 38, 40 i 45) són d\'exemple. L\'alternança dels ponts F en Z és una interpretació del sistema del fabricant i s\'ha de verificar al manual d\'instal·lació.',
  'RITS: la posició de l\'anell de terra, del quadre i de les bases és una decisió del model. No s\'han verificat les dimensions mínimes, el nivell d\'il·luminació (lux), la renovació d\'aire ni la resistència de terra: el model no certifica el compliment del reglament.',
- 'Les partícules del recorregut són una ajuda visual: la seva velocitat no representa la velocitat real del senyal.',
  'Edifici: soterrani d\'aparcament (16 places), planta baixa amb vestíbul, RITI, local de serveis i botiga, quatre plantes de quatre habitatges (A, B, C i D) i coberta amb el RITS. La distribució s\'inspira en tipologies habituals d\'edificis plurifamiliars amb nucli d\'escala i ascensor centrals; és orientativa i no és un projecte arquitectònic ni comprova el CTE, l\'accessibilitat ni la normativa urbanística.',
- 'L\'interior de tots els habitatges té la mateixa ICT. El 2n A té més mobiliari per fer-lo més reconeixible; la resta en tenen una versió bàsica. L\'ascensor es representa amb el pou, les portes de replà i la cabina, que apareix a la planta on es crida; no se\'n simula el moviment.',
- 'En la vista en primera persona, les col·lisions són aproximades: s\'eviten parets, envans i mobles, i es pot pujar per l\'escala i la rampa. No és un simulador de recorreguts d\'evacuació.'
+ 'L\'interior de tots els habitatges té la mateixa ICT. El 2n A té més mobiliari per fer-lo més reconeixible; la resta en tenen una versió bàsica. L\'ascensor es representa amb el pou, les portes de replà i la cabina, que apareix a la planta on es crida; no se\'n simula el moviment.'
 ];
 
 </script>
@@ -2909,7 +2935,7 @@ const V = (x,y,z) => new THREE.Vector3(x,y,z);
 const yb = f => 3*f;
 
 /* ---------- Estat de la interfície ---------- */
-const S0 = () => ({learn:'free', mode:'oberta', floor:2, unitSide:'A', layers:{facana:false,estructura:true,recintes:true,registres:true,canalitzacions:true,xarxes:true,punts:true,equips:true,etiquetes:true},
+const S0 = () => ({learn:'free', mode:'oberta', floor:2, unitSide:'A', layers:{facana:true,estructura:true,recintes:true,registres:true,canalitzacions:true,xarxes:true,punts:true,equips:true,etiquetes:true},
   svc:'all', colorBy:'tram', allLabels:false, tubesSee:true, openRec:false, openReg:false, sat:true, transp:0.25,
   reduced: window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, lowq:false,
   selected:null, hover:null, related:new Set(), openOv:new Map(), leaf:new Map(), openCanal:new Set(),
@@ -3106,7 +3132,7 @@ function buildICT(){
     const rx=RX.rtv+OFF[c][0], rz=RZ+OFF[c][1], dx=DER[c];
     const inRS = y => [[rx,y+2.0,rz],[dx,y+1.85,-4.6],[dx,y+1.66,-4.62]];
     const outRS= y => [[dx,y+1.44,-4.62],[dx,y+1.2,-4.6],[rx,y+1.0,rz]];
-    cable(`xd_rtv_${c}_4`,'xd_rtv',[RITS_EXIT[c],[rx,14.6,rz],...inRS(12)],{from:'cap_rep', to:'deriv_4', via:'canal_principal'});
+    cable(`xd_rtv_${c}_4`,'xd_rtv',[RITS_EXIT[c],[rx,14.6,rz],...inRS(12)],{from:'cap_mix', to:'deriv_4', via:'canal_principal'});
     for(const f of [3,2,1]) cable(`xd_rtv_${c}_${f}`,'xd_rtv',[...outRS(yb(f+1)),...inRS(yb(f))],{from:`deriv_${f+1}`, to:`deriv_${f}`, via:'canal_principal'});
   }
   /* --- Xarxa de distribució de fibra (de baix a dalt) --- */
@@ -3305,22 +3331,19 @@ function applyVisibility(){
 }
 /* colors, opacitats i ressaltats */
 function applyMaterials(){
-  const sel=S.selected, rel=S.related, rt=RT.active ? RT.cur : null;
+  const rel=S.related;
   for(const m of G.meshes){
     const d=m.userData, mat=m.material;
     if((d.cable || d.cableLike) && !d.fixedColor){ mat.color.setHex(cableColor(d.tram,d.tech)); }
-    if(d.corr){ let op=S.ritsXray?0.2:1; if(S.ritsXray && d.el===sel) op=0.32; const tr=op<1; if(mat.transparent!==tr){ mat.transparent=tr; mat.depthWrite=!tr; mat.needsUpdate=true; } mat.opacity=op; }
+    if(d.corr){ const op=S.ritsXray?0.2:1; const tr=op<1; if(mat.transparent!==tr){ mat.transparent=tr; mat.depthWrite=!tr; mat.needsUpdate=true; } mat.opacity=op; }
     else if(d.canal){
       let op = S.tubesSee ? 0.3 : 1; if(S.openCanal.has(d.el)) op=0.07;
-      if(d.el===sel) op=Math.max(op,0.55);
       mat.opacity=op; mat.transparent=op<1; mat.depthWrite=op>=1; mat.needsUpdate=true;
     }
     let em=0x000000;
-    const inRoute = rt && ((d.cable && rt.cables.has(d.cable)) || (!d.cable && rt.els.has(d.el)));
-    if(d.el===sel) em=0x8A5600;
-    else if(inRoute) em=0x7A4A00;
-    else if(rel.has(d.el)) em=0x00456E;
-    else if(d.el===S.hover) em=0x3A3A3A;
+    /* la selecció no canvia el color: només es marca amb el contorn taronja */
+    if(rel.has(d.el)) em=0x00456E;
+    else if(d.el===S.hover && d.el!==S.selected) em=0x3A3A3A;
     if(!mat.emissive) continue;
     mat.emissive.setHex(em); if(d.std && em) mat.emissive.multiplyScalar(0.75);
     if(d.glow){ if(!em && S.ritsLight){ mat.emissive.setHex(0xFFF1D6); mat.emissiveIntensity=1.25; } else mat.emissiveIntensity=1; }
@@ -3368,7 +3391,6 @@ function flyTo(p,t){
 }
 /* vistes predefinides (menú «Vistes»): cada canvi es desa a l'historial de «Tornar» */
 function setView(name, opt={}){
-  if(POV.on) povExit();
   if(!opt.noPush) navPush();
   if(name==='ritsIn'){ ritsInterior(); return; }
   if(name==='complet'){ S.mode='oberta'; S.layers.facana=true; S.layers.estructura=true; syncControls(); applyVisibility(); name='building'; }
@@ -3385,6 +3407,8 @@ function setView(name, opt={}){
 }
 function frameEl(id){
   if(!renderer) return;
+  /* element únic fora del RITS: vista sense obstacles (la mateixa que el clic a l'escena) */
+  if(!Array.isArray(id) && !inRits(id)){ const v=bestView(id); if(v){ flyTo(v.p,v.t); return; } }
   let b;
   if(Array.isArray(id)){ b=new THREE.Box3(); for(const k of id){ const bb=elBox(k)||elBox(k,false); if(bb) b.union(bb); } if(b.isEmpty()) return; id=id[0]; }
   else { b=elBox(id) || elBox(id,false); if(!b) return; }
@@ -3395,7 +3419,7 @@ function frameEl(id){
   if(e.vertical) elev=0.15;
   const back = e.unit ? ZM(UNIT(e.unit)) : (c.z<-5.0 && c.y<15 && c.y>-0.5);
   let dir=V(THREE.MathUtils.clamp(c.x/9,-0.55,0.55), elev, back ? -1 : 1).normalize();   // habitatges C i D: des de la façana posterior
-  let dist=THREE.MathUtils.clamp(r*2.6+1.1, 1.8, 45);
+  let dist=THREE.MathUtils.clamp((r*2.6+1.1)/visFrac(), 1.8, 45);
   if(inRits(id) && r<1.6 && c.x>-0.4 && c.x<3.4 && c.z<-2.4 && c.y>15){   // dins del RITS: des de l'espai de treball
     dir = c.x>3.05 ? V(-1,0.4,0.25) : c.x<-0.1 ? V(1,0.4,0.25) : V(THREE.MathUtils.clamp((1.5-c.x)/4,-0.3,0.3),0.42,1);
     dir.normalize(); dist=THREE.MathUtils.clamp(r*2.4+0.45, 0.55, 2.0);
@@ -3414,8 +3438,8 @@ function ensureVisible(id){
   if(e.optional && !S.sat){ S.sat=true; ch=true; }
   if(S.svc!=='all' && e.svc!=='all' && e.svc!==S.svc){ S.svc='all'; ch=true; }
   if(e.fam==='xarxa' && !S.tubesSee){ S.tubesSee=true; ch=true; }
-  const outside=['antena','antena_dab','antena_fm','torre','mastil','tirants','lnb','cab_dab','cab_fm','parabola','arqueta','canal_ext','peg','cab_capt','cab_sat','canal_enllac_sup','reg_enllac_sup','xal_fo','xal_pt','rits'];
-  if(S.layers.facana && !POV.on && !outside.includes(id) && S.mode!=='ict'){ S.layers.facana=false; ch=true; }
+  const outside=['antena','antena_dab','antena_fm','torre','mastil','tirants','lnb','cab_dab','cab_fm','parabola','arqueta','canal_ext','peg','cab_capt','cab_sat','cab_sat2','canal_enllac_sup','reg_enllac_sup','xal_fo','xal_pt','rits'];
+  if(S.layers.facana && !outside.includes(id) && S.mode!=='ict'){ S.layers.facana=false; ch=true; }
   if(S.mode==='planta' && !elAllowedByMode(e)){ if(e.floor!=null){ S.floor=e.floor; } else S.mode='oberta'; ch=true; }
   if(S.mode==='habitatge' && !elAllowedByMode(e)){ if(e.unit){ const u=UNIT(e.unit); S.floor=u.f; S.unitSide=u.s; } else S.mode='oberta'; ch=true; }
   if(e.variant && e.variant!==S.cap) setCap(e.variant);
@@ -3432,10 +3456,11 @@ function select(id, opts={}){
   if(id && opts.fromList){ ensureVisible(id); }
   applyMaterials(); renderInfo(); renderList(); updateStatus(); needLabels=true;
   $('#vCenter').disabled = !id || EL[id].noModel || !renderer;
+  /* primer s'obre la fitxa: l'enquadrament ja té en compte l'espai que ocupa */
+  if(id && opts.openPanel!==false) openDrawer('right',true);
+  if(!id && !Q.active && !opts.keepPanel) openDrawer('right',false);
   if(id && opts.fromList && !EL[id].noModel) frameEl(id);
   if(id && Q.active) quizPick(id);
-  if(id && opts.openPanel!==false && !(POV.on && innerWidth<=760)) openDrawer('right',true);
-  if(!id && !T.active && !Q.active && !opts.keepPanel) openDrawer('right',false);
 }
 function relatedOf(id){
   const e=EL[id], s=new Set();
@@ -3460,7 +3485,9 @@ function pickAt(cx,cy){
   const r=renderer.domElement.getBoundingClientRect();
   mouse.set(((cx-r.left)/r.width)*2-1, -((cy-r.top)/r.height)*2+1);
   ray.setFromCamera(mouse,camera);
-  const hits=ray.intersectObjects(G.pick,false).filter(h=>shown(h.object));
+  let hits=ray.intersectObjects(G.pick,false).filter(h=>shown(h.object));
+  const fac=G.arch.filter(m=>m.visible && m.userData.facade && m.material!==AM.glass && m.material!==AM.glassRail);
+  if(fac.length){ const fh=ray.intersectObjects(fac,false)[0]; if(fh) hits=hits.filter(h=>h.distance<fh.distance+0.02); }
   const cand=[];
   for(const h of hits){
     const m = h.object.userData.proxy ? h.object.parent : h.object, d=m.userData;
@@ -3502,10 +3529,9 @@ function leafAt(cx,cy){
   if(!h || !h.object.userData.leafKey) return h ? {wall:true, dist:h.distance} : null;
   return {leaf:LEAF_BY_KEY[h.object.userData.leafKey], dist:h.distance};
 }
-function onPointerDown(ev){ down={x:ev.clientX,y:ev.clientY,t:performance.now(),moved:false,btn:ev.button}; if(POV.on) povPointerDown(ev); }
+function onPointerDown(ev){ down={x:ev.clientX,y:ev.clientY,t:performance.now(),moved:false,btn:ev.button}; }
 function onPointerMove(ev){
   if(down && Math.hypot(ev.clientX-down.x,ev.clientY-down.y)>6) down.moved=true;
-  if(POV.on && down) povPointerMove(ev);
   if(ev.pointerType==='touch') return;
   hoverQueued={x:ev.clientX,y:ev.clientY};
 }
@@ -3524,7 +3550,7 @@ function singleAction(x,y){
   const id=pickAt(x,y), lh=leafAt(x,y);
   if(lh && lh.leaf && lh.leaf.arch && (!id || lh.dist < pickAt.dist-0.05)){ showLeafChip(lh.leaf); return; }
   hideLeafChip();
-  if(id){ if(NAV.on && !POV.on && !Q.active) navTo(id); else select(id); }
+  if(id){ if(NAV.on && !Q.active) navTo(id); else select(id); }
   else if(!Q.active) select(null);
 }
 /* doble clic: obre o tanca la fulla que hi ha sota el cursor */
@@ -3553,10 +3579,10 @@ function doHover(){
 function setHover(id,x,y){
   const tip=$('#tip'), cv=renderer.domElement;
   if(id!==S.hover){ S.hover=id; applyMaterials(); }
-  if(!id){ tip.style.display='none'; cv.style.cursor=POV.on?'crosshair':'grab'; return; }
+  if(!id){ tip.style.display='none'; cv.style.cursor='grab'; return; }
   cv.style.cursor='pointer';
   const r=$('#view3d').getBoundingClientRect(), e=EL[id], oid=e.openOf||id;
-  const act = POV.on ? 'clic per veure la fitxa' : NAV.on ? 'clic per apropar-t\'hi' : 'clic per seleccionar';
+  const act = NAV.on ? 'clic per apropar-t\'hi' : 'clic per seleccionar';
   tip.innerHTML=`${famIcon(e)} ${esc(e.sigla? e.sigla+' · ':'')}${esc(shortName(e))} <b>· ${act}${LEAF_OF[oid]?' · doble clic per obrir o tancar':''}</b>`;
   tip.style.display='block';
   const tx=Math.min(x-r.left+14, r.width-tip.offsetWidth-6), ty=Math.max(y-r.top-30,4);
@@ -3605,7 +3631,7 @@ function rebuildLabels(){
   }
   curLabels=want;
   for(const r of refLabelEls) r.el.remove(); refLabelEls=[];
-  if(S.layers.etiquetes && !POV.on) for(const r of G.refLabels){
+  if(S.layers.etiquetes) for(const r of G.refLabels){
     let show=false;
     if(r.cls==='room') show = (S.mode==='habitatge' && curUnit()===r.unit) || (S.mode==='planta' && S.floor===r.floor && S.allLabels);
     else if(r.unitLbl) show = (S.mode==='planta' && r.floor===S.floor) || (S.mode==='habitatge' && r.unit===curUnit()) || (S.allLabels && S.mode==='oberta');
@@ -3640,16 +3666,18 @@ function placeLabels(){
    LLISTA LATERAL
    =================================================================== */
 const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* text normalitzat per a la cerca: minúscules i sense accents ni punt volat (accés = acces, instal·lació = instalacio) */
+const norm = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[·.]/g,'').toLowerCase();
 const famOpen = {xarxa:true, canal:true, recinte:true, punt:true};
 function listOrder(e){ return (e.floor==null? (e.noModel?9:0.5) : e.floor===5? -1 : e.floor) * 100 + (e.unit?50:0); }
 function renderList(){
-  const q=($('#search').value||'').trim().toLowerCase(), fl=$('#fltFloor').value;
+  const q=norm(($('#search').value||'').trim()), fl=$('#fltFloor').value;
   const box=$('#list'); let h='';
   for(const [fk,fam] of Object.entries(FAMILIES)){
     let items=Object.values(EL).filter(e=>e.fam===fk && !ritsBad(e.id));
     if(fl==='none') items=items.filter(e=>e.noModel);
     else if(fl!=='any') items=items.filter(e=>!e.noModel && (e.floor===+fl || (e.vertical)));
-    if(q) items=items.filter(e=>(e.name+' '+(e.sigla||'')).toLowerCase().includes(q));
+    if(q){ const words=q.split(/\s+/); items=items.filter(e=>{ const t=e._q ||= (x=>x+' '+x.replace(/ll/g,'l'))(norm(e.name+' '+(e.sigla||'')+' '+(e.what||''))); return words.every(w=>t.includes(w)); }); }
     items.sort((a,b)=>listOrder(a)-listOrder(b));
     h+=`<details class="fam" data-fam="${fk}" ${famOpen[fk]||q?'open':''}><summary>${famIcon({fam:fk})} ${esc(fam.name)} <span class="muted small">(${items.length})</span></summary><ul>`;
     const li=e=>{ const vis = e.noModel ? 'sense 3D' : (elVisible(e) ? '' : 'ocult');
@@ -3669,20 +3697,12 @@ function renderList(){
    PANELL D'EXPLICACIÓ
    =================================================================== */
 function chip(id){ const e=EL[id]; if(!e) return ''; let t=e.name.split(' — ')[0]; if(e.sigla && !t.includes('('+e.sigla)) t=`${t} (${e.sigla})`; if(e.unit && !e.parent) t+=` · ${UNIT(e.unit).name}`; return `<button class="chip" data-goto="${id}">${famIcon(e)} ${esc(t)}</button>`; }
-function routeFor(id){
-  const e=EL[id]; if(e.noModel || e.noRoute) return null;
-  if(/^(xi_dat|xi_fo|router|ont|pc)_/.test(id) || /^(rp|bat)_(dat|dat2|fo)_/.test(id)) return 'fopc';
-  if(e.svc==='tba' || /^rconf_/.test(id)) return null;
-  if(e.svc==='rtv') return 'rtv';
-  if(e.svc==='fo' || e.svc==='all') return 'fo';
-  return null;
-}
 function renderInfo(){
   const box=$('#infoPanel'), id=S.selected;
   if(!id){
-    box.innerHTML = Q.active||T.active ? '' : `<div class="card"><h2>Benvingut/da</h2>
+    box.innerHTML = Q.active ? '' : `<div class="card"><h2>Benvingut/da</h2>
     <p>Aquest model mostra la <b>ICT</b> (infraestructura comuna de telecomunicacions) d'un edifici amb soterrani d'aparcament, planta baixa amb vestíbul i botiga, i quatre plantes amb quatre habitatges per planta (A, B, C i D: 16 habitatges).</p>
-    <p><b>Com començar:</b></p><ol class="small"><li>Fes clic en un element de l'escena: se selecciona i la càmera s'hi apropa. El botó <b>◀</b> torna a la vista anterior.</li><li>Fes <b>doble clic</b> en una porta, un armari o una tapa per obrir-la; torna-hi a fer doble clic per tancar-la.</li><li>Amb la icona de l'<b>ull</b> tries què es veu; amb <b>Vistes</b> vas a una planta o a un habitatge; amb <b>Primera persona</b> camines per l'edifici.</li><li>Prova la <b>Visita guiada</b> o els <b>Recorreguts</b> del senyal.</li></ol>
+    <p><b>Com començar:</b></p><ol class="small"><li>Fes clic en un element de l'escena: se selecciona i la càmera s'hi apropa. El botó <b>◀</b> torna a la vista anterior.</li><li>Fes <b>doble clic</b> en una porta, un armari o una tapa per obrir-la; torna-hi a fer doble clic per tancar-la.</li><li>Amb la icona de l'<b>ull</b> tries què es veu (per exemple, treure la façana) i hi tens la llegenda de colors; amb <b>Vistes</b> vas a una planta, a un habitatge o a l'interior del RITS.</li><li>Quan acabis d'explorar, posa't a prova amb <b>Comprova què has après</b>.</li></ol>
     <p class="small muted">Famílies: 〰 xarxes (cables) · ◯ canalitzacions (tubs) · ▣ recintes i registres (locals i caixes) · ● punts de connexió i equips.</p></div>`;
     return;
   }
@@ -3693,7 +3713,6 @@ function renderInfo(){
   const nets=[...rel].filter(x=>EL[x].fam==='xarxa'), cans=[...rel].filter(x=>EL[x].fam==='canal');
   const contains=(e.children||[]).filter(x=>!ritsBad(x));
   const openId=e.openOf||id, canOpen = (e.lid||e.openOf) && !e.noModel;
-  const rt = routeFor(id);
   box.innerHTML = `<div class="card" aria-label="Fitxa de l'element seleccionat">
    <h2>${famIcon(e)} ${esc(e.name)}${e.sigla?` <span class="muted">(${esc(e.sigla)})</span>`:''}</h2>
    <span class="fambadge">${esc(fam.name)}</span><span class="fambadge zone">Zona ${esc(e.zone||'—')}</span>
@@ -3705,7 +3724,6 @@ function renderInfo(){
    <div class="actions">
     <button data-act="center" ${e.noModel||!renderer?'disabled':''}>Centrar</button>
     <button data-act="conn">Veure connexions</button>
-    ${rt?`<button data-act="route" data-svc="${rt}">▶ Seguir el senyal</button>`:''}
     ${canOpen?`<button data-act="open" class="primary" aria-pressed="${isOpen(openId)}">${isOpen(openId)?'Tancar':'Obrir'} ${openId==='rits'?'la porta':(G.doors||[]).some(d=>d.of===openId)&&EL[openId].layer==='recintes'?'les portes':EL[openId].layer==='recintes'?'el recinte':'la tapa'}</button>`:''}
     ${e.fam==='canal'&&!e.noModel?`<button data-act="opencanal">${S.openCanal.has(id)?'Tancar el tram':'Obrir el tram (veure cables)'}</button>`:''}
     <button data-act="desel">Desseleccionar</button>
@@ -3727,7 +3745,6 @@ function renderInfo(){
    MODES I CONTROLS
    =================================================================== */
 function setMode(m, silent){
-  if(POV.on) povExit();
   if(!silent) navPush();
   if(m==='complet'){ m='oberta'; S.layers.facana=true; }
   S.mode=m;
@@ -3749,9 +3766,9 @@ function syncControls(){
 }
 function updateStatus(){
   const names={oberta:S.layers.facana?'Edifici complet':'Façana oberta',transp:'Transparència',ict:'Només ICT',planta:'Planta aïllada',habitatge:'Habitatge detallat'};
-  let t=`<b>${POV.on?'Primera persona':names[S.mode]}</b>`;
-  if(S.mode==='planta' && !POV.on) t+=` · ${FLOORNAME(S.floor)}`;
-  if(S.mode==='habitatge' && !POV.on) t+=` · Habitatge ${UNIT(curUnit()).name}`;
+  let t=`<b>${names[S.mode]}</b>`;
+  if(S.mode==='planta') t+=` · ${FLOORNAME(S.floor)}`;
+  if(S.mode==='habitatge') t+=` · Habitatge ${UNIT(curUnit()).name}`;
   if(S.svc!=='all') t+=` · Servei: ${SERVICES[S.svc]}`;
   if(S.selected) t+=` · ${esc(EL[S.selected].sigla||EL[S.selected].name)}`;
   $('#statusChip').innerHTML=t;
@@ -3767,180 +3784,24 @@ function renderLegend(){
 }
 function resetView(){ const v=VIEWS.start(); flyTo(v.p,v.t); }
 function resetAll(){
-  if(POV.on) povExit(true);
-  routeReset(); T.active=false; Q.active=false; NAV.stack=[]; hideLeafChip(); setLiftFloor(0);
+  Q.active=false; NAV.stack=[]; hideLeafChip(); setLiftFloor(0);
   const keep=S.reduced; S=S0(); S.reduced=keep; if(renderer && CAPBUILT!==S.cap){ clearScope(); buildCapVariant(S.cap); } if(RG.spot) RG.spot.intensity=0; shadowRefresh();
   setLearn('free'); syncControls(); applyVisibility(); select(null); resetView(); setPanel('eye',false); setPanel('views',false);
-  for(const w of ['left','right','bottom']) openDrawer(w,false); navUI();
+  for(const w of ['left','right']) openDrawer(w,false); navUI();
 }
-/* ===================================================================
-   RECORREGUTS ANIMATS («Segueix el servei»)
-   =================================================================== */
-const RT = {active:false, playing:false, steps:[], i:0, t:0, hold:0, cur:null, svc:'rtv', unit:'2A', room:'sala'};
-function roomName(k){ return ROOM(k).name; }
-function step(t,x,els,cables,rev){ return {t,x,els:new Set(els),cables:new Set(cables||[]),rev:new Set(rev||[])}; }
-function buildRoute(svc, uid, room){
-  const u=UNIT(uid), f=u.f, N=u.name, R=ROOM(room)||ROOM('sala'), s=[], U=uid;
-  if(svc==='rtv'){
-    const A=S.cap==='A';
-    s.push(step('Sistema de captació','La RTV comença a la coberta. Al màstil, sobre una torre de 6 m arriostrada amb tres tirants, hi ha l\'antena TDT (a dalt), la DAB (al mig) i el dipol FM (a baix). Al lateral de la torre hi ha la parabòlica amb l\'LNB. Cada antena té el seu propi cable coaxial negre, que baixa amb brides i fa una gassa de goteig.',['torre','mastil','antena','antena_dab','antena_fm','parabola','lnb'],['capt_mast','dab_mast','fm_mast','sat_1']));
-    s.push(step('Canalització d\'enllaç superior','Els quatre cables entren al tub corrugat per la boca girada cap avall, recorren la coberta i arriben al passamurs de la paret del RITS. Comparteixen el tub, però continuen separats.',['canal_enllac_sup'],['capt_tube','dab_tube','fm_tube','sat_2']));
-    s.push(step('Passamurs i unions F‑F','Dins del registre d\'enllaç, cada cable té la seva unió F‑F, on es fa la transició entre el cable exterior (PE negre) i l\'interior (PVC blanc). El senyal no canvia: només el tipus de coberta.',['reg_enllac_sup','rits_ff'],[]));
-    s.push(step('Tub corrugat d\'entrada','Els quatre cables interiors baixen per un tub corrugat subjectat a la paret fins damunt de la capçalera. El de satèl·lit acaba tapat en reserva; els de TDT, DAB i FM van a les seves entrades.',['rits_corr_in','cab_capt_int','cab_dab_int','cab_fm_int','cab_sat_int'],['capt_in','dab_in','fm_in','sat_in']));
-    if(A) s.push(step('Centraleta programable','La TDT entra per l\'entrada 1, la DAB per l\'entrada 2 i l\'FM per l\'entrada FM. La centraleta filtra i iguala els senyals i els lliura junts per la sortida TV. Les entrades lliures i el test estan tancats amb càrregues.',['cap_avant','cap_carregues'],['cap_path']));
-    else s.push(step('Amplificadors modulars','La TDT passa pel filtre LTE/5G i entra al mòdul 1, que la passa al mòdul 2 amb un pont F. La DAB entra al mòdul 3 i l\'FM al mòdul 4. Els ponts F acumulen les sortides fins a la sortida general del mòdul 4. La font dona 24 V c.c. a tots els mòduls.',['cap_filtre','cap_t12_1','cap_t12_2','cap_t12_3','cap_t12_4','cap_ponts'],['cap_path']));
-    s.push(step('Latiguillo i repartidor','Un latiguillo coaxial porta el senyal de la capçalera fins al repartidor de 2 sortides. A cada sortida comença un dels dos cables de la xarxa de distribució.',['cap_jump','cap_rep'],['cap_jump']));
-    const dist=[]; for(let k=4;k>=f;k--) dist.push(`xd_rtv_a_${k}`);
-    s.push(step('Xarxa de distribució',`Els dos coaxials surten del RITS pel tub corrugat de sortida i baixen pel tub de RTV de la canalització principal fins a la ${FLOORNAME(f).toLowerCase()}. Es mostra el recorregut del cable 1 (blanc dins del RITS, amb el color didàctic del tram fora).`,['rits_corr_out','canal_principal'],['xd_rtv_a_r',...dist]));
-    s.push(step('Derivació a la planta',`Al registre secundari de la ${FLOORNAME(f).toLowerCase()}, cada derivador (punt de distribució) treu una part del senyal cap als habitatges.`,[`deriv_${f}`,`rs_${f}`],[]));
-    s.push(step('Xarxa de dispersió',`Dos cables coaxials (un de cada derivador) van per la canalització secundària fins al ${N}.`,[`cs_${U}`],[`xs_rtv_a_${U}`,`xs_rtv_b_${U}`]));
-    s.push(step('PAU de RTV','Al registre de terminació de xarxa, el PAU rep els dos cables i permet triar-ne un. Aquí acaba la instal·lació comuna.',[`pau_rtv_${U}`,`rtr_${U}`],[]));
-    s.push(step('Repartiment interior','El repartidor interior divideix el senyal en sortides independents, una per estància (el bany no en té).',[`rep_rtv_${U}`],[`pau_rep_${U}`]));
-    s.push(step('Xarxa interior d\'usuari',`Un cable coaxial independent va en estrella fins ${R.a.replace(/^a /,'a ').replace(/^al /,'al ')}, dins del seu propi tub.${room==='sala'?' Passa per un registre de pas.':''}`,[`ci_${U}`,...(room==='sala'?[`rpas_${U}`]:[])],[`xi_rtv_${room}_${U}`]));
-    s.push(step('Registre de presa i BAT',`El cable acaba a la BAT (presa) de RTV, allotjada al registre de presa ${R.de}.`,[`rp_rtv_${room}_${U}`,`bat_rtv_${room}_${U}`],[]));
-    if(room==='sala') s.push(step('Televisor','El televisor es connecta a la BAT amb un cable curt. Fi del recorregut.',[`tv_${U}`],[`tv_patch_${U}`]));
-    else s.push(step('Equip terminal',`Aquí s'hi connectaria un televisor ${R.de}. Fi del recorregut.`,[`bat_rtv_${room}_${U}`],[]));
-  } else {
-    s.push(step('Xarxa de l\'operador','El cable de fibra de l\'operador (xarxa d\'alimentació) arriba pel carrer des de la seva central.',['xal_fo'],['xal_fo_1']));
-    s.push(step('Arqueta d\'entrada','El cable entra a l\'arqueta d\'entrada, a la vorera. Aquí comença la ICT de l\'edifici.',['arqueta'],[]));
-    s.push(step('Canalització externa','Els tubs soterrats de la canalització externa porten el cable fins a la façana.',['canal_ext'],['xal_fo_2']));
-    s.push(step('Punt d\'entrada general','El cable travessa el mur pel punt d\'entrada general: un accés físic, sense connexions.',['peg'],[]));
-    s.push(step('Canalització d\'enllaç inferior','Dins de l\'edifici, l\'enllaç inferior (amb el registre d\'enllaç) porta el cable fins al RITI.',['canal_enllac_inf','reg_enllac_inf'],['xal_fo_3']));
-    s.push(step('Registre principal òptic (RITI)','S\'obren les portes del RITI. Al punt d\'interconnexió, un latiguillo uneix la fibra de l\'operador (entrada) amb la fibra de l\'edifici (sortida). Aquí acaba la xarxa d\'alimentació.',['rp_fo','pi_fo','riti'],[]));
-    const dist=[]; for(let k=0;k<f;k++) dist.push(`xd_fo_${k}`);
-    s.push(step('Xarxa de distribució',`El cable multifibra de l'edifici puja pel tub de fibra de la canalització principal fins a la ${FLOORNAME(f).toLowerCase()}.`,['canal_principal'],dist));
-    s.push(step('Punt de distribució (caixa de segregació)',`A la caixa de segregació del registre secundari, les fibres del ${N} s'empalmen amb el seu cable d'acometida. Les fibres d'altres plantes hi passen sense tallar.`,[`cseg_${f}`,`rs_${f}`],[]));
-    s.push(step('Xarxa de dispersió',`El cable d'acometida òptica va per la canalització secundària fins al ${N}.`,[`cs_${U}`],[`xs_fo_${U}`]));
-    s.push(step('Terminació òptica (PAU)',`La fibra acaba a la roseta òptica, el PAU de fibra, dins del registre de terminació de xarxa. Aquí acaba la instal·lació comuna.${svc==='fopc'?'':' Fi del recorregut.'}`,[`pau_fo_${U}`,`rtr_${U}`],[]));
-    if(svc==='fopc'){
-      s.push(step('Xarxa interior de fibra','Una fibra interior, dins del seu propi tub, va de la roseta del PAU fins a la presa òptica de la sala d\'estar. Passa pel registre de pas.',[`ci_${U}`,`rpas_${U}`],[`xi_fo_sala_${U}`]));
-      s.push(step('Presa òptica de la sala','La fibra acaba a la BAT òptica (roseta SC/APC) de la sala, a menys de 50 cm de la BAT RJ45 doble. És la presa que exigeix la normativa a l\'estància principal.',[`rp_fo_sala_${U}`,`bat_fo_sala_${U}`],[]));
-      s.push(step('ONT: canvi de mitjà','Un latiguillo òptic connecta la presa òptica amb l\'ONT, equip de l\'usuari que converteix la llum en senyal elèctric. L\'ONT no és el PAU.',[`ont_${U}`],[`patch_fo_${U}`]));
-      s.push(step('Encaminador: canvi de funció','L\'encaminador, també equip de l\'usuari, crea la xarxa local (Wi‑Fi i cable).',[`router_${U}`],[`patch_eth_${U}`]));
-      if(room==='sala') s.push(step('Equips de la sala','L\'encaminador ja és a la sala: els equips d\'aquesta estància s\'hi connecten amb un latiguillo o per Wi‑Fi. Fi del recorregut.',[`router_${U}`,`bat_dat2_sala_${U}`],[]));
-      else {
-        s.push(step('Retorn cap al registre de terminació de xarxa','L\'encaminador s\'endolla a la BAT RJ45 doble de la sala. Pel cable d\'aquest connector, les dades tornen en sentit contrari fins al registre de terminació de xarxa.',[`bat_dat_sala_${U}`,`rp_dat_sala_${U}`],[`patch_ret_${U}`,`xi_dat_salaa_${U}`],[`xi_dat_salaa_${U}`]));
-        s.push(step('Connexió al registre de terminació de xarxa',`Al registre, un latiguillo (o un petit commutador, si cal servir diverses estàncies) uneix l'extrem RJ45 que ve de la sala amb el que va ${R.a.replace(/^a la /,'a la ').replace(/^al /,'al ')}.`,[`pau_pt_${U}`,`rtr_${U}`],[`patch_rtr_${U}`]));
-        const ck = room==='d1' ? `xi_dat_d1a_${U}` : `xi_dat_${room}_${U}`;
-        s.push(step('Xarxa interior de parells trenats',`Un cable de parells trenats independent va en estrella fins ${R.a}.`,[`ci_${U}`],[ck]));
-        s.push(step('Registre de presa i BAT RJ45',`El cable acaba a la BAT RJ45${room==='d1'?' doble':''} del registre de presa ${R.de}.`,[`rp_dat_${room}_${U}`,`bat_dat_${room}_${U}`],[]));
-        if(room==='d1') s.push(step('Ordinador','L\'ordinador es connecta a la BAT amb un latiguillo. Fi del recorregut.',[`pc_${U}`],[`pc_patch_${U}`]));
-        else s.push(step('Equip terminal',`Aquí s'hi connectaria un ordinador o un televisor intel·ligent ${R.de}. Fi del recorregut.`,[`bat_dat_${room}_${U}`],[]));
-      }
-    }
-  }
-  for(const st of s){ st.path=[]; for(const k of st.cables){ const c=G.cables[k]; if(c){ const pts=c.pts.map(p=>p.clone()); if(st.rev.has(k)) pts.reverse(); st.path.push(...pts); } } st.len=polyLen(st.path); }
-  return s;
-}
-let particles=[];
-function makeParticles(){
-  if(!scene) return;
-  const g=new THREE.SphereGeometry(0.06,10,8);
-  for(let i=0;i<5;i++){ const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0xFFE066,depthTest:false,transparent:true,opacity:0.95})); m.renderOrder=20; m.visible=false; scene.add(m); particles.push(m); }
-}
-function pointOnPath(path,len,u){
-  let d=u*len; for(let i=1;i<path.length;i++){ const L=path[i].distanceTo(path[i-1]); if(d<=L||i===path.length-1) return path[i-1].clone().lerp(path[i], L>0?Math.min(d/L,1):1); d-=L; } return path[0].clone();
-}
-function routeSetup(){
-  RT.svc=$('#rtSvc').value; RT.unit=$('#rtUnit').value; RT.room=$('#rtRoom').value;
-  RT.steps=buildRoute(RT.svc,RT.unit,RT.room);
-}
-function routeStart(){
-  if(!RT.active){ routeSetup(); RT.active=true; RT.i=0; RT.t=0; prepRouteView(); goStep(0); }
-  RT.playing=true; routeUI();
-}
-function prepRouteView(){
-  if(POV.on) povExit();
-  if(['planta','habitatge','ict'].includes(S.mode)) S.mode='oberta';
-  S.layers.facana=false; S.svc='all'; S.layers.xarxes=true; S.layers.canalitzacions=true;
-  syncControls(); applyVisibility();
-}
-function goStep(i){
-  RT.i=Math.max(0,Math.min(i,RT.steps.length-1)); RT.t=0; RT.hold=0; RT.cur=RT.steps[RT.i];
-  /* passos dins de l'habitatge: s'aïlla l'habitatge perquè les plantes de sobre no tapin la vista */
-  const els=[...RT.cur.els].map(id=>EL[id]);
-  const inUnit = els.length && els.every(e=>e.unit && !/comuna$/.test(e.zone));
-  if(inUnit){ const u=UNIT(els[0].unit); S.floor=u.f; S.unitSide=u.s; if(S.mode!=='habitatge'){ S.mode='habitatge'; RT.autoMode=true; } syncControls(); applyVisibility(); }
-  else if(RT.autoMode && S.mode==='habitatge'){ S.mode='oberta'; RT.autoMode=false; syncControls(); applyVisibility(); }
-  RT.cur.inUnit=inUnit;
-  for(const id of RT.cur.els) ensureVisible(id);
-  for(const k of RT.cur.cables){ const c=G.cables[k]; if(c) ensureVisible(c.el); }
-  applyMaterials(); needLabels=true;
-  if($('#rtFollow').checked && renderer) frameStep(RT.cur);
-  routeUI();
-}
-function frameStep(st){
-  const b=new THREE.Box3(); let any=false;
-  for(const id of st.els){ const bb=elBox(id); if(bb && !['canal_principal','riti','rits','canal_enllac_sup','xd_rtv'].includes(id)){ b.union(bb); any=true; } }
-  for(const p of st.path){ b.expandByPoint(p); any=true; }
-  if(!any) for(const id of st.els){ const bb=elBox(id); if(bb){ b.union(bb); any=true; } }
-  if(!any) return;
-  const c=b.getCenter(new THREE.Vector3()), r=Math.max(b.getSize(new THREE.Vector3()).length()/2,0.5);
-  const dir= st.inUnit ? V(THREE.MathUtils.clamp(c.x/9,-0.4,0.4), 1.25, 0.95).normalize() : V(THREE.MathUtils.clamp(c.x/9,-0.5,0.5), c.y>14?0.6:0.32, 1).normalize();
-  flyTo(c.clone().add(dir.multiplyScalar(THREE.MathUtils.clamp(r*2.2+1.4,2.2,30))), c);
-}
-function routePause(){ RT.playing=false; routeUI(); }
-function routeReset(){
-  RT.active=false; RT.playing=false; RT.cur=null; RT.steps=[]; RT.i=0; RT.autoMode=false;
-  for(const p of particles) p.visible=false;
-  if(scene) applyMaterials(); needLabels=true; routeUI();
-}
-function routeStepBy(d){
-  if(!RT.active){ routeSetup(); RT.active=true; prepRouteView(); goStep(d>0?0:0); RT.playing=false; routeUI(); return; }
-  RT.playing=false; goStep(RT.i+d);
-}
-function routeUI(){
-  const st=$('#rtStatus');
-  if(!RT.active){ st.textContent='Aturat'; st.className=''; $('#rtText').textContent='Tria un servei, un habitatge i una presa, i prem «Iniciar». Les partícules són una ajuda visual: la seva velocitat no representa la velocitat real del senyal.'; }
-  else { st.textContent=`Pas ${RT.i+1} de ${RT.steps.length} · ${RT.playing?'En reproducció':'En pausa'}`; st.className=RT.playing?'playing':'paused';
-    $('#rtText').innerHTML=`<b>${RT.i+1}. ${esc(RT.cur.t)}:</b> ${esc(RT.cur.x)}`; }
-  $('#rtPause').disabled=!RT.playing; $('#rtPrev').disabled=RT.active && RT.i===0; $('#rtNext').disabled=RT.active && RT.i>=RT.steps.length-1;
-  $('#rtPlay').textContent = RT.active && !RT.playing ? '▶ Continuar' : '▶ Iniciar';
-}
-function routeTick(dt){
-  if(!RT.active || !RT.cur){ return; }
-  const st=RT.cur, sp=+$('#rtSpeed').value;
-  if(st.len>0){
-    if(RT.playing) RT.t=Math.min(1, RT.t + dt*sp*1.6/Math.max(st.len,1.5));
-    for(let i=0;i<particles.length;i++){
-      const u=RT.t - i*0.05; const p=particles[i];
-      if(u<0 || (S.reduced && i>0)){ p.visible=false; continue; }
-      p.visible=true; p.position.copy(pointOnPath(st.path,st.len,Math.min(u,1)));
-      p.scale.setScalar(1-i*0.12);
-    }
-  } else {
-    const a=elBox([...st.els][0]); const c=a?a.getCenter(new THREE.Vector3()):null;
-    for(let i=0;i<particles.length;i++){ const p=particles[i]; p.visible = i===0 && !!c; if(c){ p.position.copy(c); p.scale.setScalar(1.6+0.6*Math.sin(performance.now()/180*(S.reduced?0:1))); } }
-    if(RT.playing) RT.t=Math.min(1, RT.t + dt*sp/1.8);
-  }
-  if(RT.playing && RT.t>=1){
-    RT.hold+=dt;
-    if(RT.hold>0.7/sp){ if(RT.i<RT.steps.length-1) goStep(RT.i+1); else { RT.playing=false; routeUI(); $('#rtText').innerHTML+=' <b>Recorregut completat.</b>'; } }
-  }
-}
-function fillRouteSelectors(){
-  const svc=$('#rtSvc').value, u=$('#rtUnit');
-  const prevU=u.value||'2A';
-  u.innerHTML=UNITS.map(x=>`<option value="${x.id}">Habitatge ${x.name}</option>`).join('');
-  u.value = prevU;
-  const r=$('#rtRoom'), prevR=r.value;
-  r.innerHTML = ROOMS.map(x=>`<option value="${x.k}">Presa: ${x.name}</option>`).join('');
-  r.disabled = svc==='fo';
-  if(svc==='fo') r.innerHTML='<option value="sala">Presa: no aplicable (acaba al PAU)</option>';
-  if([...r.options].some(o=>o.value===prevR)) r.value=prevR;
-  else r.value = svc==='fopc' ? 'd1' : 'sala';
-}
-
 /* ===================================================================
    NAVEGACIÓ INTERACTIVA: doble clic → vista òptima; «Tornar» → vista anterior
    =================================================================== */
 const NAV = {on:true, stack:[]};
 const _rc = new THREE.Raycaster();
+function pathPoint(pts,u){ let d=u*polyLen(pts); for(let i=1;i<pts.length;i++){ const L=pts[i].distanceTo(pts[i-1]); if(d<=L) return pts[i-1].clone().lerp(pts[i], L>0?d/L:0); d-=L; } return pts[pts.length-1].clone(); }
 function bestView(id){
   const b=elBox(id)||elBox(id,false); if(!b) return null;
-  const c=b.getCenter(new THREE.Vector3()), sz=b.getSize(new THREE.Vector3());
-  const r=Math.max(sz.length()/2,0.22);
-  const vf=camera.fov*Math.PI/180, hf=2*Math.atan(Math.tan(vf/2)*camera.aspect), fit=Math.min(vf,hf);
+  let c=b.getCenter(new THREE.Vector3()); const sz=b.getSize(new THREE.Vector3());
+  let r=Math.max(sz.length()/2,0.22);
+  const cabs=Object.values(G.cables).filter(k=>k.el===id && k.mesh && k.mesh.visible && k.pts.length>1);
+  if(cabs.length){ const cb=cabs.reduce((a,k)=>polyLen(k.pts)>polyLen(a.pts)?k:a); c=pathPoint(cb.pts,0.5); r=Math.min(r,1.6); }
+  const vis=visArea(), vf0=camera.fov*Math.PI/180, vf=2*Math.atan(Math.tan(vf0/2)*vis.y), hf=2*Math.atan(Math.tan(vf0/2)*camera.aspect*vis.x), fit=Math.min(vf,hf);
   const want=THREE.MathUtils.clamp(r/Math.sin(fit/2)*1.25, 0.9, 45);
   /* eix més prim: cara frontal de registres, preses i plaques */
   const dims=[sz.x,sz.y,sz.z], k=dims.indexOf(Math.min(...dims)), others=dims.filter((_,i)=>i!==k);
@@ -3990,13 +3851,12 @@ function navTo(id){
   navUI();
 }
 function navBack(){
-  if(POV.on){ povExit(); return; }
   const s=NAV.stack.pop(); if(!s) return;
   S.mode=s.mode; S.floor=s.floor; S.unitSide=s.unitSide; S.layers=Object.assign({},s.layers); S.svc=s.svc; S.sat=s.sat; S.tubesSee=s.tubesSee;
   S.openOv=new Map(s.open); S.leaf=new Map(s.leaf); S.openRec=s.openRec; S.openReg=s.openReg; S.ritsRoof=s.ritsRoof; S.ritsFront=s.ritsFront; setLiftFloor(s.lift);
   syncControls(); applyVisibility();
   S.selected=s.selected; S.related=new Set(); applyMaterials(); renderInfo(); renderList(); needLabels=true;
-  if(!s.selected && !T.active && !Q.active) openDrawer('right',false);
+  if(!s.selected && !Q.active) openDrawer('right',false);
   $('#vCenter').disabled=!s.selected;
   flyTo(s.p,s.t); navUI(); announce('Vista anterior recuperada.');
 }
@@ -4007,42 +3867,11 @@ function setNav(on){
 }
 function navUI(){
   const bk=$('#vBack'); if(!bk) return;
-  bk.disabled=!NAV.stack.length && !POV.on;
+  bk.disabled=!NAV.stack.length;
   const n=NAV.stack.length;
-  bk.title = POV.on ? 'Surt de la primera persona' : n ? `Torna a la vista anterior (${n} ${n===1?'pas':'passos'} desats) · tecla Retrocés` : 'No hi ha cap vista anterior';
-  bk.setAttribute('aria-label', POV.on ? 'Sortir de la primera persona' : n ? `Tornar a la vista anterior (${n})` : 'Tornar a la vista anterior (no disponible)');
+  bk.title = n ? `Torna a la vista anterior (${n} ${n===1?'pas':'passos'} desats) · tecla Retrocés` : 'No hi ha cap vista anterior';
+  bk.setAttribute('aria-label', n ? `Tornar a la vista anterior (${n})` : 'Tornar a la vista anterior (no disponible)');
   $('#backN').textContent = n>1 ? String(n) : '';
-}
-
-/* ===================================================================
-   VISITA GUIADA
-   =================================================================== */
-const T = {active:false, tour:null, i:0};
-function renderTour(){
-  const box=$('#modePanel');
-  if(T.tour===null){
-    box.innerHTML=`<div class="modebox"><h2>Visita guiada</h2><p class="small">Tria una visita curta. Cada pas mou la càmera, ressalta elements i explica què veus.</p>${TOURS.map((t,i)=>`<button style="display:block;width:100%;text-align:left;margin:4px 0" data-tour="${i}">${esc(t.title)} <span class="muted small">(${t.steps.length} passos)</span></button>`).join('')}<div class="stepnav"><button data-tact="exit">Sortir de la visita</button></div></div>`;
-    return;
-  }
-  const t=TOURS[T.tour], s=t.steps[T.i];
-  box.innerHTML=`<div class="modebox"><div class="small muted">${esc(t.title)}</div><h2>Pas ${T.i+1} de ${t.steps.length}: ${esc(s.t)}</h2><p>${esc(s.x)}</p>
-   <div class="stepnav"><button data-tact="prev" ${T.i===0?'disabled':''}>◀ Anterior</button><button data-tact="next" class="${T.i<t.steps.length-1?'on':''}">${T.i<t.steps.length-1?'Següent ▶':'Finalitzar ✓'}</button><button data-tact="list">Altres visites</button><button data-tact="exit">Sortir</button></div>
-   <p class="small muted" style="margin-bottom:0">Pots girar la vista i seleccionar elements; la fitxa apareix a sota.</p></div>`;
-}
-function tourStep(){
-  const s=TOURS[T.tour].steps[T.i];
-  routeReset();
-  if(s.mode){ S.mode=s.mode; if(s.unit){ const u=UNIT(s.unit); S.floor=u.f; S.unitSide=u.s; } }
-  else if(['planta','habitatge','ict'].includes(S.mode) || s.view) S.mode='oberta';
-  if(POV.on) povExit(true);
-  S.layers.facana = false;
-  for(const o of (s.open||[])) setOpen(o,true);
-  if(s.rits){ setOpen('rits',true); S.ritsRoof=!!s.rits.roof; if(s.rits.light!==undefined) setRitsLight(s.rits.light); }
-  syncControls(); applyVisibility();
-  S.selected=s.focus; for(const h of s.hl) ensureVisible(h);
-  S.related=new Set(s.hl.filter(x=>x!==s.focus));
-  applyMaterials(); renderInfo(); renderList(); needLabels=true; $('#vCenter').disabled=false;
-  if(s.rits && s.rits.view){ const v=VIEWS[s.rits.view](); flyTo(v.p,v.t); } else frameEl(s.frameAll ? s.hl : s.focus); renderTour(); updateStatus();
 }
 
 /* ===================================================================
@@ -4072,9 +3901,8 @@ function quizPick(id){
 }
 function setLearn(m){
   S.learn=m; $$('[data-learn]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.learn===m)));
-  T.active = m==='tour'; Q.active = m==='quiz';
-  if(m==='tour'){ T.tour=null; T.i=0; renderTour(); }
-  else if(m==='quiz'){ Q.fb=null; renderQuiz(); }
+  Q.active = m==='quiz';
+  if(m==='quiz'){ Q.fb=null; renderQuiz(); }
   else $('#modePanel').innerHTML='';
   renderInfo();
   if(m!=='free') openDrawer('right',true);
@@ -4083,9 +3911,31 @@ function setLearn(m){
 /* ===================================================================
    DIÀLEGS, ESDEVENIMENTS I INICI
    =================================================================== */
-/* calaixos plegables: Elements (esquerra), Fitxa (dreta) i Recorreguts (a baix).
+/* calaixos plegables: Elements (esquerra) i Fitxa (dreta).
    En pantalles petites són fulls inferiors i només n'hi ha un d'obert alhora. */
-const DRW={left:'#btnLeft', right:'#btnRight', bottom:'#btnBottom'};
+const DRW={left:'#btnLeft', right:'#btnRight'};
+/* espai de l'escena tapat pels calaixos oberts (els calaixos se superposen a l'escena) */
+function drawerCover(){
+  const c={l:0,r:0,b:0}; const W=$('#view3d').clientWidth;
+  for(const w of ['left','right']){ const el=$('#'+w); if(!el.classList.contains('open')) continue;
+    if(innerWidth<=760) c.b=Math.max(c.b, el.offsetHeight); else if(w==='left') c.l=el.offsetWidth; else c.r=el.offsetWidth; }
+  c.l=Math.min(c.l,W*0.5); c.r=Math.min(c.r,W*0.5); return c;
+}
+/* fracció visible de l'escena (per calcular la distància d'enquadrament) */
+function visArea(){ const el=$('#view3d'), W=el.clientWidth||1, H=el.clientHeight||1, c=drawerCover(); return {x:Math.max(0.3,(W-c.l-c.r)/W), y:Math.max(0.3,(H-c.b)/H)}; }
+function visFrac(){ const v=visArea(); return Math.min(v.x,v.y); }
+/* desplaça el centre de projecció cap a la part visible: l'element enquadrat no queda sota la fitxa */
+const VOFF={x:0,y:0,tx:0,ty:0};
+function syncViewOffset(instant){
+  if(!renderer) return;
+  const c=drawerCover(); VOFF.tx=(c.r-c.l)/2; VOFF.ty=c.b/2;
+  if(instant || S.reduced){ VOFF.x=VOFF.tx; VOFF.y=VOFF.ty; applyViewOffset(); }
+}
+function applyViewOffset(){
+  const el=$('#view3d'), W=el.clientWidth, H=el.clientHeight;
+  if(Math.abs(VOFF.x)<0.5 && Math.abs(VOFF.y)<0.5) camera.clearViewOffset(); else camera.setViewOffset(W,H,VOFF.x,VOFF.y,W,H);
+  camera.updateProjectionMatrix();
+}
 function openDrawer(which, open){
   const el=$('#'+which), btn=$(DRW[which]); if(!el) return;
   const v = open ?? !el.classList.contains('open');
@@ -4093,7 +3943,7 @@ function openDrawer(which, open){
   $('.app').classList.toggle(which+'Open',v);
   if(v && innerWidth<=760) for(const o of Object.keys(DRW)) if(o!==which && $('#'+o).classList.contains('open')) openDrawer(o,false);
   if(v && innerWidth<=760){ setPanel('eye',false); setPanel('views',false); }
-  needLabels=true;
+  syncViewOffset(); needLabels=true;
 }
 /* menús flotants del visor: ull (capes) i vistes */
 function setPanel(which, open){
@@ -4107,19 +3957,20 @@ function buildStaticUI(){
   $('#svcBox').innerHTML=Object.entries(SERVICES).map(([k,n])=>`<label class="opt"><input type="radio" name="svc" value="${k}" ${k==='all'?'checked':''}> ${esc(n)}</label>`).join('');
   $('#conceptsBody').innerHTML=CONCEPTS.map(([t,x])=>`<div class="concept"><h3>${esc(t)}</h3><p style="margin:2px 0">${x}</p></div>`).join('');
   $('#aboutBody').innerHTML=`<h3>Simplificacions i limitacions</h3><ul>${SIMPLIFICATIONS.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
-   <h3>Configuració representada</h3><ul><li>RTV: torre de 6 m amb tres tirants i màstil amb antenes TDT, DAB i FM; parabòlica offset amb LNB (es pot amagar) → quatre coaxials independents per l\'enllaç superior → capçalera al RITS → dos cables de distribució en arbre-branca amb derivadors a cada registre secundari → dos cables de dispersió fins al PAU → repartidor → xarxa interior en estrella.</li>
+   <h3>Configuració representada</h3><ul><li>RTV: torre de 6 m amb tres tirants i màstil amb antenes TDT, DAB i FM; parabòlica offset amb LNB doble (es pot amagar) → cinc coaxials independents per l\'enllaç superior → capçalera al RITS amb dos amplificadors de FI i mesclador (cable 1: terrestre + SAT A; cable 2: terrestre + SAT B) → dos cables de distribució en arbre-branca amb derivadors a cada registre secundari → dos cables de dispersió fins al PAU → repartidor → xarxa interior en estrella.</li>
    <li>Fibra òptica: operador → arqueta → canalització externa → punt d'entrada general → enllaç inferior → registre principal òptic (punt d'interconnexió) → cable multifibra de distribució → caixa de segregació amb empalmaments a cada planta → acometida → roseta òptica (PAU) → fibra interior → presa òptica de la sala d'estar → ONT i encaminador (equips de l'usuari) → retorn per la BAT RJ45 doble fins al registre de terminació de xarxa → xarxa interior de parells trenats.</li>
    <li>Preses de cada habitatge (dotació mínima): 4 de RTV, 6 registres de parells trenats (BAT doble a la sala i al dormitori 1), 2 coaxials de TBA (sala i dormitori 1), 1 de fibra òptica a la sala i 1 registre configurable al rebedor. El bany no en té.</li>
    <li>Parells trenats: distribució/dispersió en estrella des del panell RJ45 del RITI fins al PAU, sense punt de distribució físic al registre secundari.</li></ul>
    <h3>Fonts tècniques</h3><ul><li>Reial decret 346/2011, d'11 de març, Reglament regulador de les infraestructures comunes de telecomunicacions (text consolidat, BOE-A-2011-5834): annex I (RTV), annex II (telefonia i banda ampla) i annex III (canalitzacions, recintes i elements complementaris; apartat 5.13 en la redacció de l'Ordre ECE/983/2019). <a href="https://www.boe.es/buscar/act.php?id=BOE-A-2011-5834" target="_blank" rel="noopener">boe.es</a></li></ul>
    <h3>Fonts dels models del RITS</h3><ul class="small">
-    <li>Televes AVANT 12, ref. 532201: fitxa i manual (dimensions 201×120×42 mm, 4 entrades VHF+UHF amb CC, entrada FM, sortida TV, test −30 dB, classe II amb terra funcional). <a href="https://www.televes.com/es/catalogsearch/result/?q=532201" target="_blank" rel="noopener">televes.com</a></li>
-    <li>Televes sèrie T12: 509812 (monocanal UHF), 508612 (multicanal UHF), font 549812 (24 V, 2,5 A, classe II), carril 5071, pont F 5074. <a href="https://www.televes.com/es/distribucion-tv/filtrado-y-amplificacion/amplificacion-monocanal/serie-t12.html" target="_blank" rel="noopener">televes.com</a></li>
-    <li>Televes repartidor 519602 (2 sortides, 5‑1220 MHz), filtre LTE/5G 403201, càrregues 4061 (amb bloqueig de CC) i 4058, adaptador F‑F 4173, connector F 4104, cables T100 (exterior PE negre i interior PVC blanc). <a href="https://www.televes.com" target="_blank" rel="noopener">televes.com</a></li>
+    <li>Televes AVANT 12 PRO SAT, ref. 532204: 4 entrades VHF+UHF, 1 d'FM i 1 de satèl·lit (FI, guany 41 dB, alimentació de l'LNB); sortida TV (només terrestre) i sortida TV+SAT. <a href="https://www.televes.com/es/532204-central-programable-avant-12-pro-sat-para-terrestre-satelite-32-filtros-digitales-y-programacion-automatica-avanzada-mediante-asuite-bluetoothr.html" target="_blank" rel="noopener">televes.com</a></li>
+    <li>Televes sèrie T12: 509812 (monocanal UHF), 508312 (banda III), 508012 (FI 950‑2150 MHz, alimenta l'LNB, 350 mA màx.), font 549812 (24 V, 2,5 A, classe II), carril 5071, pont F 5074. <a href="https://www.televes.com/es/508012-amplificador-t12-fi-sat-950-2150mhz.html" target="_blank" rel="noopener">televes.com</a></li>
+    <li>Mescladors Televes 740710 (TERR + SAT A + SAT B → OUT A i OUT B) i 745210 (MATV + FI → 1 sortida). <a href="https://www.televes.com/es/740710-mezclador-de-se-al-terrestre-y-2-satelites-3-entradas-matv-fi-fi.html" target="_blank" rel="noopener">televes.com</a></li>
+    <li>Televes filtre LTE/5G 403201, càrregues 4061 (amb bloqueig de CC) i 4058, adaptador F‑F 4173, connector F 4104, cables T100 (exterior PE negre i interior PVC blanc). <a href="https://www.televes.com" target="_blank" rel="noopener">televes.com</a></li>
     <li>Recinte (porta, safata, alimentació elèctrica, il·luminació, ventilació, placa i anell de terra): RD 346/2011, annex III, apartats 5.5 i 7.1. El model en fa una representació orientativa; no n'acredita el compliment.</li></ul>
    <h3>L'edifici del model</h3><p class="small">Edifici plurifamiliar entre mitgeres amb nucli central d'escala i ascensor: soterrani d'aparcament (16 places, rampa de vehicles, trasters i vestíbul d'independència), planta baixa (vestíbul, local de serveis, RITI i una botiga), quatre plantes amb quatre habitatges (A–D) al voltant d'un distribuïdor comú i coberta transitable amb el RITS i les antenes. Les dimensions (forjats de 3 m entre plantes, escala de dos trams amb esglaons de 17 × 28 cm, portes de 0,9 m, cabina d'ascensor d'uns 1,4 × 1,9 m) són plausibles però <b>no constitueixen un projecte arquitectònic</b> ni acrediten el compliment del CTE (DB-SUA, DB-SI) ni de la normativa d'accessibilitat.</p>
    <ul class="small"><li>Tipologies generals d'habitatge plurifamiliar amb nucli central i distribuïdor (manuals de projecte i exemples docents d'arquitectura); dimensions d'escales i passos de referència del CTE DB-SUA 1 (consulta orientativa). <a href="https://www.codigotecnico.org" target="_blank" rel="noopener">codigotecnico.org</a></li></ul>
-   <h3>Tecnologia</h3><p class="small">Fitxer HTML autònom amb Three.js r160 integrat. No necessita connexió ni servidor. Les col·lisions del mode primera persona són aproximades (caixes alineades amb els eixos).</p>`;
+   <h3>Tecnologia</h3><p class="small">Fitxer HTML autònom amb Three.js r160 integrat. No necessita connexió ni servidor.</p>`;
 }
 function bindEvents(){
   $('#list').addEventListener('click',e=>{ const b=e.target.closest('[data-id]'); if(b) select(b.dataset.id,{fromList:true}); });
@@ -4142,15 +3993,13 @@ function bindEvents(){
   $('#homeGo').onclick=()=>{ navPush(); S.floor=+$('#homeFloor').value; S.unitSide=$('#homeUnit').value; setView('home',{noPush:true}); if(innerWidth<=760) setPanel('views',false); };
   $$('[data-view]').forEach(b=>b.onclick=()=>{ setView(b.dataset.view); if(innerWidth<=760) setPanel('views',false); });
   $('#zIn').onclick=()=>dolly(0.75); $('#zOut').onclick=()=>dolly(1.33);
-  $('#vReset').onclick=()=>{ if(POV.on) povExit(); navPush(); resetView(); };
+  $('#vReset').onclick=()=>{ navPush(); resetView(); };
   $('#vCenter').onclick=()=>{ if(S.selected){ if(NAV.on) navTo(S.selected); else { ensureVisible(S.selected); frameEl(S.selected); } } };
   $('#optNav').onchange=e=>setNav(e.target.checked); $('#vBack').onclick=navBack;
   $('#btnEye').onclick=()=>setPanel('eye'); $('#btnViews').onclick=()=>setPanel('views');
-  $('#btnPov').onclick=()=>{ POV.on ? povExit() : povEnter(); };
   $('#btnCloseAll').onclick=closeAllLeaves;
   $$('.panelClose').forEach(b=>b.onclick=()=>{ setPanel(b.dataset.panel,false); $(b.dataset.panel==='eye'?'#btnEye':'#btnViews').focus(); });
-  $('#btnBottom').onclick=()=>openDrawer('bottom');
-  addEventListener('keydown',e=>{ if(e.key==='Backspace' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); navBack(); } });
+  addEventListener('keydown',e=>{ if(e.key==='Backspace' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && !document.querySelector('dialog[open]')){ e.preventDefault(); navBack(); } });
   $('#infoPanel').addEventListener('click',e=>{
     const g=e.target.closest('[data-goto]'); if(g){ select(g.dataset.goto,{fromList:true}); return; }
     const ra=e.target.closest('[data-ract]'); if(ra){ ritsAction(ra.dataset.ract); return; }
@@ -4160,16 +4009,6 @@ function bindEvents(){
     if(a.dataset.act==='desel') select(null);
     if(a.dataset.act==='open'){ const oid=EL[id].openOf||id; setOpen(oid,!isOpen(oid)); applyVisibility(); renderInfo(); announce(`${EL[oid].name}: ${isOpen(oid)?'obert':'tancat'}.`); }
     if(a.dataset.act==='opencanal'){ S.openCanal.has(id)?S.openCanal.delete(id):S.openCanal.add(id); applyMaterials(); renderInfo(); }
-    if(a.dataset.act==='route'){
-      const e2=EL[id]; routeReset(); $('#rtSvc').value=a.dataset.svc; fillRouteSelectors();
-      if(e2.unit) $('#rtUnit').value=e2.unit;
-      else if(e2.floor>=1 && e2.floor<=4) $('#rtUnit').value=`${e2.floor}A`;
-      fillRouteSelectors(); if(e2.room && [...$('#rtRoom').options].some(o=>o.value===e2.room)) $('#rtRoom').value=e2.room;
-      routeSetup(); RT.active=true; prepRouteView();
-      let k=RT.steps.findIndex(s=>s.els.has(id) || [...s.cables].some(c=>G.cables[c]&&G.cables[c].el===id)); if(k<0) k=0;
-      goStep(k); RT.playing=true; routeUI();
-      openDrawer('bottom',true); if(innerWidth<=760) openDrawer('right',false);
-    }
   });
   $('#infoPanel').addEventListener('change',e=>{
     if(e.target.name==='ritsCap'){ setCap(e.target.value); }
@@ -4177,10 +4016,6 @@ function bindEvents(){
   });
   $('#modePanel').addEventListener('click',e=>{
     const b=e.target.closest('button'); if(!b) return;
-    if(b.dataset.tour!==undefined){ T.tour=+b.dataset.tour; T.i=0; tourStep(); return; }
-    const ta=b.dataset.tact;
-    if(ta==='prev'){ T.i--; tourStep(); } if(ta==='next'){ if(T.i<TOURS[T.tour].steps.length-1){ T.i++; tourStep(); } else { T.tour=null; renderTour(); } }
-    if(ta==='list'){ T.tour=null; renderTour(); } if(ta==='exit'){ setLearn('free'); S.related=new Set(); applyMaterials(); }
     if(b.dataset.q!==undefined){ Q.i=+b.dataset.q; Q.fb=null; Q.order=null; renderQuiz(); }
     const qa=b.dataset.qact, q=QUIZ[Q.i];
     if(qa==='prev'){ Q.i--; Q.fb=null; Q.order=null; renderQuiz(); } if(qa==='next'){ Q.i++; Q.fb=null; Q.order=null; renderQuiz(); }
@@ -4190,23 +4025,17 @@ function bindEvents(){
     if(b.dataset.dn!==undefined){ const i=+b.dataset.dn; [Q.order[i+1],Q.order[i]]=[Q.order[i],Q.order[i+1]]; Q.fb=null; renderQuiz(); $(`[data-dn="${i+1}"]`)?.focus(); }
     if(qa==='checkorder'){ const ok=Q.order.join('|')===q.ok.join('|'); Q.fb= ok?{ok:true,t:q.good}:{ok:false,t:q.bad}; if(ok) Q.done.add(Q.i); renderQuiz(); }
   });
-  $$('[data-learn]').forEach(b=>b.onclick=()=>{ routeReset(); setLearn(b.dataset.learn); });
+  $$('[data-learn]').forEach(b=>b.onclick=()=>setLearn(b.dataset.learn));
   $('#btnConcepts').onclick=()=>$('#dlgConcepts').showModal(); $('#btnAbout').onclick=()=>$('#dlgAbout').showModal(); $('#btnHelp').onclick=()=>$('#help').classList.toggle('hidden');
   $$('.closeDlg').forEach(b=>b.onclick=()=>b.closest('dialog').close());
   $('#btnResetAll').onclick=resetAll;
   $$('.drawerClose').forEach(b=>b.onclick=()=>{ openDrawer(b.dataset.close,false); $(DRW[b.dataset.close]).focus(); }); $('#btnLeft').onclick=()=>openDrawer('left'); $('#btnRight').onclick=()=>openDrawer('right');
-  $('#helpOk').onclick=()=>{ $('#help').classList.add('hidden'); renderer?.domElement.focus(); };
-  $('#rtSvc').onchange=()=>{ routeReset(); fillRouteSelectors(); };
-  $('#rtUnit').onchange=()=>{ routeReset(); fillRouteSelectors(); };
-  $('#rtRoom').onchange=()=>routeReset();
-  $('#rtPlay').onclick=routeStart; $('#rtPause').onclick=routePause; $('#rtReset').onclick=()=>{ routeReset(); };
-  $('#rtPrev').onclick=()=>routeStepBy(-1); $('#rtNext').onclick=()=>routeStepBy(1);
+  $('#helpOk').onclick=()=>{ $('#help').classList.add('hidden'); try{ localStorage.setItem('ict3d.helpSeen','1'); }catch(_){} renderer?.domElement.focus(); };
   addEventListener('keydown',e=>{ if(e.key!=='Escape' || document.querySelector('dialog[open]')) return;
-    if(POV.on){ povExit(); return; }
     if(!$('#eyePanel').classList.contains('hidden')||!$('#viewMenu').classList.contains('hidden')){ setPanel('eye',false); setPanel('views',false); return; }
     if(!$('#help').classList.contains('hidden')){ $('#help').classList.add('hidden'); return; }
     if(LEAFCHIP){ hideLeafChip(); return; }
-    for(const w of ['left','right','bottom']) openDrawer(w,false); });
+    for(const w of ['left','right']) openDrawer(w,false); });
   $('#view3d').addEventListener('pointerdown',e=>{ if(e.target===renderer?.domElement && innerWidth<=760){ setPanel('eye',false); setPanel('views',false); } });
 }
 function dolly(k){
@@ -4217,7 +4046,7 @@ function dolly(k){
 function onResize(){
   if(!renderer) return;
   const el=$('#view3d'), w=el.clientWidth, h=el.clientHeight;
-  renderer.setSize(w,h,false); camera.aspect=w/Math.max(h,1); camera.updateProjectionMatrix(); needLabels=true;
+  renderer.setSize(w,h,false); camera.aspect=w/Math.max(h,1); syncViewOffset(true); applyViewOffset(); needLabels=true;
 }
 function initGL(){
   try{
@@ -4251,9 +4080,9 @@ function loop(now){
   const dt=Math.min((now-last)/1000,0.1); last=now;
   if(camAnim){ let u=(now-camAnim.s)/camAnim.d; if(u>=1){u=1;} const k=u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
     camera.position.lerpVectors(camAnim.p0,camAnim.p1,k); controls.target.lerpVectors(camAnim.t0,camAnim.t1,k); if(u>=1) camAnim=null; }
-  if(POV.on) povTick(Math.min((now-(loop.prev||now))/1000,0.25)); else controls.update();
-  loop.prev=now;
-  doHover(); routeTick(dt); leavesTick(dt);
+  controls.update();
+  if(Math.abs(VOFF.x-VOFF.tx)>0.5 || Math.abs(VOFF.y-VOFF.ty)>0.5){ const k=Math.min(1,dt*10); VOFF.x+=(VOFF.tx-VOFF.x)*k; VOFF.y+=(VOFF.ty-VOFF.y)*k; if(Math.abs(VOFF.x-VOFF.tx)<=0.5) VOFF.x=VOFF.tx; if(Math.abs(VOFF.y-VOFF.ty)<=0.5) VOFF.y=VOFF.ty; applyViewOffset(); }
+  doHover(); leavesTick(dt);
   if(needLabels) rebuildLabels();
   placeLabels();
   renderer.render(scene,camera);
@@ -5006,12 +4835,11 @@ function buildRITSRoom(){
   B([[0.10,yr-0.016,-4.700],[0.10,16.80,-4.700],[0.86,16.80,-4.700],[0.86,16.715,-4.705]]);              // placa
   rHex('rits_suport',0.008,0.006,V(0.86,16.70,-4.712),V(0,0,1),0xC0C3C6,'nickel');
   B([[0.40,yr+0.016,-4.700],[0.40,17.33,-4.700],[0.40,17.33,-4.663]]);                                   // safata
-  B([[0.15,yr-0.016,-4.700],[0.15,16.86,-4.700],[2.06,16.86,-4.700],[2.06,16.30,-4.700],[2.06,16.226,-4.697]]); // repartidor
   B([[0.30,yr-0.016,-4.700],[0.30,17.04,-4.700],[3.326,17.04,-4.700],[3.326,17.04,-2.86],[3.326,16.66,-2.86]]); // quadre
   /* --- placa de muntatge --- */
-  rBox('rits_suport',0.80,2.50,15.80,16.75,RI.z0,ZP,0xC3C8CC,'galv',{cast:true,pick:true});
-  for(const [x,y] of [[0.84,15.84],[1.65,15.84],[2.46,15.84],[0.84,16.70],[1.65,16.71],[2.46,16.71]]) rHex('rits_suport',0.009,0.006,V(x,y,ZP+0.003),V(0,0,1),0x8D949A,'steel');
-  rPlane('rits_suport',0.62,0.035,V(1.27,15.835,ZP+0.0012),V(0,0,1),textTex(['Equips i connectors ampliats ×2 · ampliació didàctica'],{w:1024,h:58,size:34,bg:'#F4F6F7',fg:'#37474F'}));
+  rBox('rits_suport',0.80,2.50,15.50,16.75,RI.z0,ZP,0xC3C8CC,'galv',{cast:true,pick:true});
+  for(const [x,y] of [[0.84,15.54],[1.65,15.54],[2.46,15.54],[0.84,16.70],[1.65,16.71],[2.46,16.71]]) rHex('rits_suport',0.009,0.006,V(x,y,ZP+0.003),V(0,0,1),0x8D949A,'steel');
+  rPlane('rits_suport',0.62,0.035,V(1.27,15.535,ZP+0.0012),V(0,0,1),textTex(['Equips i connectors ampliats ×2 · ampliació didàctica'],{w:1024,h:58,size:34,bg:'#F4F6F7',fg:'#37474F'}));
   /* --- espai lliure de manteniment (només en mode didàctic) --- */
   const tape=textTex(['ESPAI LLIURE DE MANTENIMENT'],{w:1024,h:96,size:54,bg:'#FFD54F',fg:'#3E2723',bold:[true]});
   rPlane('rits',1.1,0.10,V(1.65,RI.y0+0.002,-3.55),V(0,1,0),tape,{didOnly:true});
@@ -5124,17 +4952,19 @@ function buildRITSEntry(){
   rPlane(R,0.22,0.03,V(-0.1985,17.05,-3.55),V(1,0,0),textTex(['Registre d\'enllaç superior'],{w:512,h:70,size:34,bg:'#ECEFF1'}),{lidOf:R});
   rBox(R,-0.33,-0.30,16.83,17.07,-3.585,-3.515,0x9EA3A8,'plastic');      // suport de les unions
   /* quatre coaxials exteriors: antena → torre → gassa de goteig → boca → tub → registre */
-  const SV=[['tdt','cab_capt','capt_mast','capt_tube','antena','TDT'],['dab','cab_dab','dab_mast','dab_tube','antena_dab','DAB'],['fm','cab_fm','fm_mast','fm_tube','antena_fm','FM'],['sat','cab_sat','sat_1','sat_2','lnb','SAT']];
-  const OFFE={fm:[0.0095,-0.0095], tdt:[-0.0095,-0.0095], dab:[0.0095,0.0095], sat:[-0.0095,0.0095]};
+  const SV=[['tdt','cab_capt','capt_mast','capt_tube','antena','TDT'],['dab','cab_dab','dab_mast','dab_tube','antena_dab','DAB'],['fm','cab_fm','fm_mast','fm_tube','antena_fm','FM'],['sat','cab_sat','sat_1','sat_2','lnb','SAT A'],['sat2','cab_sat2','satb_1','satb_2','lnb','SAT B']];
+  /* cinc cables dins del tub: en anell, separats 72° */
+  const RING=[0,1,2,3,4].map(i=>{ const a=(90+72*i)*Math.PI/180; return [0.016*Math.cos(a),0.016*Math.sin(a)]; });
+  const OFFE={fm:RING[1], tdt:RING[0], dab:RING[4], sat:RING[2], sat2:RING[3]};
   const ft=T.ft, Lx=T.L, inT={};
   for(const [k,el,k1,,from] of SV){ const [dn,db]=OFFE[k]; const zb=ANT.ZB[k];
     const pts=[...ANT.cab[k], [TX+0.24,dn>0?15.35:15.375,zb], [MX+dn-0.07,dn>0?15.35:15.375,TZ-db], [MX+dn,15.47,TZ-db], [MX+dn,15.62,TZ-db]];
     rCable(k1,el,pts,PE,'pe',{from,to:'canal_enllac_sup',cr:0.035});
     inT[k]=insidePath(ft,0,Lx,dn,db); }
   /* unions F‑F: s'assignen per ordre d'arribada (de dalt a baix) perquè els cables no es creuin */
-  const UY=[17.04,16.98,16.92,16.86];
+  const UY=[17.05,17.00,16.95,16.90,16.85];
   const ord=SV.map(x=>x[0]).sort((a,b)=>{ const A=inT[a][inT[a].length-1], B=inT[b][inT[b].length-1]; return (B.y-A.y)||(A.z-B.z); });
-  const OFFI=[[0.0095,-0.0095],[-0.0095,-0.0095],[0.0095,0.0095],[-0.0095,0.0095]];   // (dn,db) dins el corrugat interior, de la unió superior a la inferior
+  const OFFI=RING;   // (dn,db) dins el corrugat interior, de la unió superior a la inferior
   RFT.cinStart={}; RFT.cinOff={}; RFT.ffY={};
   ord.forEach((k,r)=>{ const [,el,,k2]=SV.find(x=>x[0]===k); const y=UY[r];
     const U='rits_ff', uc=V(-0.27,y,-3.55);
@@ -5144,7 +4974,7 @@ function buildRITSEntry(){
     const cE=fMaleFree(U,tipE,V(0,0,1)), cI=fMaleFree(U,tipI,V(0,0,-1));
     const e=inT[k][inT[k].length-1];
     rCable(k2,el,[...inT[k],[-0.335,e.y,e.z+0.008],[-0.30,y,-3.445],[-0.27,y,-3.432],cE],PE,'pe',{from:'canal_enllac_sup',to:'rits_ff',via:'canal_enllac_sup',cr:0.02});
-    const [dn,db]=OFFI[r], zI=-3.681+0.016*r, xI=-0.27+dn;
+    const [dn,db]=OFFI[r], zI=-3.681+0.0125*r, xI=-0.27+dn;
     RFT.cinStart[k]=[cI,[-0.27,y,Math.min(zI+0.006,-3.628)],[xI,y-0.014,zI],[xI,16.845,zI],[xI,16.818,-3.65+db]]; RFT.cinOff[k]=[dn,db]; RFT.ffY[k]=y;
   });
   cableTag('cab_capt',V(-0.285,RFT.ffY.tdt,-3.44),V(0,1,0),'Antena TDT',V(1,0,0));
@@ -5155,31 +4985,17 @@ function buildRITSEntry(){
   for(const x of [0.45,1.25]) clampAt('rits_corr_in',V(x,16.70,-4.64),V(1,0,0),V(0,0,1),0.035,{stand:0.09});
   symSprite('rits_corr_in',V(0.20,16.80,-4.55),'〰 RF entrada','#8D5A1A');
   /* tub corrugat de sortida cap a la canalització principal */
-  const cout=[[2.03,15.70,-4.62],[2.03,15.30,-4.62],[0.55,15.30,-4.62],[0.55,15.30,-4.50],[0.55,14.95,-4.50]];
-  RFT.cout=corrTube('rits_corr_out',cout,0.04,{cut:[0.72,1.30],cutDir:V(0,0.3,1),cr:0.08,mouth1:false});
+  const cout=[[2.30,15.45,-4.62],[2.30,15.30,-4.62],[0.55,15.30,-4.62],[0.55,15.30,-4.50],[0.55,14.95,-4.50]];
+  RFT.cout=corrTube('rits_corr_out',cout,0.04,{cut:[0.55,1.15],cutDir:V(0,0.3,1),cr:0.08,mouth1:false});
   for(const x of [1.85,1.0]) clampAt('rits_corr_out',V(x,15.30,-4.62),V(1,0,0),V(0,0,1),0.04,{stand:0.11});
-  clampAt('rits_corr_out',V(2.03,15.55,-4.62),V(0,1,0),V(0,0,1),0.04,{stand:0.11});
+  clampAt('rits_corr_out',V(2.30,15.40,-4.62),V(0,1,0),V(0,0,1),0.04,{stand:0.11});
   symSprite('rits_corr_out',V(1.45,15.45,-4.50),'〰 RF distribució','#1E4FAE');
   /* reserves de la canalització principal (fibra, parells, reserva): tubs tapats */
   for(const k of ['fo','pt','res']){ const x=RX[k];
     corrTube('canal_principal',[[x,14.95,RZ],[x,15.30,RZ]],0.035,{mouth1:false,mouth0:false});
     rCyl('canal_principal',0.042,0.03,V(x,15.31,RZ),UP,0x2B2B2B,'rubber'); }
-  /* repartidor de 2 sortides */
-  const SP='cap_rep', sc=V(2.00,16.15,-4.697), td=V(0,-Math.cos(0.1745),Math.sin(0.1745));
-  rBox(SP,1.926,2.074,16.096,16.204,-4.715,-4.679,0xBFC4C8,'zamak',{pick:true,cast:true});
-  for(const x of [1.912,2.088]){ rBox(SP,x-0.014,x+0.014,16.13,16.17,-4.715,-4.709,0xBFC4C8,'zamak'); rHex(SP,0.006,0.006,V(x,16.15,-4.706),V(0,0,1),0x8D949A,'steel'); }
-  rPlane(SP,0.13,0.08,V(2.00,16.154,-4.6787),V(0,0,1),textTex(['519602 · 2D','5‑1220 MHz','IN   OUT1   OUT2'],{w:512,h:320,fs:[64,48,52],bold:[true,false,true],bg:'#C9CDD1',fg:'#263238'}));
-  rCyl(SP,0.006,0.012,V(2.06,16.21,-4.697),UP,0x9EA5AC,'steel'); rHex(SP,0.009,0.006,V(2.06,16.216,-4.697),UP,0xC0C3C6,'nickel');
-  RFT.spIn=fMale(SP,V(1.955,16.096,-4.697),td); 
-  const o1=fMale(SP,V(2.005,16.096,-4.697),td), o2=fMale(SP,V(2.05,16.096,-4.697),td);
-  /* cables de distribució dins del RITS (PVC blanc) */
-  const ftO=RFT.cout.ft, LO=RFT.cout.L;
-  for(const [c,o,dn] of [['a',o1,-0.012],['b',o2,0.012]]){
-    const inP=insidePath(ftO,0,LO,dn,0); const pre=o.clone().addScaledVector(td,0.03);
-    rCable(`xd_rtv_${c}_r`,'xd_rtv',[o,pre,[2.03+dn,15.86,-4.63],[2.03+dn,15.76,-4.62],...inP],WH,'pvc',{from:'cap_rep',to:'canal_principal',via:'rits_corr_out',tram:'dist',hc:RFN.dist,cr:0.03});
-    RITS_EXIT[c]=inP[inP.length-1].clone();
-    cableTag('xd_rtv',V(2.03+dn,15.84,-4.628),V(c==='a'?-1:1,0,0),c==='a'?'Distribució 1':'Distribució 2');
-  }
+  /* sortida dels dos cables de distribució al final del tub (els cables es fan amb cada capçalera) */
+  for(const [c,dn] of [['a',-0.012],['b',0.012]]){ const inP=insidePath(RFT.cout.ft,0,RFT.cout.L,dn,0); RITS_EXIT[c]=inP[inP.length-1].clone(); }
 }
 
 /* =====================================================================
@@ -5195,127 +5011,171 @@ function euroPlug(el, x, y){ // clavilla europea (sense terra) endollada a la ba
 function tex12(lines,o){ return textTex(lines,o); }
 function buildCapVariant(v){
   SCOPE=VAR;
-  const ftI=RFT.cin.ft, LI=RFT.cin.L;
-  const IN={}; for(const k of ['tdt','dab','fm','sat']) IN[k]=[...RFT.cinStart[k],...insidePath(ftI,0,LI,RFT.cinOff[k][0],RFT.cinOff[k][1])];
+  const ftI=RFT.cin.ft, LI=RFT.cin.L, Z=V(0,0,1), DN=V(0,-1,0);
+  const IN={}; for(const k of ['tdt','dab','fm','sat','sat2']) IN[k]=[...RFT.cinStart[k],...insidePath(ftI,0,LI,RFT.cinOff[k][0],RFT.cinOff[k][1])];
   const inner=IN.tdt;
-  /* reserva del cable de satèl·lit: connector F mascle amb tap, preparat per a un barrejador TV‑SAT */
-  const satRes=(E,pre,tagP)=>{ rCable('sat_in','cab_sat_int',[...IN.sat,...pre,E],WH,'pvc',{from:'rits_ff',via:'rits_corr_in',cr:0.025});
-    fMaleFree('cab_sat_int',E.clone().add(V(0,-0.048,0)),V(0,1,0)); rCyl('cab_sat_int',0.0145,0.02,E.clone().add(V(0,-0.058,0)),UP,0x2B2B2B,'rubber');
-    cableTag('cab_sat_int',tagP,V(-1,0,0),'SAT (FI) · reserva',V(0,1,0)); };
+  /* port d'entrada d'un amplificador de FI: femella sempre (sense parabòlica queda lliure) + connector del cable (opcional) */
+  const satPort=(el,cel,p,dir)=>{ fFemale(el,p,dir,{open:true}); return fMale(cel,p.clone().addScaledVector(dir,0.012),dir,cel); };
+  /* mòdul T12 (ampliat ×2): retorna els ports del frontal */
+  const ZF=-4.485, PY={in1:16.395,in2:16.345,out1:16.125,out2:16.08};
+  const t12=(M,xc,lab,o={})=>{
+    const mb=rBox(M,xc-0.035,xc+0.035,16.052,16.448,-4.691,ZF,o.col||0x1E1F22,'zamakDark',{pick:true,cast:true}); boxHalo(mb,RFN.eq);
+    for(let k=0;k<10;k++) rBox(M,xc-0.036,xc+0.036,16.07+k*0.036,16.078+k*0.036,-4.67,-4.50,0x2A2B2F,'zamakDark');
+    rPlane(M,0.066,0.39,V(xc,16.25,ZF+0.0006),Z,textTex(['T.12','','','','',lab[0],lab[1],lab[2],'DC','','','PWR','','','',''],{w:132,h:780,fs:[30,10,10,10,10,24,26,18,16,10,10,16,10,10,10,10],bold:[true,false,false,false,false,true,true],bg:'#1E1F22',fg:'#ECEFF1'}));
+    rBox(M,xc-0.033,xc+0.033,16.420,16.445,ZF,ZF+0.002,o.band||0xF57C00,'plastic');
+    rBox(M,xc-0.006,xc+0.006,16.238,16.252,ZF,ZF+0.008,0x9E9E9E,'plastic');
+    rCyl(M,0.003,0.004,V(xc+0.016,16.228,ZF+0.002),Z,0x43A047,'plastic',{led:0x1B8F2E});
+    rCyl(M,0.007,0.008,V(xc,16.200,ZF+0.004),Z,0xD0D3D6,'plastic');
+    rBox(M,xc-0.014,xc+0.014,16.163,16.177,ZF,ZF+0.008,0x111111,'plastic');
+    const ports={}; for(const k of Object.keys(PY)) ports[k]=V(xc+0.008,PY[k],ZF); return {xc,ports,M};
+  };
+  const fontBox=(x0,tag)=>{ const FN='cap_font';
+    const fb=rBox(FN,x0,x0+0.14,16.052,16.448,-4.691,-4.507,0x2A2C2F,'zamakDark',{pick:true,cast:true}); boxHalo(fb,RFN.dc);
+    for(let i=0;i<9;i++) for(const x of [x0-0.003,x0+0.143]) rBox(FN,x-0.003,x+0.003,16.09+i*0.035,16.10+i*0.035,-4.68,-4.52,0x3A3D41,'zamakDark');
+    rPlane(FN,0.13,0.38,V(x0+0.07,16.25,-4.5065),Z,textTex(['T.12','',tag,'549812','24 V c.c. · 2,5 A','230 V ~','Classe II ▣','','PWR'],{w:140,h:400,fs:[30,8,22,20,18,18,16,8,18],bold:[true,false,true,true],bg:'#2A2C2F',fg:'#ECEFF1'}));
+    rBox(FN,x0+0.04,x0+0.10,16.20,16.215,-4.507,-4.500,0xF57C00,'plastic');
+    rCyl(FN,0.003,0.004,V(x0+0.07,16.30,-4.505),Z,0x43A047,'plastic',{led:0x1B8F2E});
+    rBox(FN,x0+0.06,x0+0.11,16.155,16.185,-4.507,-4.497,0x111111,'plastic');
+    return V(x0+0.07,16.17,-4.497); };
+  const fontCord=(x,plugX,y)=>{ const pl=euroPlug('rits_cordo',plugX,16.06); cord('rits_cordo',[[x,16.052,-4.60],[x,y,-4.62],[x,y,-4.706],[plugX,y,-4.706],[plugX,y+0.02,-4.672],pl]); };
+  const dcChain=(pts)=>{ for(let i=0;i<pts.length-1;i++){ const a=pts[i], b=pts[i+1], sg=Math.sign(b.x-a.x)||1;
+      for(const [dy,col] of [[0.003,0xC62828],[-0.003,0x212121]]) polyR('cap_dc',[a.clone().add(V(0.004*sg,dy,0)),a.clone().add(V(0.01*sg,dy,0.016)),b.clone().add(V(-0.01*sg,dy,0.016)),b.clone().add(V(-0.004*sg,dy,0))],0.0016,col,'pvc',{cr:0.008,hc:RFN.dc,pick:false});
+      rBox('cap_dc',Math.min(a.x,b.x)+0.002,Math.max(a.x,b.x)-0.002,16.162,16.178,ZF+0.012,ZF+0.024,0x000000,{roughness:1,metalness:0},{opacity:0.0,pick:true}); } };
+  const rail=(x0,x1)=>{ rBox('cap_rail',x0,x1,16.364,16.436,ZP,-4.691,0xC3C8CC,'galv',{pick:true,cast:true});
+    for(const x of [x0+0.04,x1-0.04]) rHex('cap_rail',0.008,0.006,V(x,16.42,-4.688),Z,0x8D949A,'steel'); };
+  /* mesclador (ampliat ×2): entrades a dalt, sortides a baix */
+  const mixer=(x0,h,ins,outs,lines)=>{ const MX='cap_mix', y0=15.62, y1=y0+h, zc=ZP+0.027, W=0.196;
+    const b=rBox(MX,x0,x0+W,y0,y1,ZP,ZP+0.054,0xBFC4C8,'zamak',{pick:true,cast:true}); boxHalo(b,RFN.eq);
+    for(const x of [x0-0.014,x0+W+0.014]){ rBox(MX,x-0.014,x+0.014,y0+h/2-0.02,y0+h/2+0.02,ZP,ZP+0.006,0xBFC4C8,'zamak'); rHex(MX,0.006,0.006,V(x,y0+h/2,ZP+0.009),Z,0x8D949A,'steel'); }
+    rPlane(MX,W-0.02,h-0.03,V(x0+W/2,y0+h/2,ZP+0.0545),Z,textTex(lines,{w:512,h:Math.round(512*(h-0.03)/(W-0.02)),fs:lines.map((_,i)=>i===0?58:40),bold:[true],bg:'#C9CDD1',fg:'#263238'}));
+    rHex(MX,0.009,0.006,V(x0+W-0.02,y1-0.02,ZP+0.057),Z,0xC0C3C6,'nickel');                   // cargol de terra
+    const I={}, O={}; for(const [k,x] of ins) I[k]=V(x,y1,zc); for(const [k,x] of outs) O[k]=V(x,y0,zc);
+    return {I,O,earth:V(x0+W-0.02,y1-0.02,ZP+0.06)}; };
+  /* cable de distribució dins del RITS: de la sortida fins al tub corrugat de sortida */
+  const bajant=(c,start,via,from)=>{ const dn=c==='a'?-0.012:0.012; const inP=insidePath(RFT.cout.ft,0,RFT.cout.L,dn,0);
+    rCable(`xd_rtv_${c}_r`,'xd_rtv',[start,...via,[2.30+dn,15.52,-4.63],...inP],WH,'pvc',{from,to:'canal_principal',via:'rits_corr_out',tram:'dist',hc:RFN.dist,cr:0.03});
+    cableTag('xd_rtv',V(2.30+dn,15.505,-4.628),V(c==='a'?-1:1,0,0),c==='a'?'Distribució 1':'Distribució 2'); };
+  const jump=(key,pts,from,to)=>rCable(key,'cap_jump',pts,WH,'pvc',{from,to,cr:0.03});
+
   if(v==='A'){
-    /* ---- centraleta programable AVANT 12 (532201) ---- */
-    const A='cap_avant', zc=ZP+0.042, ZF=ZP+0.084, GR=0xC5CACE;
-    const body=rBox(A,1.315,1.585,16.20,16.40,ZP,ZF,GR,'zamak',{pick:true,cast:true}); boxHalo(body,RFN.eq);
+    /* ---- centraleta programable amb FI (AVANT 12 PRO SAT, 532204) ---- */
+    const A='cap_avant', zc=ZP+0.042, ZFA=ZP+0.084, GR=0xC5CACE;
+    const body=rBox(A,1.315,1.585,16.20,16.40,ZP,ZFA,GR,'zamak',{pick:true,cast:true}); boxHalo(body,RFN.eq);
     for(const x0 of [1.249,1.585]){ const fl=rBox(A,x0,x0+0.066,16.18,16.42,ZP,ZP+0.07,GR,'zamak',{pick:true,cast:true}); boxHalo(fl,RFN.eq);
-      for(const y of [16.20,16.40]) rCyl(A,0.0075,0.004,V(x0+0.033,y,ZP+0.0705),V(0,0,1),0x55595D,'steel'); }
-    for(let i=0;i<13;i++) rBox(A,1.330+i*0.0128,1.336+i*0.0128,16.215,16.385,ZF,ZF+0.012,GR,'zamak',{cast:true});
-    rPlane(A,0.075,0.16,V(1.548,16.30,ZF+0.0005),V(0,0,1),textTex(['AVANT 12','','','532201'],{w:150,h:320,fs:[30,10,10,22],bold:[true],bg:'#C9CED2',fg:'#263238'}));
-    rCyl(A,0.019,0.010,V(1.548,16.29,ZF+0.005),V(0,0,1),0xF57C00,'plastic',{seg:24});
-    rPlane(A,0.25,0.02,V(1.45,16.392,ZF+0.0125),V(0,0,1),textTex(['1   2   3   4  · VHF+UHF+DC'],{w:512,h:40,size:28,bg:'#C9CED2',fg:'#263238'}));
-    rPlane(A,0.25,0.02,V(1.45,16.208,ZF+0.0125),V(0,0,1),textTex(['POWER   ON ADJ   FM   TV   TEST'],{w:512,h:40,size:26,bg:'#C9CED2',fg:'#263238'}));
-    rCyl(A,0.003,0.004,V(1.386,16.225,ZF+0.013),V(0,0,1),0x43A047,'plastic',{led:0x1B8F2E});
-    rCyl(A,0.003,0.004,V(1.398,16.225,ZF+0.013),V(0,0,1),0x8D6E00,'plastic');
-    rHex(A,0.008,0.008,V(1.618,16.27,ZP+0.074),V(0,0,1),0xC0C3C6,'nickel');      // borne de terra funcional
+      for(const y of [16.20,16.40]) rCyl(A,0.0075,0.004,V(x0+0.033,y,ZP+0.0705),Z,0x55595D,'steel'); }
+    for(let i=0;i<13;i++) rBox(A,1.330+i*0.0128,1.336+i*0.0128,16.215,16.385,ZFA,ZFA+0.012,GR,'zamak',{cast:true});
+    rPlane(A,0.075,0.16,V(1.548,16.30,ZFA+0.0005),Z,textTex(['AVANT 12','PRO SAT','','532204'],{w:150,h:320,fs:[30,24,10,22],bold:[true,true],bg:'#C9CED2',fg:'#263238'}));
+    rCyl(A,0.019,0.010,V(1.548,16.27,ZFA+0.005),Z,0xF57C00,'plastic',{seg:24});
+    rPlane(A,0.25,0.02,V(1.45,16.392,ZFA+0.0125),Z,textTex(['1   2   3   4 · VHF+UHF   SAT'],{w:512,h:40,size:28,bg:'#C9CED2',fg:'#263238'}));
+    rPlane(A,0.25,0.02,V(1.45,16.208,ZFA+0.0125),Z,textTex(['POWER      FM   TV   TV+SAT'],{w:512,h:40,size:26,bg:'#C9CED2',fg:'#263238'}));
+    rCyl(A,0.003,0.004,V(1.386,16.225,ZFA+0.013),Z,0x43A047,'plastic',{led:0x1B8F2E});
+    rHex(A,0.008,0.008,V(1.618,16.27,ZP+0.074),Z,0xC0C3C6,'nickel');
     const ins=[1.427,1.461,1.495,1.529].map(x=>V(x,16.40,zc));
-    const inEnd=fMale(A,ins[0],UP);
-    const dabEnd=fMale(A,ins[1],UP);
+    const inEnd=fMale(A,ins[0],UP), dabEnd=fMale(A,ins[1],UP);
     for(let i=2;i<4;i++) fLoad(A,ins[i],UP,true);
-    const fmEnd=fMale(A,V(1.495,16.20,zc),V(0,-1,0));               // entrada FM
-    const tvEnd=fMale(A,V(1.529,16.20,zc),V(0,-1,0));
-    fLoad(A,V(1.563,16.20,zc),V(0,-1,0),false);                     // TEST −30 dB
-    // entrada d'alimentació de figura 8 i cable
+    const satEnd=satPort(A,'cab_sat_int',V(1.563,16.40,zc),UP);                         // entrada SAT (FI integrada)
+    const fmEnd=fMale(A,V(1.495,16.20,zc),DN);
+    const tvEnd=fMale(A,V(1.529,16.20,zc),DN);                                          // sortida TV (només terrestre)
+    const tsEnd=fMale(A,V(1.563,16.20,zc),DN);                                          // sortida TV+SAT
     rBox(A,1.330,1.358,16.188,16.20,zc-0.010,zc+0.010,0x2B2B2B,'plastic');
     rBox('rits_cordo',1.329,1.359,16.150,16.188,zc-0.013,zc+0.013,0x1E1E1E,'rubber',{cast:true,pick:true});
     const pl=euroPlug('rits_cordo',0.70,16.06);
     cord('rits_cordo',[[1.344,16.150,zc],[1.344,15.93,zc],[1.344,15.93,-4.706],[0.70,15.93,-4.706],[0.70,15.95,-4.672],pl]);
-    // cable interior de captació
     rCable('capt_in','cab_capt_int',[...inner,[1.40,16.565,-4.645],[1.427,16.51,-4.672],inEnd],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
     cableTag('cab_capt_int',V(1.427,16.50,-4.672),V(-1,0,0),'TDT → entrada 1');
     rCable('dab_in','cab_dab_int',[...IN.dab,[1.43,16.565,-4.645],[1.461,16.51,-4.672],dabEnd],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
-    cableTag('cab_dab_int',V(1.461,16.49,-4.672),V(1,0,0),'DAB → entrada 2');
     rCable('fm_in','cab_fm_int',[...IN.fm,[1.36,16.55,-4.63],[1.225,16.46,-4.632],[1.222,16.13,-4.636],[1.30,16.095,zc+0.035],[1.46,16.095,zc+0.033],[1.495,16.10,zc+0.008],fmEnd],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
     cableTag('cab_fm_int',V(1.222,16.30,-4.636),V(-1,0,0),'FM → entrada FM');
-    satRes(V(1.15,16.50,-4.645),[[1.30,16.585,-4.632],[1.17,16.575,-4.64],[1.15,16.55,-4.645]],V(1.15,16.47,-4.645));
-    // latiguillo cap al repartidor
-    const sIn=RFT.spIn, tdd=V(0,-Math.cos(0.1745),Math.sin(0.1745));
-    rCable('cap_jump','cap_jump',[tvEnd,[1.529,15.99,zc],[1.955,15.96,-4.672],sIn.clone().addScaledVector(tdd,0.04),sIn],WH,'pvc',{from:'cap_avant',to:'cap_rep',cr:0.03});
-    cableTag('cap_jump',V(1.74,15.975,-4.672),V(0,-1,0),'Capçalera → repartidor',V(1,0,0));
-    for(const x of [1.20,1.70]) cableClip('cap_jump',V(x,x<1.5?15.93:15.97,-4.70),V(0,0,1));
-    pathOnly('cap_path','cap_avant',[inEnd,[1.427,16.36,zc+0.02],[1.48,16.30,zc+0.03],[1.529,16.24,zc+0.02],tvEnd]);
+    rCable('sat_in','cab_sat_int',[...IN.sat,[1.50,16.575,-4.645],[1.563,16.52,-4.672],satEnd],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
+    cableTag('cab_sat_int',V(1.563,16.51,-4.672),V(1,0,0),'SAT A → entrada SAT');
+    /* segon amplificador de FI amb la seva font */
+    rail(1.69,1.95);
+    const fdc=fontBox(1.70,'Font');
+    const fi=t12('cap_fi_2',1.893,['FI','SAT B','508012'],{band:0x1565C0});
+    dcChain([fdc,V(fi.xc,16.17,ZF+0.008)]);
+    fontCord(1.77,0.58,15.90);
+    const fiIn=satPort('cap_fi_2','cab_sat2_int',fi.ports.in1,Z);
+    rCable('satb_in','cab_sat2_int',[...IN.sat2,[1.62,16.585,-4.60],[fiIn.x,16.49,fiIn.z+0.05],[fiIn.x,fiIn.y+0.004,fiIn.z+0.035],fiIn],WH,'pvc',{from:'rits_ff',to:'cap_fi_2',via:'rits_corr_in',cr:0.025});
+    cableTag('cab_sat2_int',V(fiIn.x,16.48,fiIn.z+0.05),V(1,0,0),'SAT B → FI 2',V(0,1,-1).normalize());
+    const fiOut=fMale('cap_fi_2',fi.ports.out1,Z);
+    /* mesclador MATV‑FI (745210) */
+    const mx=mixer(2.202,0.132,[['terr',2.25],['sat',2.35]],[['out',2.30]],['745210','TERR        SAT','MATV + FI','OUT']);
+    const mT=fMale('cap_mix',mx.I.terr,UP), mS=fMale('cap_mix',mx.I.sat,UP), mO=fMale('cap_mix',mx.O.out,DN);
+    jump('cap_jump',[tvEnd,[1.529,16.0,zc],[1.60,15.90,-4.672],[2.20,15.86,-4.66],[2.25,15.81,-4.676],mT],'cap_avant','cap_mix');
+    cableTag('cap_jump',V(1.90,15.875,-4.665),V(0,-1,0),'TV → TERR',V(1,0,0));
+    jump('cap_jump_fi',[fiOut,[fiOut.x,fiOut.y,fiOut.z+0.03],[fiOut.x+0.03,15.99,-4.46],[2.33,15.92,-4.62],[2.35,15.83,-4.676],mS],'cap_fi_2','cap_mix');
+    cableTag('cap_jump',V(2.20,15.955,-4.54),V(0,-1,0),'FI 2 → SAT',V(1,0,-0.3).normalize());
+    /* cables de distribució: 1 directe de la centraleta (TV+SAT), 2 del mesclador */
+    bajant('a',tsEnd,[[1.563,16.0,zc],[1.66,15.60,-4.66],[2.20,15.56,-4.66],[2.27,15.55,-4.64]],'cap_avant');
+    bajant('b',mO,[[2.30,mO.y-0.03,-4.67],[2.312,15.555,-4.645]],'cap_mix');
     bond([[0.35,17.164,-4.700],[0.35,16.90,-4.688],[1.618,16.90,-4.688],[1.618,16.47,-4.688],[1.618,16.45,-4.632],[1.618,16.29,-4.632],[1.618,16.276,-4.640]]);
+    bond([[0.20,17.164,-4.700],[0.20,15.80,-4.700],[2.382,15.80,-4.700],[2.382,15.732,-4.700],[mx.earth.x,mx.earth.y,mx.earth.z-0.004]]);
     symSprite(A,V(1.45,16.53,-4.55),'〰 RF','#8D5A1A',0.16);
+    symSprite('cap_font',V(1.77,16.53,-4.50),'24 V c.c.','#E65100',0.20);
     symSprite('rits_cordo',V(1.00,15.86,-4.62),'⚡ 230 V c.a. · classe II','#C62828',0.30);
   } else {
-    /* ---- capçalera modular T12 ---- */
-    const KR='cap_rail';
-    rBox(KR,0.86,1.86,16.364,16.436,ZP,-4.691,0xC3C8CC,'galv',{pick:true,cast:true});
-    for(const x of [0.90,1.82]) rHex(KR,0.008,0.006,V(x,16.42,-4.688),V(0,0,1),0x8D949A,'steel');
-    rHex(KR,0.008,0.006,V(1.84,16.40,-4.688),V(0,0,1),0xC0C3C6,'nickel');
-    // font d'alimentació 549812
-    const FN='cap_font';
-    const fb=rBox(FN,0.93,1.07,16.052,16.448,-4.691,-4.507,0x2A2C2F,'zamakDark',{pick:true,cast:true}); boxHalo(fb,RFN.dc);
-    for(let i=0;i<9;i++) for(const x of [0.927,1.073]) rBox(FN,x-0.003,x+0.003,16.09+i*0.035,16.10+i*0.035,-4.68,-4.52,0x3A3D41,'zamakDark');
-    rPlane(FN,0.13,0.38,V(1.00,16.25,-4.5065),V(0,0,1),textTex(['T.12','','549812','Font','24 V c.c. · 2,5 A','230 V ~','Classe II ▣','','PWR'],{w:140,h:400,fs:[30,8,22,20,18,18,16,8,18],bold:[true,false,true],bg:'#2A2C2F',fg:'#ECEFF1'}));
-    rBox(FN,0.97,1.03,16.20,16.215,-4.507,-4.500,0xF57C00,'plastic');
-    rCyl(FN,0.003,0.004,V(1.0,16.30,-4.505),V(0,0,1),0x43A047,'plastic',{led:0x1B8F2E});
-    rBox(FN,0.99,1.04,16.155,16.185,-4.507,-4.497,0x111111,'plastic');            // connector PWR
-    const pl=euroPlug('rits_cordo',0.70,16.06);
-    cord('rits_cordo',[[0.96,16.052,-4.60],[0.96,15.93,-4.62],[0.96,15.93,-4.706],[0.70,15.93,-4.706],[0.70,15.95,-4.672],pl]);
-    symSprite(FN,V(1.00,16.53,-4.50),'24 V c.c.','#E65100',0.20);
-    symSprite('rits_cordo',V(0.80,15.86,-4.62),'⚡ 230 V c.a. · classe II','#C62828',0.30);
-    // mòduls amplificadors
-    const XS=[0,1,2,3].map(i=>1.1166+0.0816*i), ZF=-4.485;
-    const PY={in1:16.395,in2:16.345,out1:16.125,out2:16.08};
-    const lab=[['UHF','27‑27','509812'],['UHF','34‑47','508612'],['DAB','BIII',''],['FM','87‑108','']];
-    XS.forEach((xc,i)=>{
-      const M=`cap_t12_${i+1}`;
-      const mb=rBox(M,xc-0.035,xc+0.035,16.052,16.448,-4.691,ZF,0x1E1F22,'zamakDark',{pick:true,cast:true}); boxHalo(mb,RFN.eq);
-      for(let k=0;k<10;k++) rBox(M,xc-0.036,xc+0.036,16.07+k*0.036,16.078+k*0.036,-4.67,-4.50,0x2A2B2F,'zamakDark');
-      rPlane(M,0.066,0.39,V(xc,16.25,ZF+0.0006),V(0,0,1),textTex(['T.12','','','','',lab[i][0],lab[i][1],lab[i][2],'DC','','','PWR','','','',''],{w:132,h:780,fs:[30,10,10,10,10,24,26,18,16,10,10,16,10,10,10,10],bold:[true,false,false,false,false,true,true],bg:'#1E1F22',fg:'#ECEFF1'}));
-      rBox(M,xc-0.033,xc+0.033,16.420,16.445,ZF,ZF+0.002,0xF57C00,'plastic');
-      rBox(M,xc-0.006,xc+0.006,16.238,16.252,ZF,ZF+0.008,0x9E9E9E,'plastic');              // interruptor CC (OFF)
-      rCyl(M,0.003,0.004,V(xc+0.016,16.228,ZF+0.002),V(0,0,1),0x43A047,'plastic',{led:0x1B8F2E});
-      rCyl(M,0.007,0.008,V(xc,16.200,ZF+0.004),V(0,0,1),0xD0D3D6,'plastic');
-      rBox(M,xc-0.014,xc+0.014,16.163,16.177,ZF,ZF+0.008,0x111111,'plastic');            // PWR
-      const ports={}; for(const k of Object.keys(PY)) ports[k]=V(xc+0.008,PY[k],ZF);
-      XS[i]={xc,ports,M};
-    });
-    const Z=V(0,0,1), MS=XS;
-    // filtre LTE/5G endollat a l'entrada superior del mòdul 1
-    const FL='cap_filtre', fp=MS[0].ports.in1;
+    /* ---- capçalera de monocanals T12: F1 · FI 1 · FI 2 · TDT 1‑10 · DAB · FM · F2 ---- */
+    rail(0.85,2.30);
+    const f1=fontBox(0.86,'Font 1'), f2=fontBox(2.15,'Font 2');
+    fontCord(0.93,0.58,15.93); fontCord(2.22,0.70,15.96);
+    const XC=j=>1.0466+0.0816*j;
+    const M=[];
+    M.push(t12('cap_fi_1',XC(0),['FI','SAT A','508012'],{band:0x1565C0}));
+    M.push(t12('cap_fi_2',XC(1),['FI','SAT B','508012'],{band:0x1565C0}));
+    for(let i=1;i<=10;i++) M.push(t12(`cap_t12_${i}`,XC(i+1),['UHF',`C${TDTCH[i-1]}`,'509812']));
+    M.push(t12('cap_t12_dab',XC(12),['DAB','BIII','508312']));
+    M.push(t12('cap_t12_fm',XC(13),['FM','87‑108','']));
+    const TD=M.slice(2,12), TER=M.slice(2,14);
+    /* alimentació: font 1 → FI 1, FI 2, TDT 1‑5; font 2 → FM, DAB, TDT 10‑6 */
+    const dcp=m=>V(m.xc,16.17,ZF+0.008);
+    dcChain([f1,...M.slice(0,7).map(dcp)]); dcChain([V(2.15,16.17,-4.497),...M.slice(7,14).reverse().map(dcp)]);
+    /* filtre LTE/5G a l'entrada del mòdul de TDT 1 (única entrada des de l'antena UHF) */
+    const FL='cap_filtre', fp=TD[0].ports.in1;
     rHex(FL,0.0135,0.017,fp.clone().addScaledVector(Z,0.0155),Z,NI,'nickel');
     const flb=rBox(FL,fp.x-0.023,fp.x+0.023,fp.y-0.031,fp.y+0.031,fp.z+0.024,fp.z+0.122,0xC0C5C9,'zamak',{pick:true,cast:true}); boxHalo(flb,RFN.eq);
     rPlane(FL,0.044,0.09,V(fp.x+0.0232,fp.y,fp.z+0.073),V(1,0,0),textTex(['LTE/5G','403201','≤694 MHz'],{w:96,h:200,fs:[20,18,16],bold:[true],bg:'#C0C5C9',fg:'#263238'}),{rotZ:Math.PI/2});
     const fOut=fMale(FL,fp.clone().addScaledVector(Z,0.122),Z);
-    // cable interior de captació fins al filtre
-    rCable('capt_in','cab_capt_int',[...inner,[1.40,16.565,-4.62],[1.24,16.565,-4.36],[fOut.x+0.02,16.48,-4.24],[fOut.x,fOut.y,fOut.z+0.06],fOut],WH,'pvc',{from:'rits_ff',to:'cap_filtre',via:'rits_corr_in',cr:0.03});
-    cableTag('cab_capt_int',V(1.20,16.545,-4.32),V(0,1,0),'TDT → filtre → mòdul 1',V(1,0,0.6).normalize());
-    // ponts F en Z (5074) i càrregues
+    rCable('capt_in','cab_capt_int',[...inner,[1.40,16.565,-4.62],[1.30,16.565,-4.36],[fOut.x+0.02,16.48,-4.24],[fOut.x,fOut.y,fOut.z+0.06],fOut],WH,'pvc',{from:'rits_ff',to:'cap_filtre',via:'rits_corr_in',cr:0.03});
+    cableTag('cab_capt_int',V(1.29,16.545,-4.34),V(0,1,0),'TDT → filtre → TDT 1',V(1,0,0.6).normalize());
+    /* ponts F en Z: entrades entre els 10 mòduls de TDT; sortides entre els 12 mòduls terrestres */
     const bridge=(a,b)=>{ const e1=fMale('cap_ponts',a,Z), e2=fMale('cap_ponts',b,Z);
       const m=polyR('cap_ponts',[e1,e1.clone().addScaledVector(Z,0.018),e2.clone().addScaledVector(Z,0.018),e2],0.0055,0xC9CCCF,'nickel',{cr:0.016,hc:RFN.capt}); G.pick.push(m); };
-    bridge(MS[0].ports.in2,MS[1].ports.in2);                       // la TDT passa del mòdul 1 al 2; DAB i FM tenen entrada pròpia
-    bridge(MS[0].ports.out1,MS[1].ports.out1); bridge(MS[1].ports.out2,MS[2].ports.out2); bridge(MS[2].ports.out1,MS[3].ports.out1);
-    fLoad('cap_t12_2',MS[1].ports.in1,Z,true); fLoad('cap_t12_3',MS[2].ports.in2,Z,true); fLoad('cap_t12_4',MS[3].ports.in2,Z,true);   // entrades lliures
-    const dEnd=fMale('cap_t12_3',MS[2].ports.in1,Z), mEnd=fMale('cap_t12_4',MS[3].ports.in1,Z);
-    rCable('dab_in','cab_dab_int',[...IN.dab,[1.36,16.53,-4.60],[dEnd.x,16.47,dEnd.z+0.05],[dEnd.x,dEnd.y+0.004,dEnd.z+0.035],dEnd],WH,'pvc',{from:'rits_ff',to:'cap_t12_3',via:'rits_corr_in',cr:0.025});
-    rCable('fm_in','cab_fm_int',[...IN.fm,[1.40,16.53,-4.60],[mEnd.x,16.47,mEnd.z+0.05],[mEnd.x,mEnd.y+0.004,mEnd.z+0.035],mEnd],WH,'pvc',{from:'rits_ff',to:'cap_t12_4',via:'rits_corr_in',cr:0.025});
-    cableTag('cab_dab_int',V(dEnd.x,16.46,dEnd.z+0.05),V(-1,0,0),'DAB → mòdul 3',V(0,1,-1).normalize());
-    cableTag('cab_fm_int',V(mEnd.x,16.46,mEnd.z+0.05),V(1,0,0),'FM → mòdul 4',V(0,1,-1).normalize());
-    satRes(V(1.04,16.56,-4.635),[[1.28,16.60,-4.635],[1.06,16.605,-4.635],[1.04,16.59,-4.635]],V(1.04,16.53,-4.635));
-    fLoad('cap_t12_1',MS[0].ports.out2,Z,false);      // sortida lliure
-    const gOut=fMale('cap_t12_4',MS[3].ports.out2,Z);
-    // latiguillos de 24 V c.c.
-    const dcp=[V(1.03,16.17,-4.497),...MS.map(m=>V(m.xc,16.17,ZF+0.008))];
-    for(let i=0;i<4;i++){ const a=dcp[i], b=dcp[i+1];
-      for(const [dy,col] of [[0.003,0xC62828],[-0.003,0x212121]]) polyR('cap_dc',[a.clone().add(V(0.004,dy,0)),a.clone().add(V(0.01,dy,0.016)),b.clone().add(V(-0.01,dy,0.016)),b.clone().add(V(-0.004,dy,0))],0.0016,col,'pvc',{cr:0.008,hc:RFN.dc,pick:false});
-      rBox('cap_dc',a.x+0.002,b.x-0.002,16.162,16.178,ZF+0.012,ZF+0.024,0x000000,{roughness:1,metalness:0},{opacity:0.0,pick:true}); }
-    // latiguillo cap al repartidor
-    const sIn=RFT.spIn, tdd=V(0,-Math.cos(0.1745),Math.sin(0.1745));
-    rCable('cap_jump','cap_jump',[gOut,[gOut.x,gOut.y,gOut.z+0.03],[gOut.x+0.02,15.99,-4.44],[1.70,15.96,-4.60],[1.955,15.96,-4.672],sIn.clone().addScaledVector(tdd,0.04),sIn],WH,'pvc',{from:'cap_t12_4',to:'cap_rep',cr:0.03});
-    cableTag('cap_jump',V(1.80,15.963,-4.645),V(0,-1,0),'Capçalera → repartidor',V(1,0,-0.3).normalize());
-    pathOnly('cap_path','cap_t12_1',[fOut,[fp.x,fp.y,fp.z+0.02],[MS[0].xc,16.25,ZF+0.01],[MS[1].xc,16.25,ZF+0.01],[MS[2].xc,16.25,ZF+0.01],[MS[3].xc,16.25,ZF+0.01],[gOut.x,gOut.y,ZF+0.02],gOut]);
-    bond([[0.35,17.164,-4.700],[0.35,16.90,-4.686],[1.84,16.90,-4.686],[1.84,16.45,-4.686],[1.84,16.412,-4.686]]);
-    symSprite('cap_t12_2',V(1.24,16.55,-4.44),'〰 RF','#8D5A1A',0.16);
+    for(let t=0;t<TD.length-1;t++){ const k=t%2===0?'in2':'in1'; bridge(TD[t].ports[k],TD[t+1].ports[k]); }
+    fLoad(TD[9].M,TD[9].ports.in1,Z,true);                                            // entrada lliure del darrer mòdul de TDT
+    for(let t=0;t<TER.length-1;t++){ const k=t%2===0?'out1':'out2'; bridge(TER[t].ports[k],TER[t+1].ports[k]); }
+    fLoad(TD[0].M,TD[0].ports.out2,Z,false);                                          // sortida lliure del primer mòdul
+    const gOut=fMale('cap_t12_fm',TER[11].ports.out2,Z);                              // sortida MATV
+    /* DAB i FM: entrada pròpia des de la seva antena */
+    const dEnd=fMale('cap_t12_dab',M[12].ports.in1,Z), mEnd=fMale('cap_t12_fm',M[13].ports.in1,Z);
+    fLoad('cap_t12_dab',M[12].ports.in2,Z,true); fLoad('cap_t12_fm',M[13].ports.in2,Z,true);
+    rCable('dab_in','cab_dab_int',[...IN.dab,[1.50,16.55,-4.60],[dEnd.x,16.49,dEnd.z+0.05],[dEnd.x,dEnd.y+0.004,dEnd.z+0.035],dEnd],WH,'pvc',{from:'rits_ff',to:'cap_t12_dab',via:'rits_corr_in',cr:0.025});
+    rCable('fm_in','cab_fm_int',[...IN.fm,[1.52,16.535,-4.60],[mEnd.x,16.47,mEnd.z+0.05],[mEnd.x,mEnd.y+0.004,mEnd.z+0.035],mEnd],WH,'pvc',{from:'rits_ff',to:'cap_t12_fm',via:'rits_corr_in',cr:0.025});
+    cableTag('cab_dab_int',V(dEnd.x,16.48,dEnd.z+0.05),V(-1,0,0),'DAB',V(0,1,-1).normalize());
+    cableTag('cab_fm_int',V(mEnd.x,16.46,mEnd.z+0.05),V(1,0,0),'FM',V(0,1,-1).normalize());
+    /* amplificadors de FI: entrada des de l'LNB (si hi ha parabòlica) */
+    const aIn=satPort('cap_fi_1','cab_sat_int',M[0].ports.in1,Z), bIn=satPort('cap_fi_2','cab_sat2_int',M[1].ports.in1,Z);
+    rCable('sat_in','cab_sat_int',[...IN.sat,[1.30,16.585,-4.60],[aIn.x,16.50,aIn.z+0.05],[aIn.x,aIn.y+0.004,aIn.z+0.035],aIn],WH,'pvc',{from:'rits_ff',to:'cap_fi_1',via:'rits_corr_in',cr:0.025});
+    rCable('satb_in','cab_sat2_int',[...IN.sat2,[1.32,16.60,-4.58],[bIn.x,16.52,bIn.z+0.06],[bIn.x,bIn.y+0.004,bIn.z+0.035],bIn],WH,'pvc',{from:'rits_ff',to:'cap_fi_2',via:'rits_corr_in',cr:0.025});
+    cableTag('cab_sat_int',V(aIn.x,16.49,aIn.z+0.05),V(-1,0,0),'SAT A',V(0,1,-1).normalize());
+    cableTag('cab_sat2_int',V(bIn.x,16.51,bIn.z+0.06),V(1,0,0),'SAT B',V(0,1,-1).normalize());
+    const aOut=fMale('cap_fi_1',M[0].ports.out1,Z), bOut=fMale('cap_fi_2',M[1].ports.out1,Z);
+    /* mesclador TERR + 2 SAT (740710) */
+    const mx=mixer(2.202,0.152,[['terr',2.24],['sa',2.30],['sb',2.36]],[['a',2.27],['b',2.33]],['740710','TERR  SAT A  SAT B','MATV + FI + FI','OUT A   OUT B']);
+    const mT=fMale('cap_mix',mx.I.terr,UP), mA=fMale('cap_mix',mx.I.sa,UP), mB=fMale('cap_mix',mx.I.sb,UP);
+    const oA=fMale('cap_mix',mx.O.a,DN), oB=fMale('cap_mix',mx.O.b,DN);
+    jump('cap_jump',[gOut,[gOut.x,gOut.y,gOut.z+0.03],[gOut.x+0.01,15.99,-4.44],[2.20,15.93,-4.60],[2.24,15.86,-4.672],mT],'cap_t12_fm','cap_mix');
+    cableTag('cap_jump',V(2.17,15.95,-4.52),V(0,-1,0),'MATV → TERR',V(1,0,-0.3).normalize());
+    jump('cap_jump_fia',[aOut,[aOut.x,aOut.y,aOut.z+0.03],[aOut.x,15.99,-4.47],[1.20,15.975,-4.60],[2.27,15.95,-4.62],[2.30,15.86,-4.672],mA],'cap_fi_1','cap_mix');
+    jump('cap_jump_fib',[bOut,[bOut.x,bOut.y,bOut.z+0.03],[bOut.x,15.97,-4.50],[1.25,15.945,-4.64],[2.33,15.92,-4.65],[2.36,15.86,-4.674],mB],'cap_fi_2','cap_mix');
+    cableTag('cap_jump',V(1.40,15.97,-4.60),V(0,-1,0),'FI 1 → SAT A',V(1,0,0));
+    /* cables de distribució: OUT A → cable 1, OUT B → cable 2 */
+    bajant('a',oA,[[2.27,oA.y-0.03,-4.67],[2.288,15.555,-4.645]],'cap_mix');
+    bajant('b',oB,[[2.33,oB.y-0.03,-4.67],[2.312,15.555,-4.645]],'cap_mix');
+    bond([[0.35,17.164,-4.700],[0.35,16.90,-4.686],[2.26,16.90,-4.686],[2.26,16.45,-4.686],[2.26,16.412,-4.686]]);
+    bond([[0.20,17.164,-4.700],[0.20,15.80,-4.700],[2.382,15.80,-4.700],[2.382,15.752,-4.700],[mx.earth.x,mx.earth.y,mx.earth.z-0.004]]);
+    symSprite('cap_t12_5',V(1.50,16.62,-4.44),'〰 RF','#8D5A1A',0.16);
+    symSprite('cap_font',V(0.93,16.53,-4.50),'24 V c.c.','#E65100',0.20); symSprite('cap_font',V(2.22,16.53,-4.50),'24 V c.c.','#E65100',0.20);
+    symSprite('rits_cordo',V(0.80,15.86,-4.62),'⚡ 230 V c.a. · classe II','#C62828',0.30);
   }
   SCOPE=null; CAPBUILT=v;
 }
@@ -5351,21 +5211,19 @@ const ritsBad = id => !!(id && EL[id] && EL[id].variant && EL[id].variant!==S.ca
 function inRits(id){ if(!id||!EL[id]) return false; if(id==='rits'||id==='rits_porta') return true; let p=EL[id].parent; while(p){ if(p==='rits') return true; p=EL[p].parent; } return false; }
 function setCap(v){
   if(v===S.cap && CAPBUILT===v) return;
-  if(RT.active) RT.playing=false;
   S.cap=v; clearScope(); buildCapVariant(v);
   if(ritsBad(S.selected)) S.selected='capcalera';
   if(ritsBad(S.hover)) S.hover=null;
   S.related=new Set([...S.related].filter(x=>!ritsBad(x)));
   if(S.ritsHl) S.related=ritsHlSet(S.ritsHl);
   for(const n of NAV.stack) if(ritsBad(n.selected)) n.selected='capcalera';
-  if(RT.active){ const i=RT.i; RT.steps=buildRoute(RT.svc,RT.unit,RT.room); RT.playing=false; goStep(Math.min(i,RT.steps.length-1)); }
   applyVisibility(); renderInfo(); needLabels=true;
   if(renderer) shadowRefresh();
-  const st=$('#statusNav'); if(st) st.textContent = `Capçalera canviada: ${v==='A'?'centraleta programable':'amplificadors modulars'}. S'han reconstruït els equips i les connexions.${RT.active?' El recorregut s\'ha posat en pausa.':''}`;
+  const st=$('#statusNav'); if(st) st.textContent = `Capçalera canviada: ${v==='A'?'centraleta programable amb FI':'amplificadors monocanal'}. S'han reconstruït els equips i les connexions.`;
 }
 function ritsHlSet(k){
-  if(k==='in') return new Set(['cab_capt','cab_dab','cab_fm','cab_sat','canal_enllac_sup','reg_enllac_sup','rits_ff','cab_capt_int','cab_dab_int','cab_fm_int','cab_sat_int','rits_corr_in', ...(S.cap==='A'?['cap_avant']:['cap_filtre','cap_t12_1','cap_t12_3','cap_t12_4'])]);
-  return new Set(['cap_rep','xd_rtv','rits_corr_out','canal_principal']);
+  if(k==='in') return new Set(['cab_capt','cab_dab','cab_fm','cab_sat','cab_sat2','canal_enllac_sup','reg_enllac_sup','rits_ff','cab_capt_int','cab_dab_int','cab_fm_int','cab_sat_int','cab_sat2_int','rits_corr_in','cap_fi_2', ...(S.cap==='A'?['cap_avant']:['cap_filtre','cap_t12_1','cap_t12_dab','cap_t12_fm','cap_fi_1'])]);
+  return new Set(['cap_mix','cap_jump','xd_rtv','rits_corr_out','canal_principal', ...(S.cap==='A'?['cap_avant']:[])]);
 }
 function ritsVisibility(){
   const did=S.ritsLook==='did';
@@ -5390,8 +5248,8 @@ function ritsCardHTML(id){
   const b=(act,on,t1,t0)=>`<button data-ract="${act}" aria-pressed="${!!on}" class="${on?'on':''}">${on?t0:t1}</button>`;
   return `<details class="card ritscfg" ${open?'open':''}><summary><b>Configuració del RITS</b></summary>
    <fieldset><legend>Tipus de capçalera</legend>
-    <label class="opt"><input type="radio" name="ritsCap" value="A" ${S.cap==='A'?'checked':''}> Centraleta programable <span class="muted small">(exemple: Televes AVANT 12, ref. 532201)</span></label>
-    <label class="opt"><input type="radio" name="ritsCap" value="B" ${S.cap==='B'?'checked':''}> Amplificadors modulars <span class="muted small">(exemple: Televes T12, font 549812 i carril de suport)</span></label></fieldset>
+    <label class="opt"><input type="radio" name="ritsCap" value="A" ${S.cap==='A'?'checked':''}> Centraleta programable amb FI <span class="muted small">(exemple: Televes AVANT 12 PRO SAT, ref. 532204 · 2n amplificador de FI i mesclador 745210)</span></label>
+    <label class="opt"><input type="radio" name="ritsCap" value="B" ${S.cap==='B'?'checked':''}> Amplificadors monocanal <span class="muted small">(exemple: Televes T12 · 10 de TDT, DAB, FM, 2 de FI i mesclador 740710)</span></label></fieldset>
    <div class="small" style="margin:6px 0 2px"><b>Vista</b></div>
    <div class="actions" style="margin-top:2px"><button data-ract="view" class="primary">Interior del RITS</button>
     ${b('door',isOpen('rits'),'Obrir la porta','Tancar la porta')}${b('roof',S.ritsRoof,'Retirar el sostre','Recuperar el sostre')}${b('front',S.ritsFront,'Retirar la paret frontal','Recuperar la paret frontal')}</div>
@@ -5417,7 +5275,7 @@ function ritsAction(a){
   if(a==='hlIn'||a==='hlOut'){ const k=a==='hlIn'?'in':'out';
     if(S.ritsHl===k){ S.ritsHl=null; S.related=new Set(); }
     else { S.ritsHl=k; S.related=ritsHlSet(k); S.ritsXray=true; for(const r of S.related) ensureVisible(r);
-      frameEl(k==='in'?['reg_enllac_sup','rits_corr_in',...(S.cap==='A'?['cap_avant']:['cap_t12_1'])]:['cap_rep','rits_corr_out']); }
+      frameEl(k==='in'?['reg_enllac_sup','rits_corr_in',...(S.cap==='A'?['cap_avant']:['cap_t12_1'])]:['cap_mix','rits_corr_out']); }
     applyVisibility(); needLabels=true; }
   renderInfo();
 }
@@ -5625,7 +5483,9 @@ function buildAntennas(){
   const lnM=agMesh('lnb',ln,0xF1F2F2,'plastic'); agMesh('lnb',lnc,0x2E2E2E,'plastic',{pick:false});
   addProxy(lnM,agSeg(Lf,Lf.clone().addScaledVector(lnbAx,0.14),0.06,8));
   const lnbF=Lf.clone().addScaledVector(lnbAx,0.11).addScaledVector(lnbDown,-0.022);
-  const satOut=fMale('lnb',lnbF,lnbDown.clone().negate(),'lnb');
+  const lnbSide=lnbAx.clone().cross(lnbDown).normalize();
+  const satOut=fMale('lnb',lnbF.clone().addScaledVector(lnbSide,-0.016),lnbDown.clone().negate(),'lnb');
+  const satOut2=fMale('lnb',lnbF.clone().addScaledVector(lnbSide,0.016),lnbDown.clone().negate(),'lnb');
   ANT.info.dish={center:Cc.clone(), n, beam, refl, lnb:Lf.clone(), radius:D.rad, rim:[Cc.clone().addScaledVector(uu,D.rad).addScaledVector(n,D.depth),Cc.clone().addScaledVector(uu,-D.rad).addScaledVector(n,D.depth)]};
   COLL.push({x0:Math.min(TX,Cc.x+0.6*d.x)-0.3,x1:Math.max(TX,Cc.x+0.6*d.x)+0.3,y0:Y0,y1:16.5,z0:Math.min(TZ,Cc.z+0.6*d.z)-0.3,z1:Math.max(TZ,Cc.z+0.6*d.z)+0.3,mesh:dishM,f:{floor:5}});
 
@@ -5638,7 +5498,7 @@ function buildAntennas(){
   /* ---------------- RECORREGUTS DELS COAXIALS ---------------- */
   const BX=TX+0.122, slot=(ang)=>V(TX+0.0325*Math.cos(ang*Math.PI/180),0,TZ+0.0325*Math.sin(ang*Math.PI/180));
   const sT=slot(0), sF=slot(40), sD=slot(-40);
-  const ZB={fm:TZ+0.033, tdt:TZ+0.011, dab:TZ-0.011, sat:TZ-0.033};
+  const ZB={fm:TZ+0.033, tdt:TZ+0.011, dab:TZ-0.011, sat:TZ-0.033, sat2:TZ-0.055};
   ANT.cab={
     tdt:[tdtOut,[dx,yT-0.12,bz],[TX+0.0,yT-0.17,TZ+0.048],[TX+0.031,yT-0.20,TZ+0.031],[sT.x,yT-0.235,sT.z],[sT.x,21.32,sT.z]],
     dab:[dabOut,[fx,yD-0.14,TZ-0.024],[TX-0.30,yD-0.14,TZ-0.024],[TX-0.05,yD-0.14,TZ-0.036],[TX,yD-0.16,TZ-0.045],[TX+0.016,yD-0.19,TZ-0.036],[sD.x,yD-0.22,sD.z],[sD.x,21.32,sD.z]],
@@ -5646,6 +5506,9 @@ function buildAntennas(){
     sat:[satOut, armEnd.clone().addScaledVector(lnbDown,-0.03).addScaledVector(lnbAx,0.04), A0.clone().add(V(0,-0.032,0)).addScaledVector(d,-0.02), V(stub.x,15.556,stub.z).addScaledVector(d,0.03), V(stub.x,15.50,stub.z).addScaledVector(d,0.03), V(TX+0.02,15.50,TZ-0.215), V(TX+0.135,15.50,TZ-0.165), V(TX+0.15,15.47,TZ-0.07)]
   };
   for(const k of ['tdt','dab','fm']) ANT.cab[k].push([BX,21.06,ZB[k]],[BX,15.62,ZB[k]],[BX,15.50,ZB[k]]);
+  /* sortida B de l'LNB: el segon cable va paral·lel al primer */
+  { const off=V(-0.016*d.z,0,0.016*d.x); ANT.cab.sat2=[satOut2, ...ANT.cab.sat.slice(1).map((p,i)=>i===0?p.clone().addScaledVector(lnbSide,0.016):p.clone().add(off))];
+    ANT.cab.sat2[ANT.cab.sat2.length-1]=V(TX+0.17,15.47,TZ-0.085); }
   // brides del cable de l'LNB al braç
   const st=[]; for(const t of [0.3,0.65]) agTie(st,A0.clone().lerp(armEnd,t).addScaledVector(lnbDown,-0.012),armEnd.clone().sub(A0),0.022);
   agTie(st,V(stub.x,15.53,stub.z).addScaledVector(d,0.015),UP,0.036);
@@ -5653,208 +5516,24 @@ function buildAntennas(){
   ANT.ZB=ZB;
 }
 
-/* =====================================================================
-   PRIMERA PERSONA (POV): caminar per l'edifici amb les fletxes
-   Col·lisions aproximades amb caixes alineades amb els eixos (COLL),
-   fulles practicables (portes) i la cabina de l'ascensor.
-   ===================================================================== */
-const POV = {on:false, pos:null, yaw:0, pitch:-0.05, vy:0, keys:{}, saved:null, grid:null, dyn:[], fov:42, look:null, hudT:0};
-const PR=0.24, STEP=0.45, EYE=1.6, HEAD=1.8, CELL=2;
-function povGrid(){
-  const g=new Map();
-  const add=(b)=>{ for(let ix=Math.floor(b.x0/CELL); ix<=Math.floor(b.x1/CELL); ix++) for(let iz=Math.floor(b.z0/CELL); iz<=Math.floor(b.z1/CELL); iz++){ const k=ix+','+iz; if(!g.has(k)) g.set(k,[]); g.get(k).push(b); } };
-  for(const b of COLL) add(b);
-  /* tapa de l'arqueta a la vorera (al model es deixa oberta per veure la canalització) */
-  add({x0:3.55,x1:5.45,y0:-0.05,y1:0,z0:5,z1:7.95,f:{ground:true,floor:0},virt:true});
-  /* parets del RITI i del RITS (elements de la ICT) */
-  for(const el of ['riti','rits']) for(const m of (G.byEl[el]||[])){
-    if(m.parent && m.parent!==scene) continue;                    // portes: es tracten com a fulles
-    const bb=new THREE.Box3().setFromObject(m), sz=bb.getSize(new THREE.Vector3());
-    if(Math.max(sz.x,sz.z)<0.6 || sz.y<1.2 || Math.min(sz.x,sz.z)>0.3) continue;
-    add({x0:bb.min.x,x1:bb.max.x,y0:bb.min.y,y1:bb.max.y,z0:bb.min.z,z1:bb.max.z,mesh:m});
-  }
-  return g;
-}
-function povBoxes(x,z,r){
-  const out=new Set();
-  for(let ix=Math.floor((x-r)/CELL); ix<=Math.floor((x+r)/CELL); ix++) for(let iz=Math.floor((z-r)/CELL); iz<=Math.floor((z+r)/CELL); iz++){ const a=POV.grid.get(ix+','+iz); if(a) for(const b of a) out.add(b); }
-  for(const b of POV.dyn) out.add(b);
-  return out;
-}
-const boxOn = b => b.mesh ? b.mesh.visible : (b.virt||b.dyn) ? true : archVisible(b.f);
-/* fulles i cabina: caixes dinàmiques recalculades a cada fotograma (només les properes) */
-function povDynamic(){
-  const p=POV.pos, d=[];
-  if(LIFT.cab) LIFT.cab.updateMatrixWorld(true);
-  for(const l of LEAVES){
-    if(!(l.arch || String(l.key).includes('#'))) continue;
-    const wp=l.piv.getWorldPosition(new THREE.Vector3()); if(Math.abs(wp.x-p.x)>3 || Math.abs(wp.z-p.z)>3 || Math.abs(wp.y-p.y)>3) continue;
-    l.piv.updateMatrixWorld(true);
-    let vis=false; l.piv.traverse(o=>{ if(o.isMesh && o.visible) vis=true; }); if(!vis) continue;
-    const bb=new THREE.Box3().setFromObject(l.piv);
-    /* fulla tancada o oberta: caixa prima; durant el gir la caixa diagonal és més gran del compte, s'accepta */
-    d.push({x0:bb.min.x,x1:bb.max.x,y0:bb.min.y,y1:bb.max.y,z0:bb.min.z,z1:bb.max.z,dyn:true});
-  }
-  if(LIFT.cab){ for(const m of LIFT.cab.children){ if(!m.visible) continue; const bb=new THREE.Box3().setFromObject(m); d.push({x0:bb.min.x,x1:bb.max.x,y0:bb.min.y,y1:bb.max.y,z0:bb.min.z,z1:bb.max.z,dyn:true}); } }
-  POV.dyn=d;
-}
-function rampY(x,z){ const R=BLD.bas.ramp; if(x>R.x0-0.05 && x<R.x1+0.05 && z>R.z0 && z<R.z1) return -3*(R.z1-z)/(R.z1-R.z0); return null; }
-/* alçada del terra sota (x,z) que es pot trepitjar des de l'alçada y */
-function groundAt(x,z,y){
-  let g=-Infinity;
-  for(const b of povBoxes(x,z,0.05)){
-    if(x<b.x0||x>b.x1||z<b.z0||z>b.z1) continue;
-    if(b.y1>y+STEP+1e-3 || !boxOn(b)) continue;
-    if(b.y1-b.y0>2.2 && b.y1>y+0.05) continue;
-    if(b.y1>g) g=b.y1;
-  }
-  const r=rampY(x,z); if(r!==null && r<=y+STEP && r>g) g=r;
-  return g;
-}
-function blocked(x,z,y){
-  for(const b of povBoxes(x,z,PR+0.05)){
-    if(b.y1<=y+STEP+1e-3 || b.y0>=y+HEAD) continue;
-    const cx=Math.max(b.x0,Math.min(x,b.x1)), cz=Math.max(b.z0,Math.min(z,b.z1));
-    if((cx-x)*(cx-x)+(cz-z)*(cz-z) >= PR*PR) continue;
-    if(!boxOn(b)) continue;
-    return true;
-  }
-  return false;
-}
-function povEnter(){
-  if(!renderer || POV.on) return;
-  setPanel('eye',false); setPanel('views',false); hideLeafChip();
-  openDrawer('bottom',false); if(innerWidth<=760) for(const w of ['left','right']) openDrawer(w,false);
-  routeReset();
-  POV.saved=navState(); POV.savedFov=camera.fov;
-  POV.grid ||= povGrid();
-  S.mode='oberta'; S.layers.facana=true; S.layers.estructura=true;
-  syncControls(); applyVisibility();
-  POV.on=true; camAnim=null; controls.enabled=false;
-  camera.fov=68; camera.updateProjectionMatrix();
-  POV.pos=V(3.4,0,8.0); POV.yaw=0; POV.pitch=-0.04; POV.vy=0; POV.keys={};
-  camera.rotation.order='YXZ';
-  $('#povHud').classList.remove('hidden'); $('#btnPov').setAttribute('aria-pressed','true'); $('#btnPov').classList.add('on');
-  $('.app').classList.add('pov');
-  renderer.domElement.focus();
-  announce('Mode primera persona: fletxes amunt i avall per caminar, esquerra i dreta per girar; arrossega per mirar; E obre o tanca la porta del davant; Esc per sortir.');
-  updateStatus(); navUI(); needLabels=true;
-}
-function povExit(silent){
-  if(!POV.on) return;
-  POV.on=false; controls.enabled=true;
-  camera.fov=POV.savedFov||42; camera.updateProjectionMatrix();
-  $('#povHud').classList.add('hidden'); $('#liftPanel').classList.add('hidden'); $('#btnPov').setAttribute('aria-pressed','false'); $('#btnPov').classList.remove('on');
-  $('.app').classList.remove('pov');
-  const s=POV.saved;
-  if(s){ S.mode=s.mode; S.floor=s.floor; S.unitSide=s.unitSide; S.layers=Object.assign({},s.layers); syncControls(); applyVisibility();
-    camera.position.copy(s.p); controls.target.copy(s.t); camera.up.set(0,1,0); camera.lookAt(s.t); controls.update(); }
-  if(!silent) announce('Has sortit del mode primera persona.');
-  updateStatus(); navUI(); needLabels=true;
-}
-function povForward(){ return V(-Math.sin(POV.yaw),0,-Math.cos(POV.yaw)); }
-function povTick(dt){
-  const k=POV.keys, p=POV.pos;
-  povDynamic();
-  const turn=1.9*dt; if(k.ArrowLeft) POV.yaw+=turn; if(k.ArrowRight) POV.yaw-=turn;
-  if(k.PageUp) POV.pitch=Math.min(1.2,POV.pitch+turn*0.7); if(k.PageDown) POV.pitch=Math.max(-1.2,POV.pitch-turn*0.7);
-  const sp=(k.Shift?3.0:1.45)*dt, f=povForward(), r=V(-f.z,0,f.x);
-  let mv=V(0,0,0);
-  if(k.ArrowUp||k.w||k.W) mv.add(f); if(k.ArrowDown||k.s||k.S) mv.sub(f);
-  if(k.a||k.A) mv.sub(r); if(k.d||k.D) mv.add(r);
-  if(mv.lengthSq()>0){
-    mv.normalize().multiplyScalar(sp);
-    const n=Math.ceil(mv.length()/0.08);
-    for(let i=0;i<n;i++){
-      const dx=mv.x/n, dz=mv.z/n;
-      if(!blocked(p.x+dx,p.z,p.y)) p.x+=dx;
-      if(!blocked(p.x,p.z+dz,p.y)) p.z+=dz;
-      const g=groundAt(p.x,p.z,p.y);
-      if(g>p.y-STEP && POV.vy<=0){ p.y=g; POV.vy=0; }       // pujar o baixar un esglaó
-    }
-  }
-  /* gravetat */
-  const g=groundAt(p.x,p.z,p.y);
-  if(g<p.y-1e-3){ POV.vy-=9.8*dt; p.y=Math.max(g,p.y+POV.vy*dt); if(p.y<=g){ p.y=g; POV.vy=0; } }
-  else { if(g>p.y) p.y=g; POV.vy=0; }
-  if(!isFinite(p.y) || p.y<-6){ p.set(3.4,0,8.0); POV.vy=0; }
-  camera.position.set(p.x,p.y+EYE,p.z); camera.rotation.set(POV.pitch,POV.yaw,0,'YXZ');
-  /* panell de l'ascensor quan s'és dins de la cabina */
-  const inCab = p.x>0.45 && p.x<1.85 && p.z>2.78 && p.z<4.7 && Math.abs(p.y-yb(LIFT.floor))<0.4;
-  const lp=$('#liftPanel'); if(inCab===lp.classList.contains('hidden')){ lp.classList.toggle('hidden',!inCab); if(inCab) povLiftUI(); }
-  /* indicació de la porta del davant */
-  POV.hudT-=dt; if(POV.hudT<=0){ POV.hudT=0.2; const l=povLeafAhead(); $('#povDoor').textContent = l ? `E: ${leafOpen(l)?'tancar':'obrir'} · ${leafName(l)}` : ''; $('#povWhere').textContent=povWhere(); }
-}
-function povWhere(){ const p=POV.pos, f=Math.round(p.y/3); const nm=f<=-1?'Soterrani':f===0?'Planta baixa':f>=5?'Coberta':`${f}a planta`;
-  if(p.z>5.05 && f===0) return 'Carrer'; return nm; }
-function povLeafAhead(){
-  const o=camera.position.clone(), d=new THREE.Vector3(); camera.getWorldDirection(d);
-  _lr.set(o,d); _lr.near=0; _lr.far=2.3;
-  LEAFM ||= leafMeshes();
-  const objs=[...G.arch.filter(m=>m.visible && !m.userData.sign && m.material!==AM.glass), ...LEAFM.filter(m=>!m.userData.archLeaf && shown(m))];
-  const h=_lr.intersectObjects(objs,false).find(h=>shown(h.object));
-  _lr.far=Infinity;
-  if(h && h.object.userData.leafKey) return LEAF_BY_KEY[h.object.userData.leafKey];
-  /* si no s'apunta exactament: porta propera al davant */
-  let best=null, bd=1.6;
-  for(const l of LEAVES){ if(!l.arch) continue; const w=l.piv.getWorldPosition(new THREE.Vector3()); if(Math.abs(w.y-POV.pos.y)>0.6) continue;
-    const bb=new THREE.Box3().setFromObject(l.piv), c=bb.getCenter(new THREE.Vector3()); const v=c.sub(POV.pos); v.y=0; const dist=v.length(); if(dist>bd) continue;
-    if(v.normalize().dot(povForward())<0.5) continue; bd=dist; best=l; }
-  return best;
-}
-function povLiftUI(){
-  const box=$('#liftBtns');
-  box.innerHTML=[-1,0,1,2,3,4].map(f=>`<button data-lf="${f}" class="${f===LIFT.floor?'on':''}" aria-label="Anar a ${FLOORNAME(f).toLowerCase()}">${f===-1?'S':f===0?'PB':f}</button>`).join('');
-  box.querySelectorAll('[data-lf]').forEach(b=>b.onclick=()=>povLiftGo(+b.dataset.lf));
-}
-function povLiftGo(f){
-  if(f===LIFT.floor) return;
-  const from=LIFT.floor;
-  S.leaf.set(`asc:${from}a`,false); S.leaf.set(`asc:${from}b`,false);
-  const dy=yb(f)-yb(from);
-  setLiftFloor(f); POV.pos.y+=dy; POV.vy=0;
-  for(const L of LEAVES) if(L.lift!==undefined) { L.cur = L.lift===f ? 0 : L.cur; }
-  S.leaf.set(`asc:${f}a`,true); S.leaf.set(`asc:${f}b`,true);
-  applyVisibility(); povLiftUI(); announce(`Ascensor: ${FLOORNAME(f).toLowerCase()}. Portes obertes.`);
-}
-function povPointerDown(ev){ POV.look={x:ev.clientX,y:ev.clientY,yaw:POV.yaw,pitch:POV.pitch}; }
-function povPointerMove(ev){ if(!POV.look) return; const s=0.005; POV.yaw=POV.look.yaw-(ev.clientX-POV.look.x)*s; POV.pitch=THREE.MathUtils.clamp(POV.look.pitch-(ev.clientY-POV.look.y)*s,-1.2,1.2); }
-function povBind(){
-  const typing=()=>/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) || document.querySelector('dialog[open]');
-  addEventListener('keydown',e=>{
-    if(!POV.on || typing()) return;
-    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','PageUp','PageDown',' '].includes(e.key)) e.preventDefault();
-    POV.keys[e.key]=true; if(e.key==='Shift') POV.keys.Shift=true;
-    if(e.key==='e'||e.key==='E'||e.key==='Enter'){ const l=povLeafAhead(); if(l) toggleLeaf(l); }
-  });
-  addEventListener('keyup',e=>{ POV.keys[e.key]=false; if(e.key==='Shift') POV.keys.Shift=false; });
-  addEventListener('blur',()=>{ POV.keys={}; });
-  addEventListener('pointerup',()=>{ POV.look=null; });
-  /* botons tàctils: mantenir premut */
-  $$('[data-pk]').forEach(b=>{
-    const k=b.dataset.pk, on=e=>{ e.preventDefault(); POV.keys[k]=true; b.setPointerCapture?.(e.pointerId); }, off=()=>{ POV.keys[k]=false; };
-    b.addEventListener('pointerdown',on); b.addEventListener('pointerup',off); b.addEventListener('pointercancel',off); b.addEventListener('pointerleave',off);
-  });
-  $('#povDoorBtn').onclick=()=>{ const l=povLeafAhead(); if(l) toggleLeaf(l); else announce('No hi ha cap porta al davant.'); };
-  $('#povExit').onclick=()=>povExit();
-}
-
 function init(){
-  buildStaticUI(); bindEvents(); povBind(); fillRouteSelectors();
+  buildStaticUI(); bindEvents();
   const gl=initGL();
   if(gl){
     TEX.fo=makeTex('fo'); TEX.pt=makeTex('pt');
-    archMats(); buildArchitecture(); ritsEnv(); buildICT(); finalizeLids(); buildRefs(); makeParticles();
+    archMats(); buildArchitecture(); ritsEnv(); buildICT(); finalizeLids(); buildRefs();
     for(const m of G.arch) if(m.userData.floor===5) m.receiveShadow=true;
     onResize();
     const v=VIEWS.start(); camera.position.copy(v.p); controls.target.copy(v.t);
   }
   syncControls();
   if(gl) applyVisibility(); else { renderList(); renderLegend(); }
-  renderInfo(); routeUI();
+  renderInfo();
   navUI(); if(gl) requestAnimationFrame(loop);
-  window.__ICT={look:(p,t)=>{camAnim=null; camera.position.set(...p); controls.target.set(...t); controls.update();},get St(){return S},setCap,ANT,frameEl,setRitsLight,ritsAction,ritsInterior,RG,CAPB:()=>CAPBUILT,S,EL,G,RT,NAV,navTo,navBack,setNav,bestView,buildRoute,TOURS,select,setMode,setView,routeStart,routeStepBy,goStep,pickAt,ensureVisible,applyVisibility,setLearn,Q,T,QUIZ,tourStep,elBox,get camera(){return camera},get renderer(){return renderer},get controls(){return controls},
-    LEAVES,LEAF_BY_KEY,LEAF_OF,leavesTick,toggleLeaf,leafOpen,isOpen,setOpen,leafAt,singleAction,doubleAction,onPointerDown,onPointerUp,POV,povEnter,povExit,povTick,LIFT,setLiftFloor,COLL,UNITS,setPanel,openDrawer,closeAllLeaves,navPush,resetAll,fillRouteSelectors}; // per a proves
+  let seen=false; try{ seen=localStorage.getItem('ict3d.helpSeen')==='1'; }catch(_){}
+  if(seen) $('#help').classList.add('hidden');
+  if(/[?&]debug\b/.test(location.search)) window.__ICT={look:(p,t)=>{camAnim=null; camera.position.set(...p); controls.target.set(...t); controls.update();},setCap,ANT,frameEl,setRitsLight,ritsAction,ritsInterior,RG,CAPB:()=>CAPBUILT,get S(){return S},EL,G,NAV,navTo,navBack,setNav,bestView,select,setMode,setView,pickAt,ensureVisible,applyVisibility,setLearn,Q,QUIZ,elBox,get camera(){return camera},get renderer(){return renderer},get controls(){return controls},
+    LEAVES,LEAF_BY_KEY,LEAF_OF,leavesTick,toggleLeaf,leafOpen,isOpen,setOpen,leafAt,singleAction,doubleAction,onPointerDown,onPointerUp,LIFT,setLiftFloor,COLL,UNITS,setPanel,openDrawer,closeAllLeaves,navPush,resetAll,}; // per a proves
 }
 init();
 

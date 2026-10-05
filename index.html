@@ -221,8 +221,9 @@ dialog h2{margin-top:0}
     <label id="transpWrap" class="slider hidden">Opacitat <input type="range" id="transp" min="0.05" max="0.8" step="0.05" value="0.25" aria-label="Opacitat de l'arquitectura"></label>
    </fieldset>
    <fieldset><legend>Color dels cables</legend>
-    <label class="opt"><input type="radio" name="colorBy" value="tram" checked> Per tram de xarxa</label>
-    <label class="opt"><input type="radio" name="colorBy" value="tech"> Per tecnologia</label>
+    <label class="opt"><input type="radio" name="colorBy" value="real" checked> Aspecte real (coaxial blanc i negre, fibra groga)</label>
+    <label class="opt"><input type="radio" name="colorBy" value="tram"> Per tram de xarxa (codi didàctic)</label>
+    <label class="opt"><input type="radio" name="colorBy" value="tech"> Per tecnologia (codi didàctic)</label>
     <div class="legend" id="legend" aria-label="Llegenda"></div>
    </fieldset>
    <fieldset><legend>Opcions</legend>
@@ -2149,9 +2150,9 @@ for (const u of UNITS) {
   def({id:`rtr_${U}`, fam:'recinte', layer:'registres', svc:'all', floor:f, unit:U, zone:'privada (frontera)', container:true, lid:true, main: ex,
    name:`Registre de terminació de xarxa — ${N}`, sigla:'RTR',
    what:'És la caixa encastada dins de l\'habitatge, a prop de l\'entrada, on acaben les xarxes de dispersió i comença la xarxa interior.',
-   purpose:'Allotja els PAU de cada servei, el repartidor de RTV, el distribuïdor coaxial de TBA i els extrems RJ45 de la xarxa interior. Té a prop una presa de corrent i el registre de presa configurable.',
+   purpose:'Allotja els PAU de cada servei (el de RTV amb el repartidor integrat), el distribuïdor coaxial de TBA i els extrems RJ45 de la xarxa interior. Té a prop una presa de corrent i el registre de presa configurable.',
    where:`Rebedor del ${N}, paret del fons.`,
-   connects:'Allotja el PAU de RTV i el repartidor interior, la roseta òptica (PAU de fibra), la roseta RJ45 amb el multiplexor passiu (PAU de parells) i el distribuïdor coaxial de TBA. D\'aquí surten en estrella tots els tubs interiors.',
+   connects:'Allotja el PAU + repartidor de RTV, la caixa de terminació òptica (PAU de fibra), la roseta RJ45 amb el multiplexor passiu (PAU de parells) i el distribuïdor coaxial de TBA. D\'aquí surten en estrella tots els tubs interiors.',
    example:`Si obres la tapa del registre del ${N} veus un punt d\'accés diferent per a cada tecnologia.`,
    confusion:'El registre és la caixa; el PAU és el punt de connexió que hi ha a dins. Es pot canviar la tapa del registre sense tocar el PAU.',
    nets:[`xs_rtv_${U}`,`xs_fo_${U}`,`xs_pt_${U}`,`xi_rtv_${U}`,`xi_dat_${U}`,`xi_tba_${U}`,`xi_fo_${U}`], canals:[`cs_${U}`,`ci_${U}`], links:[`rconf_${U}`]});
@@ -2169,7 +2170,7 @@ for (const u of UNITS) {
   def({id:`xs_rtv_${U}`, fam:'xarxa', layer:'xarxes', svc:'rtv', tram:'disp', tech:'coax', floor:f, unit:U, zone:'comuna',
    name:`Xarxa de dispersió de RTV — ${N}`, sigla:'',
    what:`Són els dos cables coaxials que surten dels derivadors del registre secundari de la ${P} i arriben al PAU de RTV del ${N}.`,
-   purpose:'Fan arribar a l\'habitatge els dos cables previstos. Al PAU, l\'usuari tria quin dels dos fa servir.',
+   purpose:'Fan arribar a l\'habitatge els dos cables previstos: el cable 1 (blanc) es connecta a l\'entrada 1 del PAU + repartidor i el cable 2 (negre) queda en reserva.',
    where:`Registre secundari de la ${P} → tub de RTV de la canalització secundària → registre de terminació de xarxa del ${N}.`,
    connects:`Derivadors de la ${P} → PAU de RTV.`,
    example:`Si la comunitat posa canals de satèl·lit al segon cable, el ${N} els pot rebre canviant el cable al PAU, sense obres a la zona comuna.`,
@@ -2196,31 +2197,22 @@ for (const u of UNITS) {
 
   /* PAU i elements del registre de terminació de xarxa */
   def({id:`pau_rtv_${U}`, fam:'punt', layer:'punts', svc:'rtv', floor:f, unit:U, zone:'frontera comuna/privada', parent:`rtr_${U}`,
-   name:`Punt d\'accés a l\'usuari de RTV — ${N}`, sigla:'PAU',
-   what:'És el punt on arriben els dos cables de dispersió de RTV i on comença la xarxa interior. Permet triar quin dels dos cables es fa servir.',
-   purpose:'Separa la instal·lació comuna de la privada i delimita responsabilitats en cas d\'avaria.',
+   name:`PAU + repartidor de RTV (2 entrades, 4 sortides F) — ${N}`, sigla:'PAU',
+   what:"És un únic element passiu amb connectors F roscats: dues entrades per als dos cables de dispersió i quatre sortides, una per cada presa de RTV de l'habitatge.",
+   purpose:"Separa la instal·lació comuna de la privada (frontera de responsabilitats) i, alhora, reparteix el senyal en estrella cap a les preses.",
    where:`Dins del registre de terminació de xarxa del ${N} (rebedor).`,
-   connects:'Dos cables de dispersió (entrada) → repartidor interior de RTV (sortida).',
-   example:'Si no es veu la TV a cap habitació, es mesura el senyal al PAU: si hi arriba bé, l\'avaria és dins de l\'habitatge.',
-   confusion:'El PAU no és el registre de terminació de xarxa (la caixa) ni el repartidor (que reparteix cap a les estàncies).',
-   nets:[`xs_rtv_${U}`,`xi_rtv_${U}`], links:[`rep_rtv_${U}`,`rtr_${U}`]});
-  def({id:`rep_rtv_${U}`, fam:'punt', layer:'punts', svc:'rtv', floor:f, unit:U, zone:'privada', parent:`rtr_${U}`,
-   name:`Repartidor interior de RTV — ${N}`, sigla:'',
-   what:'És un element passiu amb una entrada i diverses sortides, una per estància, connectat a la sortida del PAU de RTV.',
-   purpose:'Reparteix el senyal en estrella cap als registres de presa de RTV.',
-   where:`Dins del registre de terminació de xarxa del ${N}, sota el PAU de RTV.`,
-   connects:'PAU de RTV → quatre cables coaxials interiors: sala d\'estar, cuina, dormitori 1 i dormitori 2 (una presa per estància, sense comptar el bany).',
-   example:'Si s\'afegeix una presa a una estància nova, cal una sortida lliure al repartidor i un tub nou.',
-   confusion:'No és un derivador de planta: el derivador és a la zona comuna i alimenta habitatges; el repartidor és dins de l\'habitatge i alimenta preses.',
-   nets:[`xi_rtv_${U}`], links:[`pau_rtv_${U}`,`rtr_${U}`]});
+   connects:"Entrada 1 ← cable de dispersió 1 (blanc). Entrada 2 tancada amb una càrrega de 75 Ω; el cable de dispersió 2 (negre) queda en reserva al registre, amb el connector tapat. Sortides → quatre cables coaxials interiors: cuina, sala d'estar, dormitori 2 i dormitori 1 (una presa per estància, sense comptar el bany).",
+   example:"Si la comunitat posa un servei diferent al cable 2, n'hi ha prou de passar el connector del cable negre a l'entrada 2 i moure-hi la càrrega: no cal cap obra.",
+   confusion:"No és un derivador de planta: el derivador és a la zona comuna i alimenta habitatges; el PAU + repartidor és dins de l'habitatge i alimenta preses. L'entrada que no es fa servir sempre ha de quedar carregada.",
+   nets:[`xs_rtv_${U}`,`xi_rtv_${U}`], links:[`rtr_${U}`]});
   def({id:`pau_fo_${U}`, fam:'punt', layer:'punts', svc:'fo', floor:f, unit:U, zone:'frontera comuna/privada', parent:`rtr_${U}`,
-   name:`PAU de fibra òptica (roseta òptica) — ${N}`, sigla:'PAU',
-   what:'És una caixa petita amb adaptadors òptics SC/APC on acaba el cable d\'acometida de fibra.',
-   purpose:'Fa de frontera entre la fibra comuna de l\'edifici i la xarxa interior de l\'habitatge.',
+   name:`PAU de fibra òptica (caixa de terminació òptica, 2 × SC/APC) — ${N}`, sigla:'PAU',
+   what:"És una caixa petita de terminació òptica on s'empalma la fibra d'acometida. Té dues sortides amb adaptadors SC/APC (de color verd, polit en angle).",
+   purpose:"Fa de frontera entre la fibra comuna de l'edifici i la xarxa interior de l'habitatge.",
    where:`Dins del registre de terminació de xarxa del ${N}.`,
-   connects:'Acometida de fibra (entrada) → fibra interior cap a la presa òptica de la sala d\'estar.',
-   example:'Quan l\'operador activa el servei, comprova que la llum arriba bé a la roseta i a la presa òptica de la sala.',
-   confusion:'La roseta no és l\'ONT: la roseta és un connector passiu; l\'ONT és un equip actiu que transforma el senyal i, en aquest model, és a la sala.',
+   connects:"Acometida de fibra (entrada lateral, empalmada a dins) → sortida SC/APC 1 → fibra interior (groga) fins a la roseta òptica de la sala d'estar. La sortida 2 queda en reserva amb el tap antipols.",
+   example:"Quan l'operador activa el servei, comprova que la llum arriba bé a la sortida 1 del PAU i a la roseta de la sala.",
+   confusion:"La caixa de terminació no és l'ONT: és passiva. Els connectors SC/APC són verds; els SC/UPC (blaus) no s'hi poden barrejar perquè el polit és diferent.",
    nets:[`xs_fo_${U}`,`xi_fo_${U}`], links:[`bat_fo_sala_${U}`,`rtr_${U}`]});
   def({id:`pau_pt_${U}`, fam:'punt', layer:'punts', svc:'pt', floor:f, unit:U, zone:'frontera comuna/privada', parent:`rtr_${U}`,
    name:`PAU de parells trenats (roseta RJ45 i multiplexor passiu) — ${N}`, sigla:'PAU',
@@ -2262,13 +2254,13 @@ for (const u of UNITS) {
   /* xarxes interiors */
   def({id:`xi_rtv_${U}`, fam:'xarxa', layer:'xarxes', svc:'rtv', tram:'int', tech:'coax', floor:f, unit:U, zone:'privada',
    name:`Xarxa interior de RTV — ${N}`, sigla:'',
-   what:'Són els cables coaxials que surten del repartidor interior i van en estrella fins a cada registre de presa de RTV.',
+   what:'Són els cables coaxials que surten de les sortides del PAU + repartidor i van en estrella fins a cada registre de presa de RTV.',
    purpose:'Porten la ràdio i la televisió a cada estància.',
    where:`Canalització interior del ${N} (un tub per presa).`,
-   connects:'Repartidor interior → quatre BAT de RTV: sala d\'estar, cuina, dormitori 1 i dormitori 2. Normativa: una presa per estància, excepte banys i trasters, amb un mínim de dues.',
+   connects:'PAU + repartidor → quatre BAT de RTV: sala d\'estar, cuina, dormitori 1 i dormitori 2. Normativa: una presa per estància, excepte banys i trasters, amb un mínim de dues.',
    example:'El cable de la sala és independent del de la cuina: si un es fa malbé, els altres continuen funcionant.',
    confusion:'La xarxa interior és zona privada: la comunitat és responsable fins al PAU.',
-   canals:[`ci_${U}`], links:[`rep_rtv_${U}`]});
+   canals:[`ci_${U}`], links:[`pau_rtv_${U}`]});
   def({id:`xi_dat_${U}`, fam:'xarxa', layer:'xarxes', svc:'pt', tram:'int', tech:'pt', floor:f, unit:U, zone:'privada',
    name:`Xarxa interior de parells trenats — ${N}`, sigla:'',
    what:'Són cables de parells trenats que surten del registre de terminació de xarxa, acabats en connectors RJ45 etiquetats, i van en estrella fins a les BAT RJ45.',
@@ -2289,7 +2281,7 @@ for (const u of UNITS) {
    canals:[`ci_${U}`], links:[`div_tba_${U}`]});
   def({id:`xi_fo_${U}`, fam:'xarxa', layer:'xarxes', svc:'fo', tram:'int', tech:'fo', floor:f, unit:U, zone:'privada',
    name:`Xarxa interior de fibra òptica — ${N}`, sigla:'',
-   what:'És un cable de fibra òptica (acometida interior) que va de la roseta òptica del PAU fins a la presa òptica de la sala d\'estar.',
+   what:'És un cable de fibra òptica (groc) amb connectors SC/APC verds que va de la sortida 1 del PAU de fibra fins a la roseta òptica de la sala d\'estar.',
    purpose:'Porta la fibra fins a l\'estància principal, perquè l\'ONT i l\'encaminador puguin estar a la sala i no al rebedor.',
    where:`Canalització interior del ${N}: tub independent des del registre de terminació de xarxa fins a la sala d\'estar.`,
    connects:'Adaptador SC/APC de la roseta del PAU → BAT òptica (roseta SC/APC) de la sala d\'estar.',
@@ -2314,7 +2306,7 @@ for (const u of UNITS) {
      what:`És la caixa encastada a la paret que allotja la ${T.bat[0].toLowerCase()+T.bat.slice(1)}${dblTxt}.`,
      purpose:`Protegeix l\'extrem del cable interior i fixa la BAT a la paret. ${why}`,
      where:`${cap(R.name)} del ${N}, a prop del terra.`,
-     connects:`${p.dbl?'Hi arriben dos cables':'Hi arriba un cable'} ${p.t==='rtv'?'coaxial des del repartidor interior':p.t==='tba'?'coaxial des del distribuïdor de TBA':p.t==='fo'?'de fibra des de la roseta òptica del PAU':'de parells trenats des del registre de terminació de xarxa'}. Allotja la BAT.`,
+     connects:`${p.dbl?'Hi arriben dos cables':'Hi arriba un cable'} ${p.t==='rtv'?'coaxial des d\'una sortida del PAU + repartidor':p.t==='tba'?'coaxial des del distribuïdor de TBA':p.t==='fo'?'de fibra des de la roseta òptica del PAU':'de parells trenats des del registre de terminació de xarxa'}. Allotja la BAT.`,
      example: p.t==='fo' ? 'Darrere de l\'ONT de la sala hi ha aquest registre amb la roseta òptica.' : p.k==='rtv_sala' ? 'Darrere del televisor de la sala hi ha aquest registre.' : `${cap(R.a)}, la caixa queda darrere de la placa frontal de la presa.`,
      confusion:'El registre de presa és la caixa; la BAT és el connector frontal on l\'usuari endolla el cable. A menys de 50 cm hi ha d\'haver una presa de corrent.',
      nets:[`${T.net}_${U}`], canals:[`ci_${U}`], links:[`bat_${pid}`]});
@@ -2846,6 +2838,12 @@ EL.cap_avant.vt={A:{}};
 EL.cap_carregues.vt={A:{where:"Entrades 3 i 4 de la centraleta (amb bloqueig de CC, ref. 4061).", connects:"Entrades lliures de la centraleta."},
  B:{where:"Entrada lliure del mòdul de TDT 10, de la DAB i de l'FM (amb bloqueig de CC, ref. 4061) i sortida lliure del mòdul de TDT 1 (ref. 4058).", connects:"Extrems lliures de la cadena de ponts en Z."}};
 
+Object.assign(EL.cap_mix.vt.B, {
+ what:"Mesclador passiu en xassís de zamac de fosa (98 × 76 × 27 mm, 194 g) amb cinc connectors F. A dalt hi ha les tres entrades: SAT/A, TER i SAT/B. A baix, les dues sortides cap als cables de distribució: SAT/A + TER (esquerra) i SAT/B + TER (dreta); la posició central inferior del motlle no s'utilitza i porta un tap de plàstic negre. L'etiqueta frontal indica el pas de corrent continu (DC) de cada sortida cap a la seva entrada SAT. Té dues orelles posteriors amb forat per fixar-lo a la placa.",
+ where:"Placa de muntatge del RITS, a la part baixa dreta, just damunt del tub corrugat de sortida.",
+ connects:"Entrada TER ← sortida MATV dels mòduls (latiguillo). Entrada SAT/A ← amplificador de FI 1. Entrada SAT/B ← amplificador de FI 2. Sortida SAT/A + TER → cable de distribució 1 (blanc). Sortida SAT/B + TER → cable de distribució 2 (negre). La connexió equipotencial es fa amb un terminal d'anella al cargol de fixació.",
+ example:"Bandes: TER 47‑790 MHz i SAT 950‑2400 MHz. Pèrdues d'inserció d'exemple: 5,5 dB a la via terrestre (es reparteix a les dues sortides) i 1 dB a la de satèl·lit. Aïllament TER→SAT > 30 dB i SAT→TER > 28 dB.",
+ confusion:"La FI no es reparteix: la sortida esquerra només porta SAT/A i la dreta només SAT/B; el senyal terrestre, en canvi, surt per totes dues. El pas de corrent continu (de cada sortida cap a la seva entrada SAT) serveix quan l'LNB s'alimenta des de la xarxa; en aquesta capçalera l'alimenten els amplificadors de FI."});
 /* contenidors inversos */
 for (const e of Object.values(EL)) e.children = [];
 for (const e of Object.values(EL)) if (e.parent) EL[e.parent].children.push(e.id);
@@ -2860,7 +2858,7 @@ const CONCEPTS = [
  ['Zones de la ICT', '<b>Exterior:</b> arqueta d\'entrada i canalització externa.<br><b>Comuna:</b> del punt d\'entrada general fins als PAU.<br><b>Privada:</b> xarxa interior de cada usuari (després del PAU).'],
  ['RITU', 'Recinte únic que acumula les funcions de RITI i RITS. Admès en edificis de fins a tres plantes i planta baixa amb un màxim de deu PAU, i en conjunts unifamiliars. No s\'aplica a l\'edifici del model.'],
  ['RITM', 'Realització modular dels recintes amb armaris no propagadors de la flama, admesa en edificis de fins a 45 PAU i conjunts unifamiliars de fins a 20 PAU, amb les condicions de protecció corresponents.'],
- ['Derivador, repartidor i capçalera', '<b>Capçalera:</b> equips del RITS que adapten els senyals de les antenes. <b>Derivador:</b> a la zona comuna, treu senyal del cable de distribució cap als habitatges d\'una planta. <b>Repartidor interior:</b> dins de l\'habitatge, reparteix el senyal del PAU cap a les preses.'],
+ ['Derivador, repartidor i capçalera', '<b>Capçalera:</b> equips del RITS que adapten els senyals de les antenes. <b>Derivador:</b> a la zona comuna, treu senyal del cable de distribució cap als habitatges d\'una planta. <b>PAU + repartidor:</b> dins de l\'habitatge, en un sol element, rep els cables de dispersió (una entrada carregada) i reparteix el senyal cap a les preses.'],
  ['Preses de l\'habitatge', 'Dotació mínima en un habitatge: <b>RTV</b>, una presa per estància (excepte banys i trasters, mínim dues). <b>Parells trenats</b>, dos registres a cada estància principal i un a la resta; a la sala, una BAT doble a menys de 50 cm de la presa de fibra, i una altra BAT doble en una altra estància. <b>Coaxial de TBA</b>, dues preses en dues estàncies diferents. <b>Fibra òptica</b>, una presa a una estància principal, preferiblement la sala d\'estar. A prop del PAU, un registre de presa configurable.'],
  ['PAU, ONT i encaminador', 'El <b>PAU</b> és la frontera entre la xarxa comuna i la interior. L\'<b>ONT</b> converteix la llum de la fibra en senyal elèctric. L\'<b>encaminador</b> crea la xarxa local. ONT i encaminador són equips associats al servei de l\'usuari, no part de la ICT comuna.']
 ];
@@ -2907,7 +2905,7 @@ const QUIZ = [
 const SIMPLIFICATIONS = [
  'Model didàctic simplificat. La configuració real depèn del projecte i de la normativa aplicable.',
  'Tubs, cables, caixes i equips petits estan ampliats i fora d\'escala per poder-los veure i seleccionar.',
- 'Els colors són un codi didàctic d\'aquesta aplicació. No són colors obligatoris dels cables.',
+ 'Per defecte els cables tenen un aspecte real habitual: els dos coaxials de distribució de RTV es distingeixen pel color (cable 1 blanc, cable 2 negre, també a la dispersió), la fibra és groga i els connectors SC/APC verds. Les opcions «per tram» i «per tecnologia» són un codi didàctic d\'aquesta aplicació. Cap color és obligatori.',
  'Les canalitzacions externa i d\'enllaç es representen amb un sol tub. La canalització principal té quatre tubs i la secundària tres; no s\'indiquen diàmetres ni quantitats normatives.',
  'Tots els habitatges tenen la mateixa distribució (sala d\'estar, cuina, dos dormitoris, bany i rebedor; els B, C i D són simètrics de l\'A respecte dels eixos de l\'edifici) i la dotació mínima de preses: 4 de RTV, 6 registres de parells trenats (2 amb BAT doble), 2 coaxials de TBA, 1 de fibra òptica a la sala i 1 registre configurable. Les preses de corrent properes no es dibuixen.',
  'Les preses s\'han situat de manera orientativa. En un projecte real la posició depèn del mobiliari previst i de les distàncies que fixa la normativa.',
@@ -2936,7 +2934,7 @@ const yb = f => 3*f;
 
 /* ---------- Estat de la interfície ---------- */
 const S0 = () => ({learn:'free', mode:'oberta', floor:2, unitSide:'A', layers:{facana:true,estructura:true,recintes:true,registres:true,canalitzacions:true,xarxes:true,punts:true,equips:true,etiquetes:true},
-  svc:'all', colorBy:'tram', allLabels:false, tubesSee:true, openRec:false, openReg:false, sat:true, transp:0.25,
+  svc:'all', colorBy:'real', allLabels:false, tubesSee:true, openRec:false, openReg:false, sat:true, transp:0.25,
   reduced: window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, lowq:false,
   selected:null, hover:null, related:new Set(), openOv:new Map(), leaf:new Map(), openCanal:new Set(),
   cap:'A', ritsLook:'real', ritsLight:false, ritsRoof:false, ritsFront:false, ritsCut:false, ritsXray:false, ritsHl:null});
@@ -3018,14 +3016,18 @@ const P = a => a.map(p => Array.isArray(p) ? V(...p) : p);
 function cable(key, elId, pts, o){
   pts=P(pts); const e=EL[elId];
   const tram=o.tram||e.tram, tech=o.tech||e.tech, svc=o.svc||e.svc;
-  const r=o.r ?? (tech==='fo'?0.022: tech==='pt'?0.026:0.028);
-  const color = cableColor(tram,tech);
-  const m=ictMesh(tubeGeo(pts,r,6), color, elId, {cable:key, tram, tech, svc, map:TEX[tech]||null});
+  const r=o.r ?? (tech==='fo'?0.0075: tech==='pt'?0.026:0.012);
+  const real=o.real ?? realColorFor(key,tech);
+  const color = cableColor(tram,tech,real);
+  const m=ictMesh(tubeGeo(pts,r,8), color, elId, {cable:key, tram, tech, svc, real, texMap:TEX[tech]||null, map: S.colorBy==='real' ? null : (TEX[tech]||null)});
   addProxy(m, tubeGeo(pts, Math.max(r*2.6,0.05), 4));
   G.cables[key]={key, el:elId, pts, mesh:m, from:o.from||null, to:o.to||null, via:o.via||null};
   return m;
 }
-function cableColor(tram,tech){ return new THREE.Color(S.colorBy==='tech' ? TECHS[tech].color : TRAMS[tram].color).getHex(); }
+/* colors d'aspecte real: coaxial del cable de distribució 1 blanc i del 2 negre, fibra groga, parells trenats gris */
+const REAL={white:0xF4F3EF, black:0x1C1D1F, fo:0xF2C200, pt:0x9EA4AA};
+function realColorFor(key,tech){ if(tech==='fo') return REAL.fo; if(tech==='pt') return REAL.pt; return /^(xd|xs)_rtv_b_/.test(key) ? REAL.black : REAL.white; }
+function cableColor(tram,tech,real){ if(S.colorBy==='real') return real ?? (tech==='fo'?REAL.fo:tech==='pt'?REAL.pt:REAL.white); return new THREE.Color(S.colorBy==='tech' ? TECHS[tech].color : TRAMS[tram].color).getHex(); }
 
 /* tub de canalització (contenidor físic) */
 function tube(elId, pts, r, o={}){
@@ -3105,7 +3107,7 @@ function buildICT(){
   regBox('rp_fo',0.8,1.0,0.3,2.05,1.45,-4.6,C.reg,C.regLid);
   iBox('pi_fo',0.6,0.22,0.08,2.05,1.68,-4.66,0xE07B24);   // repartidor d'entrada (operador)
   iBox('pi_fo',0.6,0.22,0.08,2.05,1.25,-4.66,0x2F6FDE);   // panell de sortida (edifici)
-  for(let i=0;i<5;i++) cable(`pi_fo_l${i}`,'pi_fo',[[1.85+i*0.1,1.6,-4.6],[1.8+i*0.1,1.45,-4.56],[1.85+i*0.1,1.33,-4.6]],{tram:'usr',tech:'fo',r:0.01});
+  for(let i=0;i<5;i++) cable(`pi_fo_l${i}`,'pi_fo',[[1.85+i*0.1,1.6,-4.6],[1.8+i*0.1,1.45,-4.56],[1.85+i*0.1,1.33,-4.6]],{tram:'usr',tech:'fo',r:0.006});
   regBox('rp_pt',0.6,1.0,0.3,2.95,1.45,-4.6,C.reg,C.regLid);
   iBox('pi_pt',0.45,0.22,0.08,2.95,1.68,-4.66,0xE07B24);
   iBox('pi_pt',0.45,0.22,0.08,2.95,1.25,-4.66,0x2F6FDE);
@@ -3124,7 +3126,7 @@ function buildICT(){
     if(f===1) for(const c of ['a','b']) iCyl('deriv_1',0.025,0.08,DER[c],y+1.4,-4.62,0x222222,'y',{pick:false});
     iBox(`cseg_${f}`,0.22,0.34,0.08,0.95,y+1.5,-4.62,0xF2F2F2);
     iBox(`cseg_${f}`,0.16,0.06,0.02,0.95,y+1.56,-4.575,0x0AA5C2,{pick:false});
-    for(const yy of [1.62,1.36,1.88]){ const tg=new THREE.TorusGeometry(0.08,0.014,6,20); const m=ictMesh(tg,cableColor('dist','pt'),`bucle_${f}`,{tram:'dist',tech:'pt',svc:'pt',cableLike:true}); m.position.set(1.38,y+yy,-4.6); addProxy(m,new THREE.BoxGeometry(0.22,0.22,0.12)); }
+    for(const yy of [1.62,1.36,1.88]){ const tg=new THREE.TorusGeometry(0.08,0.014,6,20); const m=ictMesh(tg,cableColor('dist','pt',REAL.pt),`bucle_${f}`,{tram:'dist',tech:'pt',svc:'pt',cableLike:true,real:REAL.pt}); m.position.set(1.38,y+yy,-4.6); addProxy(m,new THREE.BoxGeometry(0.22,0.22,0.12)); }
   }
   /* --- El sistema de captació (torre, antenes, parabòlica), l'enllaç superior i el RITS es construeixen a antenes.js i rits.js --- */
   /* --- Xarxa de distribució de RTV (2 cables, de dalt a baix) --- */
@@ -3169,10 +3171,12 @@ function buildUnit(u, C){
   const dy = ZM(u) ? 0.12 : 0;
   for(const c of ['a','b']){
     const dx=DER[c], oz=c==='a'?-0.022:0.022, px = X(c==='a'?-3.42:-3.54);
-    cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [[dx+0.054*sgn+(ZM(u)?0.018*sgn:0),y+1.45,-4.57],[dx+0.1*sgn,y+1.5+dy,-4.5],[inner,y+CS_H2(1.78),zl+oz],...shiftP(csPath(u,y,1.78),oz).slice(1),[px,y+1.78,Z(-4.64)],[px,y+1.78,Z(-4.66)]], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
+    const tail = c==='a' ? [[px,y+1.78,Z(-4.64)],[X(-3.40),y+1.80,Z(-4.672)],[X(-3.40),y+1.705,Z(-4.672)]]
+                         : [[px,y+1.80,Z(-4.64)],[X(-3.62),y+1.82,Z(-4.672)],[X(-3.655),y+1.77,Z(-4.672)],[X(-3.655),y+1.735,Z(-4.672)]];
+    cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [[dx+0.054*sgn+(ZM(u)?0.018*sgn:0),y+1.45,-4.57],[dx+0.1*sgn,y+1.5+dy,-4.5],[inner,y+CS_H2(1.78),zl+oz],...shiftP(csPath(u,y,1.78),oz).slice(1),...tail], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
   }
   const pf = X(-3.12);
-  cable(`xs_fo_${id}`, `xs_fo_${id}`, [[0.95+0.11*sgn,y+1.5+dy,-4.62],[0.95+0.25*sgn,y+1.95,-4.55],[inner,y+CS_H2(1.52),zl-0.022],...shiftP(csPath(u,y,1.52),-0.022).slice(1),[pf,y+1.52,Z(-4.64)],[pf,y+1.56,Z(-4.66)]], {tram:'disp',tech:'fo',svc:'fo',from:`cseg_${u.f}`, to:`pau_fo_${id}`, via:`cs_${id}`});
+  cable(`xs_fo_${id}`, `xs_fo_${id}`, [[0.95+0.11*sgn,y+1.5+dy,-4.62],[0.95+0.25*sgn,y+1.95,-4.55],[inner,y+CS_H2(1.52),zl-0.022],...shiftP(csPath(u,y,1.52),-0.022).slice(1),[X(-2.98),y+1.52,Z(-4.645)],[X(-2.99),y+1.66,Z(-4.672)],[X(-3.035),y+1.69,Z(-4.672)]], {tram:'disp',tech:'fo',svc:'fo',from:`cseg_${u.f}`, to:`pau_fo_${id}`, via:`cs_${id}`});
   const pp = X(-2.86), yy = {A:1.62,B:1.36,C:1.88,D:1.88}[u.s], zb = u.s==='D' ? -4.5 : -4.52;
   cable(`xs_pt_${id}`, `xs_pt_${id}`, [[RX.pt,y+yy,zb],[1.28,y+yy,-4.5],[1.0,y+2.05,-4.42],[inner,y+CS_H2(1.52),zl+0.022],...shiftP(csPath(u,y,1.52),0.022).slice(1),[pp,y+1.6,Z(-4.64)],[pp,y+1.66,Z(-4.66)]], {tram:'disp',tech:'pt',svc:'pt',from:`bucle_${u.f}`, to:`pau_pt_${id}`, via:`cs_${id}`});
   buildInterior(u);
@@ -3196,10 +3200,36 @@ function dedupe(pts){ const o=[]; for(const p of pts){ const l=o[o.length-1]; if
 function buildInterior(u){
   const y=yb(u.f), U=u.id, X=x=>mx(u,x), Z=z=>mz(u,z), sz=SZ(u);
   /* PAU i elements dins del RTR */
-  iBox(`pau_rtv_${U}`,0.24,0.12,0.06,X(-3.48),y+1.72,Z(-4.67),0xF0F0F0); iBox(`pau_rtv_${U}`,0.05,0.03,0.02,X(-3.42),y+1.72,Z(-4.63),0xC2185B,{pick:false});
-  iBox(`rep_rtv_${U}`,0.3,0.14,0.06,X(-3.48),y+1.45,Z(-4.67),0xDADFE5);
-  cable(`pau_rep_${U}`,`rep_rtv_${U}`,[[X(-3.48),y+1.66,Z(-4.64)],[X(-3.48),y+1.52,Z(-4.64)]],{tram:'int',tech:'coax',svc:'rtv',r:0.014});
-  iBox(`pau_fo_${U}`,0.16,0.22,0.06,X(-3.12),y+1.64,Z(-4.67),0xF7F7F7); iBox(`pau_fo_${U}`,0.05,0.05,0.02,X(-3.12),y+1.67,Z(-4.63),0x0AA5C2,{pick:false});
+  /* PAU + repartidor de RTV: 2 entrades F (una carregada) i 4 sortides F, una per presa de RTV */
+  const FN=0xC9CCCF, SZV=V(0,0,sz);
+  const P0=`pau_rtv_${U}`;
+  iBox(P0,0.34,0.16,0.055,X(-3.48),y+1.58,Z(-4.6725),0xE9ECEE);
+  rPlane(P0,0.30,0.07,V(X(-3.48),y+1.585,Z(-4.6725)+sz*0.0325),SZV,textTex(['PAU + REP','IN 1 · IN 2   →   4 × OUT'],{w:512,h:120,fs:[44,30],bold:[true],bg:'#E9ECEE',fg:'#263238'}),{});
+  const fPort=(el,x,yy,up,load)=>{ const s=up?1:-1;                       // port F femella vertical (cap amunt o cap avall)
+    iCyl(el,0.013,0.006,x,yy+s*0.003,Z(-4.6725),FN,'y',{pick:false}); iCyl(el,0.009,0.024,x,yy+s*0.015,Z(-4.6725),FN,'y',{pick:false});
+    if(load) iCyl(el,0.012,0.03,x,yy+s*0.035,Z(-4.6725),0xD9DCDF,'y',{pick:false}); };
+  const fPlug=(el,x,yy,up)=>{ const s=up?1:-1;                              // connector F mascle roscat (femella hexagonal + cos)
+    const h=ictMesh(new THREE.CylinderGeometry(0.0145,0.0145,0.012,6),FN,el,{}); h.position.set(x,yy+s*0.022,Z(-4.6725));
+    iCyl(el,0.0105,0.02,x,yy+s*0.037,Z(-4.6725),0xB8BBBE,'y',{pick:false}); };
+  const yT=y+1.66, yB=y+1.50;
+  fPort(P0,X(-3.40),yT,true,false); fPlug(`xs_rtv_${U}`,X(-3.40),yT,true);           // entrada 1 ← cable 1 (blanc)
+  fPort(P0,X(-3.54),yT,true,true);                                                    // entrada 2: càrrega de 75 Ω
+  const RTVOUT={rtv_cuina:-3.60,rtv_sala:-3.52,rtv_d2:-3.44,rtv_d1:-3.36};
+  for(const [k,xo] of Object.entries(RTVOUT)){ fPort(P0,X(xo),yB,false,false); fPlug(`xi_rtv_${U}`,X(xo),yB,false); }
+  /* cable 2 (negre) en reserva: connector F amb tap */
+  fPlug(`xs_rtv_${U}`,X(-3.655),y+1.745,false); iCyl(`xs_rtv_${U}`,0.012,0.02,X(-3.655),y+1.686,Z(-4.672),0x2B2B2B,'y',{pick:false});
+  /* PAU de fibra (caixa de terminació òptica) amb dues sortides SC/APC (adaptadors verds) */
+  const PF=`pau_fo_${U}`, GR=0x2E9B3F;
+  iBox(PF,0.17,0.24,0.055,X(-3.12),y+1.645,Z(-4.6725),0xF7F7F5);
+  iBox(PF,0.15,0.03,0.006,X(-3.12),y+1.745,Z(-4.6725)+sz*0.03,0xE0E2E4,{pick:false});
+  rPlane(PF,0.13,0.11,V(X(-3.12),y+1.67,Z(-4.6725)+sz*0.0325),SZV,textTex(['PTRO · FO','⚠ Làser','SC/APC 1   2'],{w:300,h:254,fs:[48,40,36],bold:[true,true],bg:'#F7F7F5',fg:'#263238'}),{});
+  iCyl(PF,0.011,0.03,X(-3.042),y+1.69,Z(-4.6725),0x5E6367,'x',{pick:false});                // premsaestopa de l'acometida
+  const scAd=(el,x,yy)=>{ iBox(el,0.034,0.045,0.034,x,yy,Z(-4.6725),GR,{pick:false}); iBox(el,0.04,0.008,0.04,x,yy+0.02,Z(-4.6725),0x24803F,{pick:false}); };
+  const scPlug=(el,x,yy)=>{ iBox(el,0.026,0.05,0.026,x,yy-0.045,Z(-4.6725),GR,{pick:false}); iCyl(el,0.0085,0.04,x,yy-0.088,Z(-4.6725),0xBFC3C6,'y',{pick:false}); };
+  const yS=y+1.525-0.0225;
+  scAd(PF,X(-3.16),yS); scAd(PF,X(-3.08),yS);
+  scPlug(`xi_fo_${U}`,X(-3.16),yS);                                                     // sortida 1 → fibra interior cap a la sala
+  iBox(PF,0.03,0.012,0.03,X(-3.08),yS-0.028,Z(-4.6725),0xE6E6E6,{pick:false});           // sortida 2: tap antipols (reserva)
   iBox(`div_tba_${U}`,0.2,0.1,0.05,X(-3.12),y+1.3,Z(-4.67),0xC9CED4); iBox(`div_tba_${U}`,0.04,0.03,0.02,X(-3.16),y+1.3,Z(-4.64),0xC2185B,{pick:false});
   iBox(`pau_pt_${U}`,0.14,0.12,0.06,X(-2.86),y+1.72,Z(-4.67),0xF7F7F7); iBox(`pau_pt_${U}`,0.18,0.14,0.06,X(-2.86),y+1.42,Z(-4.67),0xE3DCCB);
   /* latiguillo al RTR: uneix el cable de retorn de la sala amb el de l'estància de destinació */
@@ -3223,14 +3253,14 @@ function buildInterior(u){
     const p=PRESES.find(o=>o.k===k), T=PTYPE[p.t], pid=`${k}_${U}`;
     tube(`ci_${U}`,pts,0.032,{svc:T.svc});
     let start, from;
-    if(p.t==='rtv'){ start=[[X(-3.48),y+1.38,Z(-4.64)],[xe,y+1.2,Z(-4.64)]]; from=`rep_rtv_${U}`; }
+    if(p.t==='rtv'){ const xo=X(RTVOUT[k]); start=[[xo,y+1.455,Z(-4.6725)],[xo,y+1.36,Z(-4.666)],[xe,y+1.2,Z(-4.64)]]; from=`pau_rtv_${U}`; }
     else if(p.t==='tba'){ start=[[X(-3.12),y+1.25,Z(-4.64)],[xe,y+1.2,Z(-4.64)]]; from=`div_tba_${U}`; }
-    else if(p.t==='fo'){ start=[[X(-3.12),y+1.53,Z(-4.64)],[X(-3.12),y+1.36,Z(-4.6)],[xe,y+1.2,Z(-4.64)]]; from=`pau_fo_${U}`; }
+    else if(p.t==='fo'){ start=[[X(-3.16),y+1.39,Z(-4.6725)],[X(-3.16),y+1.30,Z(-4.66)],[xe,y+1.2,Z(-4.64)]]; from=`pau_fo_${U}`; }
     else { start=[[X(-2.86),y+1.32,Z(-4.6)],[xe,y+1.2,Z(-4.64)]]; from=`pau_pt_${U}`; }
     const offs = p.dbl ? [['a',-0.011],['b',0.011]] : [['',0]];
     for(const [ab,dx] of offs){
       const sh=pts.map(v=>[v[0]+dx,v[1],v[2]]);
-      cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...start,...sh], {tram:'int',tech:T.tech,svc:T.svc, from, to:`bat_${pid}`, via:`ci_${U}`, r: p.t==='fo'?0.016:0.018});
+      cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...start,...sh], {tram:'int',tech:T.tech,svc:T.svc, from, to:`bat_${pid}`, via:`ci_${U}`, r: p.t==='fo'?0.0075:p.t==='dat'?0.018:0.012});
     }
     /* registre de presa (caixa) i BAT (placa frontal) */
     const w = p.dbl ? 0.4 : 0.3;
@@ -3241,18 +3271,26 @@ function buildInterior(u){
     B(`bat_${pid}`,w-0.1,0.2,0.03,0,y+0.35,0.055,PTCOL[p.t]);
     if(p.t==='rtv'){ Cy(`bat_${pid}`,0.025,0.04,-0.04,y+0.35,0.075,0x777777); Cy(`bat_${pid}`,0.018,0.04,0.05,y+0.35,0.075,0x999999); }
     else if(p.t==='tba'){ Cy(`bat_${pid}`,0.022,0.04,0,y+0.35,0.075,0xC2185B); }
-    else if(p.t==='fo'){ B(`bat_${pid}`,0.07,0.07,0.02,0,y+0.35,0.075,0x2E7D32,{pick:false}); B(`bat_${pid}`,0.03,0.03,0.02,0,y+0.35,0.085,0x0AA5C2,{pick:false}); }
+    else if(p.t==='fo'){ const BE=`bat_${pid}`;
+      B(BE,0.16,0.16,0.012,0,y+0.35,0.0755,0xF2F2EF,{pick:false});                      // marc embellidor
+      B(BE,0.05,0.07,0.03,0,y+0.33,0.087,0x2E9B3F,{pick:false});                          // adaptador SC/APC (verd)
+      B(BE,0.058,0.012,0.036,0,y+0.37,0.087,0x24803F,{pick:false});                       // brida de l'adaptador
+      B(BE,0.04,0.055,0.04,0,y+0.325,0.115,0x2E9B3F,{pick:false});                        // connector SC/APC del latiguillo (verd)
+      B(BE,0.02,0.02,0.035,0,y+0.325,0.152,0xBFC3C6,{pick:false});                       // funda del connector
+      B(BE,0.03,0.006,0.03,-0.05,y+0.33,0.084,0xE6E6E6,{pick:false});                    // tapa antipols, oberta
+      rPlane(BE,0.075,0.04,V(xt, y+0.405, qz+dir*0.0875),V(0,0,dir),textTex(['FO','⚠ Làser'],{w:150,h:100,fs:[44,26],bold:[true,true],bg:'#F2F2EF',fg:'#263238'}),{}); }
     else for(const dxx of (p.dbl?[-0.06,0.06]:[0])) B(`bat_${pid}`,0.06,0.05,0.02,dxx,y+0.35,0.075,0x333333,{pick:false});
   });
   /* equips de l'usuari a la sala: ONT i encaminador al costat de la presa òptica */
   iBox(`ont_${U}`,0.26,0.2,0.1,X(-6.16),y+1.07,Z(-1.62),0xFAFAFA); iBox(`ont_${U}`,0.03,0.03,0.01,X(-6.22),y+1.1,Z(-1.565),0x2E9E5B,{pick:false});
   iBox(`router_${U}`,0.3,0.08,0.2,X(-5.86),y+1.01,Z(-1.62),0x30363D); iCyl(`router_${U}`,0.012,0.22,X(-5.97),y+1.16,Z(-1.7),0x30363D,'y',{pick:false}); iCyl(`router_${U}`,0.012,0.22,X(-5.75),y+1.16,Z(-1.7),0x30363D,'y',{pick:false});
-  cable(`patch_fo_${U}`,`ont_${U}`,[[X(-5.92),y+0.37,Z(-1.62)],[X(-5.97),y+0.62,Z(-1.53)],[X(-6.1),y+0.9,Z(-1.53)],[X(-6.12),y+1.0,Z(-1.57)]],{tram:'usr',tech:'fo',svc:'fo',r:0.012, from:`bat_fo_sala_${U}`, to:`ont_${U}`});
+  cable(`patch_fo_${U}`,`ont_${U}`,[[X(-5.92),y+0.325,Z(-1.54)],[X(-5.92),y+0.36,Z(-1.50)],[X(-5.97),y+0.62,Z(-1.50)],[X(-6.1),y+0.9,Z(-1.53)],[X(-6.12),y+1.0,Z(-1.57)]],{tram:'usr',tech:'fo',svc:'fo',r:0.006, from:`bat_fo_sala_${U}`, to:`ont_${U}`});
+  iBox(`ont_${U}`,0.028,0.028,0.02,X(-6.12),y+1.0,Z(-1.565),0x2E9B3F,{pick:false});
   cable(`patch_eth_${U}`,`router_${U}`,[[X(-6.03),y+1.04,Z(-1.58)],[X(-6.0),y+1.04,Z(-1.52)],[X(-5.92),y+1.02,Z(-1.55)]],{tram:'usr',tech:'pt',svc:'fo',r:0.012, from:`ont_${U}`, to:`router_${U}`});
   cable(`patch_ret_${U}`,`router_${U}`,[[X(-5.86),y+0.98,Z(-1.52)],[X(-6.02),y+0.75,Z(-1.5)],[X(-6.25),y+0.45,Z(-1.58)],[X(-6.25),y+0.37,Z(-1.62)]],{tram:'usr',tech:'pt',svc:'pt',r:0.012, from:`router_${U}`, to:`bat_dat_sala_${U}`});
   /* equips terminals */
   iBox(`tv_${U}`,1.1,0.62,0.06,X(-7.1),y+0.85,Z(-1.35),0x22262B); iBox(`tv_${U}`,0.2,0.3,0.12,X(-7.1),y+0.55,Z(-1.35),0x22262B,{pick:false});
-  cable(`tv_patch_${U}`,`tv_${U}`,[[X(-6.99),y+0.35,Z(-1.62)],[X(-7.0),y+0.47,Z(-1.5)],[X(-7.05),y+0.6,Z(-1.4)]],{tram:'usr',tech:'coax',svc:'rtv',r:0.014, from:`bat_rtv_sala_${U}`, to:`tv_${U}`});
+  cable(`tv_patch_${U}`,`tv_${U}`,[[X(-6.99),y+0.35,Z(-1.62)],[X(-7.0),y+0.47,Z(-1.5)],[X(-7.05),y+0.6,Z(-1.4)]],{tram:'usr',tech:'coax',svc:'rtv',r:0.009, from:`bat_rtv_sala_${U}`, to:`tv_${U}`});
   iBox(`pc_${U}`,0.5,0.32,0.04,X(-2.75),y+0.9,Z(2.2),0x22262B); iBox(`pc_${U}`,0.08,0.06,0.12,X(-2.75),y+0.75,Z(2.22),0x22262B,{pick:false}); iBox(`pc_${U}`,0.2,0.45,0.42,X(-2.55),y+0.23,Z(2.3),0x3A3F45);
   cable(`pc_patch_${U}`,`pc_${U}`,[[X(-3.44),y+0.35,Z(1.78)],[X(-3.2),y+0.1,Z(1.95)],[X(-2.65),y+0.15,Z(2.2)]],{tram:'usr',tech:'pt',svc:'pt',r:0.014, from:`bat_dat_d1_${U}`, to:`pc_${U}`});
 }
@@ -3334,7 +3372,8 @@ function applyMaterials(){
   const rel=S.related;
   for(const m of G.meshes){
     const d=m.userData, mat=m.material;
-    if((d.cable || d.cableLike) && !d.fixedColor){ mat.color.setHex(cableColor(d.tram,d.tech)); }
+    if((d.cable || d.cableLike) && !d.fixedColor){ mat.color.setHex(cableColor(d.tram,d.tech,d.real));
+      const wm = S.colorBy==='real' ? null : (d.texMap||null); if(d.cable && mat.map!==wm){ mat.map=wm; mat.needsUpdate=true; } }
     if(d.corr){ const op=S.ritsXray?0.2:1; const tr=op<1; if(mat.transparent!==tr){ mat.transparent=tr; mat.depthWrite=!tr; mat.needsUpdate=true; } mat.opacity=op; }
     else if(d.canal){
       let op = S.tubesSee ? 0.3 : 1; if(S.openCanal.has(d.el)) op=0.07;
@@ -3776,6 +3815,9 @@ function updateStatus(){
 }
 function renderLegend(){
   const by=S.colorBy;
+  if(by==='real'){ const sw=(c,t)=>`<span><span class="sw" style="background:${c};border:1px solid #888"></span>${t}</span>`;
+    $('#legend').innerHTML=`<b>Llegenda — colors d'aspecte real:</b>`+sw('#F4F3EF','Coaxial de RTV · cable de distribució 1 (i cables interiors)')+sw('#1C1D1F','Coaxial de RTV · cable de distribució 2')+sw('#F2C200','Fibra òptica')+sw('#2E9B3F','Connectors de fibra SC/APC')+sw('#9EA4AA','Parells trenats')+
+      `<span><span class="sw tube"></span>Tub de canalització</span><span><span class="sw box"></span>Recinte o registre</span><span class="muted">Per veure el tram de xarxa, tria «Per tram de xarxa».</span>`; return; }
   let h=`<b>Llegenda — el color dels cables indica ${by==='tram'?'<u>el tram de xarxa</u>':'<u>la tecnologia del cable</u>'}:</b>`;
   if(by==='tram') for(const t of Object.values(TRAMS)) h+=`<span><span class="sw" style="background:${t.color}"></span>${t.sym} ${esc(t.name)}</span>`;
   else for(const t of Object.values(TECHS)) h+=`<span><span class="sw" style="background:${t.color}"></span>${t.sym} ${esc(t.name)} (${t.pattern})</span>`;
@@ -3957,7 +3999,7 @@ function buildStaticUI(){
   $('#svcBox').innerHTML=Object.entries(SERVICES).map(([k,n])=>`<label class="opt"><input type="radio" name="svc" value="${k}" ${k==='all'?'checked':''}> ${esc(n)}</label>`).join('');
   $('#conceptsBody').innerHTML=CONCEPTS.map(([t,x])=>`<div class="concept"><h3>${esc(t)}</h3><p style="margin:2px 0">${x}</p></div>`).join('');
   $('#aboutBody').innerHTML=`<h3>Simplificacions i limitacions</h3><ul>${SIMPLIFICATIONS.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
-   <h3>Configuració representada</h3><ul><li>RTV: torre de 6 m amb tres tirants i màstil amb antenes TDT, DAB i FM; parabòlica offset amb LNB doble (es pot amagar) → cinc coaxials independents per l\'enllaç superior → capçalera al RITS amb dos amplificadors de FI i mesclador (cable 1: terrestre + SAT A; cable 2: terrestre + SAT B) → dos cables de distribució en arbre-branca amb derivadors a cada registre secundari → dos cables de dispersió fins al PAU → repartidor → xarxa interior en estrella.</li>
+   <h3>Configuració representada</h3><ul><li>RTV: torre de 6 m amb tres tirants i màstil amb antenes TDT, DAB i FM; parabòlica offset amb LNB doble (es pot amagar) → cinc coaxials independents per l\'enllaç superior → capçalera al RITS amb dos amplificadors de FI i mesclador (cable 1: terrestre + SAT A; cable 2: terrestre + SAT B) → dos cables de distribució en arbre-branca amb derivadors a cada registre secundari → dos cables de dispersió (blanc i negre) fins al PAU + repartidor (2 entrades F, una carregada; 4 sortides) → xarxa interior en estrella.</li>
    <li>Fibra òptica: operador → arqueta → canalització externa → punt d'entrada general → enllaç inferior → registre principal òptic (punt d'interconnexió) → cable multifibra de distribució → caixa de segregació amb empalmaments a cada planta → acometida → roseta òptica (PAU) → fibra interior → presa òptica de la sala d'estar → ONT i encaminador (equips de l'usuari) → retorn per la BAT RJ45 doble fins al registre de terminació de xarxa → xarxa interior de parells trenats.</li>
    <li>Preses de cada habitatge (dotació mínima): 4 de RTV, 6 registres de parells trenats (BAT doble a la sala i al dormitori 1), 2 coaxials de TBA (sala i dormitori 1), 1 de fibra òptica a la sala i 1 registre configurable al rebedor. El bany no en té.</li>
    <li>Parells trenats: distribució/dispersió en estrella des del panell RJ45 del RITI fins al PAU, sense punt de distribució físic al registre secundari.</li></ul>
@@ -5009,6 +5051,110 @@ function euroPlug(el, x, y){ // clavilla europea (sense terra) endollada a la ba
   return V(x,y-0.03,-4.671);
 }
 function tex12(lines,o){ return textTex(lines,o); }
+/* =====================================================================
+   MESCLADOR TERR + 2 SAT (model fidel a l'exemple Televes ref. 740710)
+   Unitats locals: mil·límetres. Origen: centre del cos a la cara posterior
+   (z = 0 contra la paret, +z cap endavant, +y amunt, +x a la dreta).
+   Mides del fabricant: 98 × 76 × 27 mm (amplada amb orelles × alçada amb
+   connectors × fondària), 194 g, xassís de zamac, connectors F.
+   ===================================================================== */
+const MIX740710 = {
+  W:98, H:76, D:27, BODY_H:55, PORT_DX:24, PORT_Z:13.5, TIP:38,
+  ports:{ in:{sa:-24, ter:0, sb:24}, out:{a:-24, c:0, b:24} },
+  /* etiqueta frontal: icones i textos de l'aparell (sense logotip de marca) */
+  labelCanvas(){
+    const c=document.createElement('canvas'); c.width=1320; c.height=720; const g=c.getContext('2d');
+    g.fillStyle='#F3F3F1'; g.fillRect(0,0,1320,720);
+    g.strokeStyle='#1B1B1B'; g.fillStyle='#1B1B1B'; g.lineCap='round'; g.lineJoin='round';
+    const font=(w,s)=>{ g.font=`${w} ${s}px Arial, Helvetica, sans-serif`; };
+    const arrowDown=(x,y0,y1,lw)=>{ g.lineWidth=lw; g.beginPath(); g.moveTo(x,y0); g.lineTo(x,y1-10); g.stroke(); g.beginPath(); g.moveTo(x-11,y1-18); g.lineTo(x,y1); g.lineTo(x+11,y1-18); g.closePath(); g.fill(); };
+    const arrowUp=(x,y0,y1)=>{ g.lineWidth=5; g.beginPath(); g.moveTo(x,y0); g.lineTo(x,y1+10); g.stroke(); g.beginPath(); g.moveTo(x-9,y1+16); g.lineTo(x,y1); g.lineTo(x+9,y1+16); g.closePath(); g.fill(); };
+    /* icona d'entrada: caixa oberta per dalt amb fletxa que hi entra */
+    const iconIn=(x,y,ter)=>{ g.lineWidth=7; g.beginPath(); g.moveTo(x-30,y-28); g.lineTo(x-30,y+30); g.lineTo(x+30,y+30); g.lineTo(x+30,y-28); g.stroke();
+      g.beginPath(); g.moveTo(x-38,y-28); g.lineTo(x-22,y-28); g.moveTo(x+22,y-28); g.lineTo(x+38,y-28); g.stroke();
+      arrowDown(x,y-44,y+18,7); if(ter){ g.lineWidth=5; for(const [dy,w] of [[-38,16],[-30,11]]){ g.beginPath(); g.moveTo(x-w,y+dy); g.lineTo(x+w,y+dy); g.stroke(); } } };
+    /* icona de sortida: caixa oberta per baix amb fletxa que en surt */
+    const iconOut=(x,y)=>{ g.lineWidth=7; g.beginPath(); g.moveTo(x-30,y+28); g.lineTo(x-30,y-30); g.lineTo(x+30,y-30); g.lineTo(x+30,y+28); g.stroke();
+      g.beginPath(); g.moveTo(x-38,y+28); g.lineTo(x-22,y+28); g.moveTo(x+22,y+28); g.lineTo(x+38,y+28); g.stroke(); arrowDown(x,y-16,y+44,7); };
+    const dc=(x,y,left)=>{ arrowUp(left?x:x+70,y+20,y-22); font('700',30); g.textAlign=left?'left':'right'; g.fillText('DC',left?x+16:x+56,y+10); };
+    g.textBaseline='middle';
+    /* fila superior: SAT/A · TER · SAT/B */
+    iconIn(150,90); dc(205,82,true); font('700',36); g.textAlign='center'; g.fillText('SAT/A',150,165);
+    iconIn(660,90,true); g.fillText('TER',660,165);
+    iconIn(1170,90); dc(1040,82,false); g.textAlign='center'; g.fillText('SAT/B',1170,165);
+    /* zona central: designació i rang de freqüències */
+    font('800',96); g.textAlign='center'; g.fillText('TER + 2 SAT',660,292);
+    font('700',46); g.textAlign='left'; g.fillText('TER + 2 SAT MIXER',90,400);
+    font('400',44); g.textAlign='right'; g.fillText('47-790 / 950-2400 MHz',1230,400);
+    g.lineWidth=4; g.beginPath(); g.moveTo(90,432); g.lineTo(1230,432); g.stroke();
+    font('700',42); g.textAlign='left'; g.fillText('Ref. 740710',90,468); font('400',42); g.fillText('ESW201LTE',370,468);
+    font('400',34); g.textAlign='right'; g.fillText('0715',1230,470);
+    /* fila inferior: SAT/A + TER · CE · SAT/B + TER */
+    font('700',36); g.textAlign='center'; g.fillText('SAT/A + TER',175,548); iconOut(150,625); dc(205,640,true);
+    font('400',92); g.textAlign='center'; g.fillText('CE',660,628);
+    font('700',36); g.textAlign='center'; g.fillText('SAT/B + TER',1145,548); iconOut(1170,625); dc(1040,640,false);
+    return c;
+  },
+  /* peces geomètriques: [{geo, color, mat, part}] en mm locals */
+  parts(){
+    const P=[], ZK=0xBFC3C6, NI=0xC7CACD;
+    const add=(geo,color,mat,part)=>{ P.push({geo,color,mat,part}); return geo; };
+    const rr=(w,h,r)=>{ const s=new THREE.Shape(), x=-w/2, y=-h/2; s.moveTo(x+r,y); s.lineTo(x+w-r,y); s.quadraticCurveTo(x+w,y,x+w,y+r); s.lineTo(x+w,y+h-r); s.quadraticCurveTo(x+w,y+h,x+w-r,y+h); s.lineTo(x+r,y+h); s.quadraticCurveTo(x,y+h,x,y+h-r); s.lineTo(x,y+r); s.quadraticCurveTo(x,y,x+r,y); return s; };
+    /* cos: base de zamac (78 × 55) amb vores bisellades */
+    let g=new THREE.ExtrudeGeometry(rr(76,53,3),{depth:15,bevelEnabled:true,bevelThickness:1.2,bevelSize:1,bevelSegments:2,curveSegments:6}); g.translate(0,0,1.2); add(g,ZK,'zamak','body');
+    /* plataforma frontal elevada amb xamfrà (on va l'etiqueta) */
+    g=new THREE.ExtrudeGeometry(rr(70,43,2.5),{depth:5.5,bevelEnabled:true,bevelThickness:2.2,bevelSize:2.2,bevelSegments:1,curveSegments:4}); g.translate(0,0,17.4); add(g,ZK,'zamak','body');
+    /* nervis verticals a banda i banda de la plataforma (aspecte de fosa) */
+    for(const sx of [-1,1]){ g=new THREE.BoxGeometry(2.2,46,4); g.translate(sx*38.2,0,18.5); add(g,0xB3B8BC,'zamak','body'); }
+    /* orelles de fixació posteriors amb forat de Ø4 */
+    for(const sx of [-1,1]){
+      const s=new THREE.Shape(); const x0=36*sx, x1=49*sx, hw=21, r=4;
+      if(sx>0){ s.moveTo(x0,-hw); s.lineTo(x1-r,-hw); s.quadraticCurveTo(x1,-hw,x1,-hw+r); s.lineTo(x1,hw-r); s.quadraticCurveTo(x1,hw,x1-r,hw); s.lineTo(x0,hw); s.lineTo(x0,-hw); }
+      else { s.moveTo(x0,-hw); s.lineTo(x0,hw); s.lineTo(x1+r,hw); s.quadraticCurveTo(x1,hw,x1,hw-r); s.lineTo(x1,-hw+r); s.quadraticCurveTo(x1,-hw,x1+r,-hw); s.lineTo(x0,-hw); }
+      const h=new THREE.Path(); h.absarc(44*sx,0,2.1,0,Math.PI*2,true); s.holes.push(h);
+      g=new THREE.ExtrudeGeometry(s,{depth:6,bevelEnabled:true,bevelThickness:0.5,bevelSize:0.4,bevelSegments:1,curveSegments:16}); g.translate(0,0,0.5); add(g,ZK,'zamak','body');
+    }
+    /* bosses dels connectors i connectors F femella (3 a dalt, 2 a baix; la posició central inferior del motlle porta un tap) */
+    const thread=()=>{ const pts=[V2(3.3,0),V2(5.6,0),V2(5.6,1.2),V2(4.7,1.2)]; const n=8, p=0.8, y0=1.4;
+      for(let i=0;i<n;i++){ pts.push(V2(4.45,y0+i*p)); pts.push(V2(4.85,y0+i*p+p*0.5)); } pts.push(V2(4.45,y0+n*p)); pts.push(V2(4.45,y0+n*p+0.3)); pts.push(V2(3.2,y0+n*p+0.3)); pts.push(V2(3.2,0.4));
+      return new THREE.LatheGeometry(pts,28); };
+    const V2=(x,y)=>new THREE.Vector2(x,y);
+    const TOP=27.5, L=this.TIP-TOP-3.5;              // el connector sobresurt fins a ±38 mm
+    for(const [side,xs] of [[1,[-24,0,24]],[-1,[-24,0,24]]]) for(const x of xs){
+      const tr=new THREE.Matrix4().makeTranslation(x,side*(TOP+1.75),this.PORT_Z); const rot=new THREE.Matrix4().makeRotationZ(side>0?0:Math.PI);
+      g=new THREE.BoxGeometry(12,3.5,15); g.applyMatrix4(tr); add(g,ZK,'zamak','body');                                    // boss de fosa
+      const base=new THREE.Matrix4().makeTranslation(x,side*(TOP+3.5),this.PORT_Z).multiply(rot);
+      if(side<0 && x===0){                                                                   // posició del motlle sense ús: tap de plàstic negre
+        g=new THREE.CylinderGeometry(5.0,5.3,5.5,24); g.translate(0,2.75,0); g.applyMatrix4(base); add(g,0x1E1E1E,'plastic','cap');
+        g=new THREE.CylinderGeometry(4.2,5.0,0.8,24); g.translate(0,5.9,0); g.applyMatrix4(base); add(g,0x262626,'plastic','cap');
+        continue; }
+      g=new THREE.CylinderGeometry(5.6,5.6,1.4,6); g.translate(0,0.7,0); g.applyMatrix4(base); add(g,NI,'nickel','port');   // femella hexagonal
+      g=thread(); g.scale(1,L/8,1); g.applyMatrix4(base); add(g,NI,'nickel','port');                                           // cos roscat 3/8"
+      g=new THREE.CylinderGeometry(3.15,3.15,0.6,20); g.translate(0,L-0.6,0); g.applyMatrix4(base); add(g,0xF0EFE8,'plastic','port'); // dielèctric
+      g=new THREE.CylinderGeometry(0.75,0.75,0.7,12); g.translate(0,L-0.5,0); g.applyMatrix4(base); add(g,0x262626,'plastic','port');  // contacte central
+    }
+    /* etiqueta adhesiva */
+    g=new THREE.PlaneGeometry(68,37); g.translate(0,0,25.12); add(g,0xFFFFFF,'label','label');
+    return P;
+  }
+};
+
+/* model fidel del mesclador TER + 2 SAT (ampliat ×2 com la resta d'equips del RITS); cx, cy: centre del cos a la placa */
+function buildMix740710(cx,cy){
+  const MX='cap_mix', k=0.002, M=new THREE.Matrix4().makeTranslation(cx,cy,ZP).multiply(new THREE.Matrix4().makeScale(k,k,k));
+  const tex=MIX740710._tex || (MIX740710._tex=canvasTex(1320,720,g=>g.drawImage(MIX740710.labelCanvas(),0,0)));
+  const bodies=[];
+  for(const p of MIX740710.parts()){ p.geo.applyMatrix4(M);
+    const m=rMesh(MX,p.geo,p.color, p.mat==='label' ? {roughness:0.55,metalness:0,map:tex} : p.mat, {cast:p.part!=='label'});
+    if(p.part==='body') bodies.push(m); }
+  for(const m of bodies.slice(0,2)) G.pick.push(m);
+  halo(bodies[0], new THREE.BoxGeometry(0.204,0.118,0.058).translate(cx,cy,ZP+0.027), RFN.eq);
+  for(const sx of [-1,1]){ rCyl(MX,0.0068,0.0032,V(cx+sx*0.088,cy,ZP+0.0152),V(0,0,1),0x9AA0A6,'steel',{seg:20});
+    const sl=rMesh(MX,new THREE.BoxGeometry(0.0088,0.0014,0.0012),0x50555A,'steel'); sl.position.set(cx+sx*0.088,cy,ZP+0.0172); }
+  const P=(x,s)=>V(cx+x*k, cy+s*MIX740710.TIP*k, ZP+MIX740710.PORT_Z*k);
+  const pi=MIX740710.ports.in, po=MIX740710.ports.out;
+  return {I:{sa:P(pi.sa,1), ter:P(pi.ter,1), sb:P(pi.sb,1)}, O:{a:P(po.a,-1), c:P(po.c,-1), b:P(po.b,-1)}, screwR:V(cx+0.088,cy,ZP+0.0172)};
+}
 function buildCapVariant(v){
   SCOPE=VAR;
   const ftI=RFT.cin.ft, LI=RFT.cin.L, Z=V(0,0,1), DN=V(0,-1,0);
@@ -5053,7 +5199,7 @@ function buildCapVariant(v){
     return {I,O,earth:V(x0+W-0.02,y1-0.02,ZP+0.06)}; };
   /* cable de distribució dins del RITS: de la sortida fins al tub corrugat de sortida */
   const bajant=(c,start,via,from)=>{ const dn=c==='a'?-0.012:0.012; const inP=insidePath(RFT.cout.ft,0,RFT.cout.L,dn,0);
-    rCable(`xd_rtv_${c}_r`,'xd_rtv',[start,...via,[2.30+dn,15.52,-4.63],...inP],WH,'pvc',{from,to:'canal_principal',via:'rits_corr_out',tram:'dist',hc:RFN.dist,cr:0.03});
+    rCable(`xd_rtv_${c}_r`,'xd_rtv',[start,...via,[2.30+dn,15.52,-4.63],...inP],c==='a'?WH:PE,'pvc',{from,to:'canal_principal',via:'rits_corr_out',tram:'dist',hc:RFN.dist,cr:0.03});
     cableTag('xd_rtv',V(2.30+dn,15.505,-4.628),V(c==='a'?-1:1,0,0),c==='a'?'Distribució 1':'Distribució 2'); };
   const jump=(key,pts,from,to)=>rCable(key,'cap_jump',pts,WH,'pvc',{from,to,cr:0.03});
 
@@ -5160,19 +5306,22 @@ function buildCapVariant(v){
     cableTag('cab_sat2_int',V(bIn.x,16.51,bIn.z+0.06),V(1,0,0),'SAT B',V(0,1,-1).normalize());
     const aOut=fMale('cap_fi_1',M[0].ports.out1,Z), bOut=fMale('cap_fi_2',M[1].ports.out1,Z);
     /* mesclador TERR + 2 SAT (740710) */
-    const mx=mixer(2.202,0.152,[['terr',2.24],['sa',2.30],['sb',2.36]],[['a',2.27],['b',2.33]],['740710','TERR  SAT A  SAT B','MATV + FI + FI','OUT A   OUT B']);
-    const mT=fMale('cap_mix',mx.I.terr,UP), mA=fMale('cap_mix',mx.I.sa,UP), mB=fMale('cap_mix',mx.I.sb,UP);
-    const oA=fMale('cap_mix',mx.O.a,DN), oB=fMale('cap_mix',mx.O.b,DN);
-    jump('cap_jump',[gOut,[gOut.x,gOut.y,gOut.z+0.03],[gOut.x+0.01,15.99,-4.44],[2.20,15.93,-4.60],[2.24,15.86,-4.672],mT],'cap_t12_fm','cap_mix');
-    cableTag('cap_jump',V(2.17,15.95,-4.52),V(0,-1,0),'MATV → TERR',V(1,0,-0.3).normalize());
-    jump('cap_jump_fia',[aOut,[aOut.x,aOut.y,aOut.z+0.03],[aOut.x,15.99,-4.47],[1.20,15.975,-4.60],[2.27,15.95,-4.62],[2.30,15.86,-4.672],mA],'cap_fi_1','cap_mix');
-    jump('cap_jump_fib',[bOut,[bOut.x,bOut.y,bOut.z+0.03],[bOut.x,15.97,-4.50],[1.25,15.945,-4.64],[2.33,15.92,-4.65],[2.36,15.86,-4.674],mB],'cap_fi_2','cap_mix');
-    cableTag('cap_jump',V(1.40,15.97,-4.60),V(0,-1,0),'FI 1 → SAT A',V(1,0,0));
-    /* cables de distribució: OUT A → cable 1, OUT B → cable 2 */
-    bajant('a',oA,[[2.27,oA.y-0.03,-4.67],[2.288,15.555,-4.645]],'cap_mix');
-    bajant('b',oB,[[2.33,oB.y-0.03,-4.67],[2.312,15.555,-4.645]],'cap_mix');
+    const mx=buildMix740710(2.30,15.696);
+    const mp=(p,dir)=>fMale('cap_mix',p.clone().addScaledVector(dir,-0.012),dir);      // connector F mascle roscat al port femella
+    const mT=mp(mx.I.ter,UP), mA=mp(mx.I.sa,UP), mB=mp(mx.I.sb,UP);
+    const oA=mp(mx.O.a,DN), oB=mp(mx.O.b,DN);
+    jump('cap_jump',[gOut,[gOut.x,gOut.y,gOut.z+0.03],[gOut.x+0.01,15.99,-4.44],[2.22,15.94,-4.58],[2.30,15.88,-4.672],mT],'cap_t12_fm','cap_mix');
+    cableTag('cap_jump',V(2.17,15.95,-4.52),V(0,-1,0),'MATV → TER',V(1,0,-0.3).normalize());
+    jump('cap_jump_fia',[aOut,[aOut.x,aOut.y,aOut.z+0.03],[aOut.x,15.99,-4.47],[1.20,15.975,-4.60],[2.21,15.955,-4.63],[2.252,15.88,-4.676],mA],'cap_fi_1','cap_mix');
+    jump('cap_jump_fib',[bOut,[bOut.x,bOut.y,bOut.z+0.03],[bOut.x,15.97,-4.50],[1.25,15.945,-4.64],[2.30,15.935,-4.65],[2.348,15.88,-4.674],mB],'cap_fi_2','cap_mix');
+    cableTag('cap_jump',V(1.40,15.97,-4.60),V(0,-1,0),'FI 1 → SAT/A',V(1,0,0));
+    /* cables de distribució: SAT/A + TER → cable 1 (blanc), SAT/B + TER → cable 2 (negre) */
+    bajant('a',oA,[[2.252,oA.y-0.03,-4.674],[2.282,15.535,-4.645]],'cap_mix');
+    bajant('b',oB,[[2.348,oB.y-0.03,-4.674],[2.318,15.535,-4.645]],'cap_mix');
     bond([[0.35,17.164,-4.700],[0.35,16.90,-4.686],[2.26,16.90,-4.686],[2.26,16.45,-4.686],[2.26,16.412,-4.686]]);
-    bond([[0.20,17.164,-4.700],[0.20,15.80,-4.700],[2.382,15.80,-4.700],[2.382,15.752,-4.700],[mx.earth.x,mx.earth.y,mx.earth.z-0.004]]);
+    /* connexió equipotencial: terminal d'anella sota el cargol de fixació dret del mesclador */
+    bond([[0.20,17.164,-4.700],[0.20,15.58,-4.700],[2.42,15.58,-4.700],[2.42,15.68,-4.700],[2.40,15.696,ZP+0.012],[mx.screwR.x+0.006,mx.screwR.y,ZP+0.0135]]);
+    { const t=rMesh('rits_equip',new THREE.TorusGeometry(0.008,0.0022,8,20),0xC98A3A,'copper'); t.position.set(mx.screwR.x,mx.screwR.y,ZP+0.0135); }
     symSprite('cap_t12_5',V(1.50,16.62,-4.44),'〰 RF','#8D5A1A',0.16);
     symSprite('cap_font',V(0.93,16.53,-4.50),'24 V c.c.','#E65100',0.20); symSprite('cap_font',V(2.22,16.53,-4.50),'24 V c.c.','#E65100',0.20);
     symSprite('rits_cordo',V(0.80,15.86,-4.62),'⚡ 230 V c.a. · classe II','#C62828',0.30);

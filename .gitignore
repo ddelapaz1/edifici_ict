@@ -7,3 +7,4 @@ models/src/*.svg
 models/src/t12_plantilla.blend
 models/src/*.blend1
 models/src/tex/*_preview.png
+.DS_Store

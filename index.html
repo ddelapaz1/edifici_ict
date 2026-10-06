@@ -4012,6 +4012,15 @@ const MIX740710 = {
 
 /* model fidel del mesclador TER + 2 SAT a mida real; cx, cy: centre del cos a la placa */
 function buildMix740710(cx,cy){
+  if(MODELS.mix.scene){                                                    // model glTF (models/mesclador.glb), del plànol CAD
+    const MX='cap_mix', ms=placeModel('mix',MX,cx,cy,ZP); G.pick.push(ms[0],ms[1]||ms[0]);
+    halo(ms[0], new THREE.BoxGeometry(0.1,0.06,0.025).translate(cx,cy,ZP+0.0125), RFN.eq);
+    const q=n=>{ const v=modelPoint('mix',n); return V(cx+v.x,cy+v.y,ZP+v.z); };
+    const fe=q('forat_e'), fd=q('forat_d');
+    for(const f of [fe,fd]){ rCyl(MX,0.0034,0.0016,f.clone().add(V(0,0,0.0008)),V(0,0,1),0x9AA0A6,'steel',{seg:20});   // cargols de fixació
+      const sl=rMesh(MX,new THREE.BoxGeometry(0.0044,0.0007,0.0006),0x50555A,'steel'); sl.position.copy(f).add(V(0,0,0.0017)); }
+    return {I:{sa:q('sa'), ter:q('ter'), sb:q('sb')}, O:{a:q('oa'), c:q('oc'), b:q('ob')}, screwR:fd.clone().add(V(0,0,0.0017))};
+  }
   const MX='cap_mix', k=0.001, M=new THREE.Matrix4().makeTranslation(cx,cy,ZP).multiply(new THREE.Matrix4().makeScale(k,k,k));
   const tex=MIX740710._tex || (MIX740710._tex=canvasTex(1320,720,g=>g.drawImage(MIX740710.labelCanvas(),0,0)));
   const bodies=[];
@@ -4603,7 +4612,7 @@ function init(){
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */
-const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}};
+const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}};
 function loadModels(){
   if(!THREE.GLTFLoader || location.protocol==='file:') return Promise.resolve();
   const loader=new THREE.GLTFLoader();

@@ -1,7 +1,7 @@
 # Models 3D (glTF)
 
 La web carrega els models d'aquesta carpeta si existeixen (`loadModels()` a `index.html`); si no, fa servir el model
-procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor i la central AVANT, al centre de la cara posterior); frontal cap a +Z en glTF
+procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor, la central AVANT i el mesclador, al centre de la cara posterior); frontal cap a +Z en glTF
 (−Y a Blender). Els objectes buits `port_*` i `dc` marquen on s'enganxen ponts i latiguillos.
 
 | Model | Fitxer | Font |
@@ -10,6 +10,7 @@ procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara p
 | Font d'alimentació T12, ref. 549812 (70 × 198 × 92 mm) | `font_t12.glb` | `src/font_t12.blend` |
 | Multiplexor passiu RJ45, ref. 546501 (142 × 60 × 24 mm) | `multiplexor.glb` | `src/multiplexor.blend` |
 | Central programable AVANT 12 PRO SAT, ref. 532204 (201 × 120 × 42 mm) | `avant.glb` | `src/avant.blend` |
+| Mesclador TER + 2 SAT, ref. 740710 (98 × 76 × 27 mm) | `mesclador.glb` | `src/mesclador.blend` |
 
 ## Regenerar el T12
 
@@ -56,4 +57,15 @@ escriure amb tipografia perquè al plànol està traçat amb línies soltes.
 dwg2dxf -y -o models/src/532204.dxf 532204_CAD10240005_532204.dwg
 python3 models/src/scripts/avant_serigrafia.py
 /Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/avant_model.py
+```
+
+## Regenerar el mesclador
+
+Plànol del fabricant `740710_CAD02230170.dwg` convertit a `src/740710_b.dxf` (l'etiqueta es copia del plànol, sense el
+logotip):
+
+```bash
+dwg2dxf -y -o models/src/740710_b.dxf 740710_CAD02230170.dwg
+python3 models/src/scripts/mesclador_serigrafia.py
+/Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/mesclador_model.py
 ```

@@ -2219,8 +2219,8 @@ for (const u of UNITS) {
    what:'És una roseta doble RJ45 de superfície, una boca per línia: cada parell de l\'acometida acaba als contactes 4 i 5 d\'una boca. A sota hi ha el multiplexor passiu (142 × 60 × 24 mm), on s\'endollen els cables interiors.',
    purpose:'Fa de punt de tall i de prova entre la xarxa comuna (propietat) i la interior (usuari), i permet portar cada línia a qualsevol presa de l\'habitatge.',
    where:`Dins del registre de terminació de xarxa del ${N}.`,
-   connects:'Acometida de 2 parells → roseta doble RJ45 (línia 1 i línia 2) → latiguillo a l\'entrada (Line In) del multiplexor passiu, que té 8 sortides telefòniques i 1 d\'ADSL. Sis cables interiors hi van endollats; els altres dos (sala i dormitori 1) s\'uneixen amb el latiguillo de dades de l\'encaminador.',
-   example:'Per tenir el telèfon a la cuina, s\'endolla l\'extrem RJ45 de la presa de la cuina a la sortida del multiplexor que porta la línia 1.',
+   connects:'Acometida de 2 parells → roseta doble RJ45 (línia 1 i línia 2) → latiguillo a l\'entrada (Line In) del multiplexor passiu, que té 8 sortides telefòniques i 1 d\'ADSL. Només hi van endollats els cables d\'una boca de la BAT doble de la sala i d\'una del dormitori 1 (telèfon); l\'altra boca de cada BAT és de dades i s\'uneix amb el latiguillo de l\'encaminador. Els altres cables queden lliures, amb el connector RJ45, per si cal.',
+   example:'Si es vol telèfon a la cuina, n\'hi ha prou d\'endollar el connector RJ45 lliure del cable de la cuina a una sortida lliure del multiplexor.',
    confusion:'La xarxa comuna és de cables de parells (telefonia), però la xarxa interior és sempre de parells trenats: el PAU fa la transició.',
    nets:[`xs_pt_${U}`,`xi_dat_${U}`], links:[`rtr_${U}`]});
   def({id:`div_tba_${U}`, fam:'punt', layer:'punts', svc:'tba', floor:f, unit:U, zone:'privada', parent:`rtr_${U}`,
@@ -3319,9 +3319,11 @@ function dedupe(pts){ const o=[]; for(const p of pts){ const l=o[o.length-1]; if
 const MUX={W:0.142, H:0.06, D:0.024, cols:[17,37,57,77], rows:[20,42], rx:118, ry:{adsl:17, line:42}};
 const MUXJ = n => n==='line' ? [(MUX.rx-71)/1000,(30-MUX.ry.line)/1000] : n==='adsl' ? [(MUX.rx-71)/1000,(30-MUX.ry.adsl)/1000]
                  : [(MUX.cols[(n-1)%4]-71)/1000,(30-MUX.rows[Math.floor((n-1)/4)])/1000];
-/* sortida del multiplexor de cada cable interior de parells trenats; els dos restants s'uneixen amb el latiguillo de dades */
-const MUXOUT={dat_cuina:1, dat_d2:2, dat2_sala:3, dat_sala_a:4, dat_d1_a:5, dat2_d1:6};
+/* cables interiors de parells trenats a l'RTR: a les BAT dobles de la sala i del dormitori 1, una boca és de telefonia
+   (sortida del multiplexor) i l'altra de dades (latiguillo de l'encaminador); la resta queden lliures amb el connector RJ45 */
+const MUXOUT={dat_sala_a:1, dat_d1_a:2};
 const PATCHED={dat_sala_b:-2.95, dat_d1_b:-2.77};
+const FREEEND={dat2_sala:-2.91, dat_cuina:-2.88, dat_d2:-2.85, dat2_d1:-2.82};
 let MUX_TEX=null;
 function muxTex(){ return MUX_TEX ||= canvasTex(568,240,(g,w,h)=>{ const k=4;
   g.fillStyle='#2C2E31'; g.fillRect(0,0,w,h); g.strokeStyle='#45484C'; g.lineWidth=6; g.strokeRect(3,3,w-6,h-6);
@@ -3439,7 +3441,9 @@ function buildInterior(u){
       const sh=pts.map(v=>[v[0]+dx,v[1],v[2]]);
       if(p.t==='dat'){ const key=ab?`${k}_${ab}`:k;
         if(MUXOUT[key]){ const pl=muxPlug(`${T.net}_${U}`,MUXOUT[key]); start=[pl,[pl[0],pl[1]-0.035,Z(mzf+0.03)],[xe,y+1.2,Z(-4.64)]]; }
-        else start=[[X(PATCHED[key]),y+1.24,Z(-4.6)],[xe,y+1.2,Z(-4.64)]]; }
+        else if(PATCHED[key]) start=[[X(PATCHED[key]),y+1.24,Z(-4.6)],[xe,y+1.2,Z(-4.64)]];
+        else { const fx=X(FREEEND[key]); iBox(`${T.net}_${U}`,0.0115,0.014,0.0095,fx,y+1.187,Z(-4.62),0xCFD8DC,{pick:false,opacity:0.85});   // connector RJ45 lliure
+          start=[[fx,y+1.18,Z(-4.62)],[fx,y+1.15,Z(-4.625)],[xe,y+1.13,Z(-4.64)]]; } }
       cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...start,...sh], {tram:'int',tech:T.tech,svc:T.svc, from, to:`bat_${pid}`, via:`ci_${U}`, r: p.t==='fo'?0.0075:p.t==='dat'?0.0035:0.012});
     }
     /* registre de presa (caixa) i BAT (placa frontal) */

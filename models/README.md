@@ -1,8 +1,8 @@
 # Models 3D (glTF)
 
 La web carrega els models d'aquesta carpeta si existeixen (`loadModels()` a `index.html`); si no, fa servir el model
-procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor, la central AVANT i el mesclador, al centre de la cara posterior); frontal cap a +Z en glTF
-(−Y a Blender). Els objectes buits `port_*` i `dc` marquen on s'enganxen ponts i latiguillos.
+procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor, la central AVANT, el mesclador i el derivador, al centre de la cara posterior; la càrrega, al centre de la femella); frontal cap a +Z en glTF
+(−Y a Blender). Els objectes buits `port_*`, `in`, `out`, `t1`–`t4` i `dc` marquen on s'enganxen ponts i cables.
 
 | Model | Fitxer | Font |
 |---|---|---|
@@ -11,6 +11,8 @@ procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara p
 | Multiplexor passiu RJ45, ref. 546501 (142 × 60 × 24 mm) | `multiplexor.glb` | `src/multiplexor.blend` |
 | Central programable AVANT 12 PRO SAT, ref. 532204 (201 × 120 × 42 mm) | `avant.glb` | `src/avant.blend` |
 | Mesclador TER + 2 SAT, ref. 740710 (98 × 76 × 27 mm) | `mesclador.glb` | `src/mesclador.blend` |
+| Derivador F 4D, ref. 519345 (109 × 54 × 18 mm) | `derivador.glb` | `src/derivador.blend` |
+| Càrrega terminal 75 Ω tipus F amb bloqueig CC, ref. 4061 (12 × 29 × 12 mm) | `carrega.glb` | `src/carrega.blend` |
 
 ## Regenerar el T12
 
@@ -68,4 +70,22 @@ logotip):
 dwg2dxf -y -o models/src/740710_b.dxf 740710_CAD02230170.dwg
 python3 models/src/scripts/mesclador_serigrafia.py
 /Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/mesclador_model.py
+```
+
+## Regenerar el derivador
+
+Plànol del fabricant `519345.dwg` convertit a `src/519345.dxf`:
+
+```bash
+dwg2dxf -y -o models/src/519345.dxf 519345.dwg
+python3 models/src/scripts/derivador_serigrafia.py
+/Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/derivador_model.py
+```
+
+## Regenerar la càrrega terminal 75 Ω
+
+Mides de catàleg i del connector F (Televes 4061):
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/carrega_model.py
 ```

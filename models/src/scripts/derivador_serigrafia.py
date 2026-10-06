@@ -1,0 +1,61 @@
+# Serigrafia del derivador F 4D (Televes 519345) a partir del plànol frontal CAD (519345.dxf).
+# Sense logotip; el valor de derivació («24dB») i la referència els escriu la web, perquè canvien a cada planta.
+import math, os
+from PIL import Image, ImageDraw, ImageChops
+D=os.path.join(os.path.dirname(__file__),'..')
+SRC=os.path.join(D,'519345.dxf'); OUT=os.path.join(D,'tex','derivador_serigrafia.png')
+L=open(SRC,encoding='utf-8',errors='ignore').read().splitlines(); P=[(L[i].strip(),L[i+1].strip()) for i in range(0,len(L)-1,2)]
+ents=[]; sec=None; cur=None
+for c,v in P:
+    if c=='0' and v=='SECTION': sec='?'; continue
+    if c=='2' and sec=='?': sec=v; continue
+    if sec!='ENTITIES': continue
+    if c=='0':
+        if cur: ents.append(cur)
+        cur={'t':v,'g':[]}
+    elif cur: cur['g'].append((c,v))
+ents.append(cur)
+def g(e,c,d=0.0):
+    for k,v in e['g']:
+        if k==c: return float(v)
+    return d
+def arcpts(cx,cy,r,a0,a1):
+    if a1<=a0: a1+=2*math.pi
+    n=max(8,int((a1-a0)/(2*math.pi)*48)); return [(cx+r*math.cos(a0+(a1-a0)*i/n),cy+r*math.sin(a0+(a1-a0)*i/n)) for i in range(n+1)]
+figs=[]; poly=None
+for e in ents:
+    t=e['t']
+    if t=='LINE': figs.append(([(g(e,'10'),g(e,'20')),(g(e,'11'),g(e,'21'))],False))
+    elif t=='ARC' and g(e,'40')<1.4: figs.append((arcpts(g(e,'10'),g(e,'20'),g(e,'40'),math.radians(g(e,'50')),math.radians(g(e,'51'))),False))
+    elif t=='ELLIPSE':
+        cx,cy,mx,my,ra,t0,t1=g(e,'10'),g(e,'20'),g(e,'11'),g(e,'21'),g(e,'40'),g(e,'41'),g(e,'42',2*math.pi)
+        if t1<=t0: t1+=2*math.pi
+        a=math.hypot(mx,my); an=math.atan2(my,mx); pts=[]
+        for i in range(33):
+            tt=t0+(t1-t0)*i/32; x=a*math.cos(tt); y=a*ra*math.sin(tt); pts.append((cx+x*math.cos(an)-y*math.sin(an),cy+x*math.sin(an)+y*math.cos(an)))
+        figs.append((pts,abs(t1-t0-2*math.pi)<1e-3))
+    elif t=='POLYLINE': poly={'p':[],'c':int(g(e,'70'))&1}
+    elif t=='VERTEX' and poly is not None: poly['p'].append((g(e,'10'),g(e,'20')))
+    elif t=='SEQEND' and poly is not None: figs.append((poly['p'],poly['c'] or (len(poly['p'])>3 and math.dist(poly['p'][0],poly['p'][-1])<1e-3))); poly=None
+def bb(p): xs=[a for a,b in p]; ys=[b for a,b in p]; return min(xs),max(xs),min(ys),max(ys)
+X0,X1,Y0,Y1=-46.0,45.8,-11.9,9.6; S=24
+W=round((X1-X0)*S); H=round((Y1-Y0)*S); px=lambda x,y:((x-X0)*S,(Y1-y)*S)
+ln=Image.new('L',(W,H),0); d=ImageDraw.Draw(ln); fm=Image.new('1',(W,H),0); n=0; skipped={'dB':[],'ref':[]}
+for p,closed in figs:
+    a,b,c,e=bb(p)
+    if not (a>=-45.8 and b<=45.6 and c>=-11.7 and e<=9.4) or max(b-a,e-c)>12: continue
+    if b<=-20.5 and c>=1.8: continue                                            # logotip de marca
+    if (b-a)<0.2 and c>=0.4 and e<=4.4 and (e-c)<3.0 and a<34: continue                      # traços verticals solts dels colisos posteriors
+    if a>=-14.5 and b<=11.5 and c>=-1.6 and e<=4.8: continue                    # colisos posteriors (vistos per transparència al plànol)
+    if a>=-30.8 and b<=-24.8 and c>=-4.6 and e<=-2.0: skipped['dB'].append((a,b,c,e)); continue    # «24dB»
+    if a>=21.0 and b<=41.0 and c>=-1.8 and e<=1.6: skipped['ref'].append((a,b,c,e)); continue      # referència
+    if closed and len(p)>3:
+        t=Image.new('1',(W,H),0); ImageDraw.Draw(t).polygon([px(*q) for q in p],fill=1); fm=ImageChops.logical_xor(fm,t)
+    else: d.line([px(*q) for q in p],fill=255,width=2,joint='curve')
+    n+=1
+ink=ImageChops.lighter(ln,fm.convert('L'))
+out=Image.new('RGBA',(W,H),(52,55,59,0)); out.putalpha(ink); os.makedirs(os.path.dirname(OUT),exist_ok=True); out.save(OUT)
+pv=Image.new('RGB',(W,H),(200,203,206)); pv.paste((52,55,59),mask=ink); pv.save(OUT.replace('.png','_preview.png'))
+for k,v in skipped.items():
+    if v: print(k,'bbox',round(min(x[0] for x in v),2),round(max(x[1] for x in v),2),round(min(x[2] for x in v),2),round(max(x[3] for x in v),2),len(v))
+print('OK',W,H,n)

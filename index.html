@@ -1813,7 +1813,9 @@ function buildICT(){
     for(const c of ['a','b']){
       if(MODELS.deriv?.scene){
         const ms=placeModel('deriv',`deriv_${f}`,DER[c],y+1.55,-4.715);
-        if(ms[0]) addProxy(ms[0],new THREE.BoxGeometry(0.14,0.12,0.1));
+        for(const m of ms) G.pick.push(m);
+        const pg=new THREE.BoxGeometry(0.14,0.12,0.08); pg.translate(DER[c],y+1.55,-4.706);
+        addProxy(ms[0],pg);
         if(f===1){
           if(MODELS.carrega?.scene){
             const mc=placeModel('carrega','deriv_1',DER[c]+0.0424,y+1.523,-4.706,{},[Math.PI,0,0]);
@@ -2299,11 +2301,11 @@ function frameEl(id){
   const c=b.getCenter(new THREE.Vector3()), sz=b.getSize(new THREE.Vector3());
   const r=Math.max(sz.length()/2,0.35);
   const e=EL[id];
-  let elev = (e.floor>=1&&e.floor<=4&&S.mode!=='habitatge') ? 0.28 : S.mode==='habitatge' ? 0.85 : 0.5;
+  let elev = e?.rs ? 0.12 : (e.floor>=1&&e.floor<=4&&S.mode!=='habitatge') ? 0.28 : S.mode==='habitatge' ? 0.85 : 0.5;
   if(e.vertical) elev=0.15;
   const back = e.unit ? ZM(UNIT(e.unit)) : (c.z<-5.0 && c.y<15 && c.y>-0.5);
   let dir=V(THREE.MathUtils.clamp(c.x/9,-0.55,0.55), elev, back ? -1 : 1).normalize();   // habitatges C i D: des de la façana posterior
-  let dist=THREE.MathUtils.clamp((r*2.6+1.1)/visFrac(), 1.8, 45);
+  let dist=THREE.MathUtils.clamp((r*2.6+(e?.rs?0.35:1.1))/visFrac(), (e?.rs?0.75:1.8), 45);
   if(inRits(id) && r<1.6 && c.x>-0.4 && c.x<3.4 && c.z<-2.4 && c.y>15){   // dins del RITS: des de l'espai de treball
     dir = c.x>3.05 ? V(-1,0.4,0.25) : c.x<-0.1 ? V(1,0.4,0.25) : V(THREE.MathUtils.clamp((1.5-c.x)/4,-0.3,0.3),0.42,1);
     dir.normalize(); dist=THREE.MathUtils.clamp(r*2.4+0.45, 0.55, 2.0);
@@ -2325,7 +2327,7 @@ function ensureVisible(id){
   const outside=['antena','antena_dab','antena_fm','torre','mastil','tirants','lnb','cab_dab','cab_fm','parabola','arqueta','canal_ext','peg','cab_capt','cab_sat','cab_sat2','canal_enllac_sup','reg_enllac_sup','xal_fo','xal_pt','rits'];
   if(S.layers.facana && !outside.includes(id) && S.mode!=='ict'){ S.layers.facana=false; ch=true; }
   if(S.mode==='planta' && !elAllowedByMode(e)){ if(e.floor!=null){ S.floor=e.floor; } else S.mode='oberta'; ch=true; }
-  if(S.mode==='habitatge' && !elAllowedByMode(e)){ if(e.unit){ const u=UNIT(e.unit); S.floor=u.f; S.unitSide=u.s; } else S.mode='oberta'; ch=true; }
+  if(S.mode==='habitatge' && !elAllowedByMode(e)){ if(e.unit){ const u=UNIT(e.unit); S.floor=u.f; S.unitSide=u.s; } else if(e.rs && e.floor!=null){ S.floor=e.floor; } else S.mode='oberta'; ch=true; }
   if(e.variant && e.variant!==S.cap) setCap(e.variant);
   if(inRits(id) && id!=='rits' && id!=='rits_porta' && !S.ritsRoof && !S.ritsFront){ S.ritsRoof=true; ch=true; }
   let p=e.parent; while(p){ if(EL[p].lid && !isOpen(p)){ setOpen(p,true); ch=true; } p=EL[p].parent; }
@@ -2689,7 +2691,7 @@ function bestView(id){
   const cabs=Object.values(G.cables).filter(k=>k.el===id && k.mesh && k.mesh.visible && k.pts.length>1);
   if(cabs.length){ const cb=cabs.reduce((a,k)=>polyLen(k.pts)>polyLen(a.pts)?k:a); c=pathPoint(cb.pts,0.5); r=Math.min(r,1.6); }
   const vis=visArea(), vf0=camera.fov*Math.PI/180, vf=2*Math.atan(Math.tan(vf0/2)*vis.y), hf=2*Math.atan(Math.tan(vf0/2)*camera.aspect*vis.x), fit=Math.min(vf,hf);
-  const want=THREE.MathUtils.clamp(r/Math.sin(fit/2)*1.25, 0.9, 45);
+  const want=THREE.MathUtils.clamp(r/Math.sin(fit/2)*1.25, (EL[id]?.rs ? 0.65 : 0.9), 45);
   /* eix més prim: cara frontal de registres, preses i plaques */
   const dims=[sz.x,sz.y,sz.z], k=dims.indexOf(Math.min(...dims)), others=dims.filter((_,i)=>i!==k);
   const thin = dims[k] < 0.5*Math.min(...others) && k!==1;

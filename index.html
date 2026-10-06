@@ -1757,7 +1757,7 @@ const LAYERS = {
 };
 /* llista natural d'habitatges d'una planta: «2n A, 2n B, 2n C i 2n D» */
 const floorUnitsTxt = f => { const n=SIDES.map(s=>`${ORD[f]} ${s}`); return n.slice(0,-1).join(', ')+' i '+n[n.length-1]; };
-const SERVICES = {all:'Tots els serveis', rtv:'RTV', fo:'Accés per fibra òptica', pt:'Parells trenats', tba:'Coaxial de TBA'};
+const SERVICES = {all:'Tots els serveis', rtv:'RTV', fo:'Accés per fibra òptica', pt:'Parells (telefonia i dades)', tba:'Coaxial de TBA'};
 const TRAMS = {
   alim:{name:'Alimentació', color:'#E07B24', sym:'▲'},
   capt:{name:'Captació RTV (antena → capçalera)', color:'#A8742A', sym:'✚'},
@@ -1769,7 +1769,7 @@ const TRAMS = {
 const TECHS = {
   fo:  {name:'Fibra òptica', color:'#0AA5C2', pattern:'franges blanques curtes', sym:'FO'},
   coax:{name:'Cable coaxial', color:'#C2185B', pattern:'llis', sym:'CX'},
-  pt:  {name:'Parells trenats', color:'#8D6E1F', pattern:'franges diagonals', sym:'PT'}
+  pt:  {name:'Parells de coure', color:'#8D6E1F', pattern:'franges diagonals', sym:'PT'}
 };
 
 const EL = {};
@@ -1786,13 +1786,13 @@ def({id:'xal_fo', fam:'xarxa', layer:'xarxes', svc:'fo', tram:'alim', tech:'fo',
  confusion:'Aquest cable és de l\'operador, que el dissenya i el manté. La canalització per on passa, en canvi, és de l\'edifici i forma part de la ICT.',
  nets:[], canals:['canal_ext','canal_enllac_inf'], links:['arqueta','peg','reg_enllac_inf','pi_fo']});
 def({id:'xal_pt', fam:'xarxa', layer:'xarxes', svc:'pt', tram:'alim', tech:'pt', floor:0, zone:'exterior i comuna',
- name:'Xarxa d\'alimentació de parells (operador)', sigla:'',
- what:'És el cable de parells de coure de l\'operador que arriba a l\'edifici pel mateix camí que la fibra.',
- purpose:'Permet que un operador que presta serveis per parells (per exemple, telefonia) els faci arribar fins al punt d\'interconnexió de parells.',
+ name:'Xarxa d\'alimentació de parells (mànega multiparell de l\'operador)', sigla:'',
+ what:'És la mànega multiparell (un cable amb molts parells de coure) de l\'operador del servei telefònic disponible al públic (STDP), que arriba a l\'edifici pel mateix camí que la fibra.',
+ purpose:'Fa arribar les línies telefòniques de l\'operador fins a les seves regletes d\'entrada, al punt d\'interconnexió de parells.',
  where:'Carrer → arqueta d\'entrada → canalització externa → enllaç inferior → regletes d\'entrada del registre principal de parells (RITI).',
- connects:'Uneix la xarxa de l\'operador amb les regletes d\'entrada del punt d\'interconnexió de parells.',
- example:'Un operador connecta els seus parells a les regletes d\'entrada del RITI; després, amb un pont, els uneix amb la sortida que va al 3r C.',
- confusion:'El cable de l\'operador i els cables de parells trenats de l\'edifici són trams diferents: s\'uneixen al punt d\'interconnexió amb latiguillos (cables curts de connexió).',
+ connects:'Uneix la central de l\'operador amb les regletes d\'entrada (columna esquerra) del punt d\'interconnexió de parells.',
+ example:'Quan un veí contracta una línia, el tècnic de l\'operador fa un pont des d\'un parell de la seva regleta d\'entrada fins al parell de la regleta de sortida que va al 3r C.',
+ confusion:'La mànega de l\'operador i la de l\'edifici són cables diferents: no s\'empalmen, s\'uneixen al punt d\'interconnexió amb ponts (fils de pont) entre regletes.',
  canals:['canal_ext','canal_enllac_inf'], links:['arqueta','peg','pi_pt']});
 def({id:'cab_capt', fam:'xarxa', layer:'xarxes', svc:'rtv', tram:'capt', tech:'coax', floor:5, zone:'comuna (coberta)', main:false,
  name:'Cable coaxial de l\'antena TDT', sigla:'',
@@ -1849,13 +1849,13 @@ def({id:'xd_fo', fam:'xarxa', layer:'xarxes', svc:'fo', tram:'dist', tech:'fo', 
  confusion:'No és el cable de l\'operador. El cable de l\'operador s\'acaba al RITI; a partir del panell de sortida, la fibra és de la propietat de l\'edifici.',
  canals:['canal_principal'], links:['pi_fo','cseg_1','cseg_2','cseg_3','cseg_4']});
 def({id:'xd_pt', fam:'xarxa', layer:'xarxes', svc:'pt', tram:'dist', tech:'pt', floor:null, vertical:true, zone:'comuna',
- name:'Xarxa de distribució/dispersió de parells trenats (en estrella)', sigla:'',
- what:'Són cables de parells trenats independents, un per habitatge, que surten del panell RJ45 del RITI i pugen junts per la canalització principal.',
- purpose:'Porten una línia de parells trenats des del punt d\'interconnexió fins al PAU de cada habitatge, sense cap connexió intermèdia.',
- where:'RITI → tub de parells de la canalització principal → registre secundari de cada planta (en pas) → canalització secundària → habitatge.',
- connects:'Panell de sortida RJ45 (RJ45: connector de 8 contactes) del RITI amb la roseta del PAU de parells de cada habitatge.',
- example:'El cable del 3r D surt del panell del RITI, puja fins a la 3a planta, travessa el registre secundari i continua fins al registre de terminació de xarxa del 3r D.',
- confusion:'En estrella no hi ha repartidor de planta: al registre secundari els cables passen i només s\'hi guarda un bucle de reserva. El tram vertical fa de distribució i l\'horitzontal de dispersió, però és el mateix cable.',
+ name:'Xarxa de distribució de parells (mànega de 50 parells)', sigla:'',
+ what:'És una mànega multiparell de 50 parells que surt de les regletes de sortida del RITI i puja per la canalització principal. A cada planta se\'n fa un sangrat: s\'obre la coberta i se\'n treuen 10 parells cap a la regleta del registre secundari.',
+ purpose:'Porta les línies de l\'edifici des del punt d\'interconnexió fins al punt de distribució de cada planta. Dimensionament (RD 346/2011, annex II): 16 habitatges × 2 línies + local 3 + serveis comuns 2 = 37 línies; × 1,2 de reserva = 44,4 → cable normalitzat de 50 parells.',
+ where:'RITI (regletes de sortida) → tub de parells de la canalització principal → registres secundaris de la 1a a la 4a planta.',
+ connects:'Regletes de sortida del punt d\'interconnexió ↔ regleta de 10 parells de cada registre secundari (parells 1–10 a la 1a planta, 11–20 a la 2a, 21–30 a la 3a i 31–40 a la 4a; del 41 al 50, reserva).',
+ example:'Si s\'avaria el parell que va al 2n B, el tècnic pot passar la línia a un dels dos parells lliures de la regleta de la 2a planta sense estendre cap cable nou.',
+ confusion:'El sangrat no talla la mànega: només se n\'extreuen els parells de la planta i la resta continua cap amunt. La reserva del 20 % és per a avaries i ampliacions.',
  canals:['canal_principal'], links:['pi_pt','bucle_1','bucle_2','bucle_3','bucle_4']});
 
 def({id:'canal_ext', fam:'canal', layer:'canalitzacions', svc:'all', floor:0, zone:'exterior', main:true,
@@ -1890,7 +1890,7 @@ def({id:'canal_principal', fam:'canal', layer:'canalitzacions', svc:'all', floor
  what:'És el conjunt de tubs verticals que uneix el RITI, els registres secundaris de cada planta i el RITS.',
  purpose:'Dona suport a les xarxes de distribució de tots els serveis. És l\'«eix vertical» de la ICT.',
  where:'Zona comuna, al patinet d\'instal·lacions del distribuïdor de cada planta, des del RITI (planta baixa) fins al RITS (coberta).',
- connects:'Al model hi ha quatre tubs: RTV, fibra òptica, parells trenats i reserva. Una canalització pot allotjar cables de diferents serveis segons com s\'organitzi; aquí s\'han separat per poder-los veure.',
+ connects:'Al model hi ha quatre tubs: RTV, fibra òptica, parells i reserva. Una canalització pot allotjar cables de diferents serveis segons com s\'organitzi; aquí s\'han separat per poder-los veure.',
  example:'Entre la 2a i la 3a planta, pel tub de RTV hi passen els dos coaxials de distribució i pel tub de parells, els cables que van als habitatges de la 3a i la 4a planta.',
  confusion:'La canalització principal és el conducte; la xarxa de distribució són els cables que hi ha a dins. Un tub buit continua sent canalització.',
  nets:['xd_rtv','xd_fo','xd_pt'], links:['riti','rits','rs_1','rs_2','rs_3','rs_4']});
@@ -1927,7 +1927,7 @@ def({id:'riti', fam:'recinte', layer:'recintes', svc:'all', floor:0, zone:'comun
  what:'És un local de la zona comuna, a la part baixa de l\'edifici, on hi ha els registres principals dels serveis de telefonia i banda ampla.',
  purpose:'Allotja els punts d\'interconnexió, on els operadors connecten les seves xarxes a la xarxa de l\'edifici. D\'aquí arrenca la canalització principal.',
  where:'Planta baixa, zona comuna, al fons del vestíbul.',
- connects:'Allotja el registre principal òptic i el de parells trenats. Hi arriba l\'enllaç inferior i hi comença la canalització principal. Té una safata perimetral per als cables.',
+ connects:'Allotja el registre principal òptic i el de parells. Hi arriba l\'enllaç inferior i hi comença la canalització principal. Té una safata perimetral per als cables.',
  example:'Per donar d\'alta la fibra del 2n A, el tècnic entra al RITI i connecta un latiguillo del seu repartidor al connector «2n A» del panell de sortida.',
  confusion:'El RITI és el recinte; el registre principal és la caixa o armari que hi ha a dins i que conté el punt d\'interconnexió. Al model el RITI es veu tancat amb dues portes abatibles: obre\'l des del panell per veure\'n l\'interior.',
  nets:['xal_fo','xal_pt','xd_fo','xd_pt'], canals:['canal_enllac_inf','canal_principal'], links:['rits']});
@@ -1950,22 +1950,22 @@ def({id:'pi_fo', fam:'punt', layer:'punts', svc:'fo', floor:0, zone:'comuna', pa
  confusion:'Punt, registre i recinte són tres coses diferents: el punt d\'interconnexió és dins del registre principal, que és dins del RITI. Al model es veu com tres caixes terminals òptiques (CTO) murals: la de dalt, amb etiqueta blava, és el panell de sortida de l\'edifici; les de sota, amb etiqueta taronja i el número de l\'operador, són els repartidors d\'entrada de dos operadors. Els latiguillos grocs les uneixen pel lateral dret.',
  nets:['xal_fo','xd_fo'], links:['rp_fo']});
 def({id:'rp_pt', fam:'recinte', layer:'registres', svc:'pt', floor:0, zone:'comuna', parent:'riti', container:true, lid:true,
- name:'Registre principal de parells trenats', sigla:'',
- what:'És la caixa, dins del RITI, que conté el punt d\'interconnexió de parells: regletes d\'entrada dels operadors i panell de sortida RJ45.',
- purpose:'Ordena i protegeix les connexions entre els parells dels operadors i els cables de parells trenats que van a cada habitatge.',
+ name:'Registre principal de parells (STDP)', sigla:'',
+ what:'És la caixa, dins del RITI, que conté el punt d\'interconnexió de parells: les regletes d\'entrada dels operadors i les regletes de sortida de l\'edifici, de tipus Krone.',
+ purpose:'Ordena i protegeix les connexions entre la mànega de l\'operador i la mànega de distribució de l\'edifici.',
  where:'RITI, paret del fons, a l\'extrem dret.',
- connects:'Hi acaba la xarxa d\'alimentació de parells i hi comencen els cables en estrella cap a cada PAU.',
- example:'Al panell de sortida hi ha setze connectors RJ45, un per habitatge, etiquetats de l\'«1r A» al «4t D».',
- confusion:'El registre és la caixa; el punt d\'interconnexió són les regletes i el panell que hi ha a dins.',
+ connects:'Hi acaba la xarxa d\'alimentació de parells i hi comença la mànega de distribució de 50 parells.',
+ example:'Hi ha dues columnes de regletes de 10 parells: a l\'esquerra, 8 d\'entrada (80 parells, almenys 1,5 vegades els de sortida); a la dreta, 5 de sortida (50 parells, tots els de la mànega).',
+ confusion:'El registre és la caixa; el punt d\'interconnexió són les regletes i els ponts que hi ha a dins.',
  nets:['xal_pt','xd_pt'], canals:['canal_enllac_inf','canal_principal'], links:['riti']});
 def({id:'pi_pt', fam:'punt', layer:'punts', svc:'pt', floor:0, zone:'comuna', parent:'rp_pt',
- name:'Punt d\'interconnexió de parells (regletes i panell RJ45)', sigla:'',
- what:'Són les regletes d\'entrada, on els operadors connecten els seus parells, i el panell de sortida amb un connector RJ45 per a cada habitatge.',
- purpose:'Permet assignar a cada habitatge la línia de l\'operador que ha contractat mitjançant un latiguillo o un pont.',
+ name:'Punt d\'interconnexió de parells (regletes Krone d\'entrada i de sortida)', sigla:'',
+ what:'Són regletes de 10 parells amb connexió per desplaçament d\'aïllant (tipus Krone): a l\'esquerra, les d\'entrada de l\'operador; a la dreta, les de sortida de l\'edifici. Els ponts vermells i blaus són les línies donades d\'alta.',
+ purpose:'Permet assignar a cada habitatge la línia de l\'operador que ha contractat amb un pont entre dues regletes. Delimita responsabilitats: fins a l\'entrada, l\'operador; des de la sortida, la propietat.',
  where:'Dins del registre principal de parells, al RITI.',
- connects:'Xarxa d\'alimentació de parells ↔ cables de parells trenats en estrella.',
- example:'Per canviar d\'operador, només cal canviar el latiguillo del connector «1r B» d\'unes regletes a unes altres.',
- confusion:'Les regletes no són un repartidor de planta: en parells trenats en estrella, aquest és l\'únic punt de connexió de la xarxa comuna abans del PAU.',
+ connects:'Xarxa d\'alimentació de parells (regletes d\'entrada) ↔ ponts ↔ mànega de distribució (regletes de sortida). Cada regleta de sortida correspon a una planta.',
+ example:'Per canviar d\'operador, el tècnic treu el pont i en fa un de nou des de la regleta d\'entrada del nou operador fins al mateix parell de sortida.',
+ confusion:'Les regletes del RITI (punt d\'interconnexió) i la regleta de cada registre secundari (punt de distribució) són punts diferents de la mateixa xarxa.',
  nets:['xal_pt','xd_pt'], links:['rp_pt']});
 def({id:'rits', fam:'recinte', layer:'recintes', svc:'rtv', floor:5, zone:'comuna (coberta)', main:true, container:true, lid:true,
  name:'Recinte d\'instal·lacions de telecomunicació superior', sigla:'RITS',
@@ -2075,9 +2075,9 @@ for (const f of [1,2,3,4]) {
    what:'És una caixa de la zona comuna de la planta, intercalada en la canalització principal.',
    purpose:'Hi ha els punts de distribució de la planta i en surten les canalitzacions secundàries cap als habitatges.',
    where:`${P}, distribuïdor comú, a la cara del patinet d\'instal·lacions per on passa la canalització principal.`,
-   connects:'Allotja els derivadors de RTV, la caixa de segregació de fibra i els bucles dels cables de parells en pas.',
-   example:`A la ${P.toLowerCase()}, si obres la tapa veus els dos derivadors, la caixa de segregació i els cables de parells dels quatre habitatges (${ALL}) que hi passen sense connexió.`,
-   confusion:'El registre secundari és la caixa; el punt de distribució és l\'element de connexió que hi ha a dins. En parells trenats en estrella, hi ha registre però el punt de distribució no té realització física.',
+   connects:'Allotja els derivadors de RTV, la caixa de segregació de fibra i la regleta de 10 parells del punt de distribució de parells.',
+   example:`A la ${P.toLowerCase()}, si obres la tapa veus els dos derivadors, la caixa de segregació, la mànega de parells amb el sangrat i la regleta d\'on surten les acometides dels quatre habitatges (${ALL}).`,
+   confusion:'El registre secundari és la caixa; el punt de distribució és l\'element de connexió que hi ha a dins. Al model, cada registre secundari té tres punts de distribució: derivadors (RTV), caixa de segregació (fibra) i regleta (parells).',
    nets:['xd_rtv','xd_fo','xd_pt'], canals:['canal_principal',...SIDES.map(s=>`cs_${f}${s}`)], links:[]});
   def({id:`deriv_${f}`, fam:'punt', layer:'punts', svc:'rtv', floor:f, zone:'comuna', rs:true, parent:`rs_${f}`,
    name:`Derivadors de RTV (punt de distribució) — ${P}`, sigla:'',
@@ -2098,13 +2098,13 @@ for (const f of [1,2,3,4]) {
    confusion:'No és una ONT ni un equip actiu: no transforma el senyal, només uneix i ordena fibres.',
    nets:['xd_fo'], canals:['canal_principal'], links:[`rs_${f}`]});
   def({id:`bucle_${f}`, fam:'punt', layer:'punts', svc:'pt', floor:f, zone:'comuna', rs:true, parent:`rs_${f}`,
-   name:`Parells trenats en pas (sense punt de distribució físic) — ${P}`, sigla:'',
-   what:`Són els cables de parells trenats dels quatre habitatges de la planta (${ALL}) quan passen pel registre secundari. No hi ha cap regleta ni connexió: només un bucle de cable de reserva.`,
-   purpose:'Mostra que, amb distribució en estrella, el punt de distribució coincideix amb el d\'interconnexió (RITI) i aquí no té realització física.',
-   where:`Dins del registre secundari de la ${P.toLowerCase()}.`,
-   connects:'Continuïtat directa: panell RJ45 del RITI → roseta del PAU de cada habitatge.',
-   example:'Si cal allargar el cable fins al PAU més llunyà de la planta, s\'aprofita el bucle de reserva.',
-   confusion:'No inventis un «repartidor de planta» de parells trenats: el cable no es talla aquí.',
+   name:`Punt de distribució de parells (regleta de 10 parells) — ${P}`, sigla:'',
+   what:`És una regleta Krone de 10 parells on acaben els 10 parells extrets de la mànega de distribució (sangrat). Hi surten les acometides de 2 parells dels quatre habitatges (${ALL}); els parells 9 i 10 queden lliures.`,
+   purpose:'Separa la xarxa de distribució (mànega comuna) de la de dispersió (un cable per habitatge) i deixa parells de reserva a la planta.',
+   where:`Dins del registre secundari de la ${P.toLowerCase()}, a la dreta de la canalització principal.`,
+   connects:'Parells del sangrat de la mànega de 50 parells → regleta → cables d\'acometida de 2 parells cap al PAU de cada habitatge (parells 1-2: A; 3-4: B; 5-6: C; 7-8: D).',
+   example:'Si un veí demana una tercera línia, s\'aprofita un parell lliure de la regleta i un fil nou fins al seu PAU.',
+   confusion:'Nombre de regletes de planta segons el RD 346/2011: total de parells ÷ plantes ÷ 10, arrodonit per excés. El model en mostra una per planta per simplificar.',
    nets:['xd_pt'], canals:['canal_principal'], links:[`rs_${f}`,'pi_pt']});
 }
 
@@ -2152,7 +2152,7 @@ for (const u of UNITS) {
    what:'És la caixa encastada dins de l\'habitatge, a prop de l\'entrada, on acaben les xarxes de dispersió i comença la xarxa interior.',
    purpose:'Allotja els PAU de cada servei (el de RTV amb el repartidor integrat), el distribuïdor coaxial de TBA i els extrems RJ45 de la xarxa interior. Té a prop una presa de corrent i el registre de presa configurable.',
    where:`Rebedor del ${N}, paret del fons.`,
-   connects:'Allotja el PAU + repartidor de RTV, la caixa de terminació òptica (PAU de fibra), la roseta RJ45 amb el multiplexor passiu (PAU de parells) i el distribuïdor coaxial de TBA. D\'aquí surten en estrella tots els tubs interiors.',
+   connects:'Allotja el PAU + repartidor de RTV, la caixa de terminació òptica (PAU de fibra), les dues rosetes RJ45 amb el multiplexor passiu (PAU de parells) i el distribuïdor coaxial de TBA. D\'aquí surten en estrella tots els tubs interiors.',
    example:`Si obres la tapa del registre del ${N} veus un punt d\'accés diferent per a cada tecnologia.`,
    confusion:'El registre és la caixa; el PAU és el punt de connexió que hi ha a dins. Es pot canviar la tapa del registre sense tocar el PAU.',
    nets:[`xs_rtv_${U}`,`xs_fo_${U}`,`xs_pt_${U}`,`xi_rtv_${U}`,`xi_dat_${U}`,`xi_tba_${U}`,`xi_fo_${U}`], canals:[`cs_${U}`,`ci_${U}`], links:[`rconf_${U}`]});
@@ -2186,12 +2186,12 @@ for (const u of UNITS) {
    confusion:'La fibra de dispersió acaba a la roseta del PAU. Des d\'allà, una fibra interior la porta fins a la presa òptica de la sala, on es connecta l\'ONT.',
    canals:[`cs_${U}`], links:[`cseg_${f}`,`pau_fo_${U}`]});
   def({id:`xs_pt_${U}`, fam:'xarxa', layer:'xarxes', svc:'pt', tram:'disp', tech:'pt', floor:f, unit:U, zone:'comuna',
-   name:`Xarxa de dispersió de parells trenats — ${N}`, sigla:'',
-   what:`És el tram horitzontal del cable de parells trenats del ${N}: el mateix cable que ve del RITI, després de passar pel registre secundari.`,
-   purpose:'Acaba a la roseta RJ45 del PAU de parells.',
-   where:'Registre secundari (en pas) → tub de parells i fibra de la canalització secundària → registre de terminació de xarxa.',
-   connects:'Panell RJ45 del RITI → (sense connexió intermèdia) → roseta RJ45 del PAU.',
-   example:`Un tècnic que comprova la línia del ${N} la pot mesurar directament del panell del RITI fins a la roseta del PAU.`,
+   name:`Xarxa de dispersió de parells — ${N}`, sigla:'',
+   what:`És el cable d\'acometida de 2 parells del ${N}: surt de la regleta del registre secundari i arriba al PAU de parells.`,
+   purpose:'Porta les dues línies previstes per a l\'habitatge (RD 346/2011: 2 línies per habitatge).',
+   where:'Regleta del registre secundari → tub de parells i fibra de la canalització secundària → registre de terminació de xarxa.',
+   connects:'Regleta del punt de distribució de la planta → rosetes RJ45 del PAU (una per línia).',
+   example:`Per comprovar la línia del ${N}, el tècnic mesura des de la regleta de la planta (sense aixecar connexions) fins a la roseta del PAU.`,
    confusion:'Comparteix tub amb la fibra, però són cables i serveis diferents.',
    canals:[`cs_${U}`], links:[`bucle_${f}`,`pau_pt_${U}`,'pi_pt']});
 
@@ -2215,13 +2215,13 @@ for (const u of UNITS) {
    confusion:"La caixa de terminació no és l'ONT: és passiva. Els connectors SC/APC són verds; els SC/UPC (blaus) no s'hi poden barrejar perquè el polit és diferent.",
    nets:[`xs_fo_${U}`,`xi_fo_${U}`], links:[`bat_fo_sala_${U}`,`rtr_${U}`]});
   def({id:`pau_pt_${U}`, fam:'punt', layer:'punts', svc:'pt', floor:f, unit:U, zone:'frontera comuna/privada', parent:`rtr_${U}`,
-   name:`PAU de parells trenats (roseta RJ45 i multiplexor passiu) — ${N}`, sigla:'PAU',
-   what:'És la roseta RJ45 on acaba el cable de parells de dispersió, amb un multiplexor passiu. Al costat hi ha els extrems RJ45 etiquetats dels cables interiors.',
-   purpose:'Dona continuïtat a la línia de parells que ve del RITI i permet connectar-la a qualsevol presa de l\'habitatge.',
+   name:`PAU de parells (rosetes RJ45 i multiplexor passiu) — ${N}`, sigla:'PAU',
+   what:'Són dues rosetes RJ45, una per línia: cada parell de l\'acometida acaba als contactes 4 i 5 d\'una roseta. Al costat hi ha el multiplexor passiu i els extrems RJ45 etiquetats dels cables interiors.',
+   purpose:'Fa de punt de tall i de prova entre la xarxa comuna (propietat) i la interior (usuari), i permet portar cada línia a qualsevol presa de l\'habitatge.',
    where:`Dins del registre de terminació de xarxa del ${N}.`,
-   connects:'Cable de parells de dispersió → multiplexor passiu → extrems RJ45 dels cables interiors de les sis preses de parells trenats.',
-   example:'Per tenir la línia per parells a dues habitacions, s\'endollen els extrems RJ45 d\'aquestes preses al multiplexor.',
-   confusion:'No és un encaminador: no gestiona dades ni té electrònica; només fa continuïtat.',
+   connects:'Acometida de 2 parells → rosetes RJ45 (línia 1 i línia 2) → multiplexor passiu → extrems RJ45 dels cables interiors de les sis preses de parells trenats.',
+   example:'Per tenir el telèfon a la cuina, s\'endolla l\'extrem RJ45 de la presa de la cuina a la sortida del multiplexor que porta la línia 1.',
+   confusion:'La xarxa comuna és de cables de parells (telefonia), però la xarxa interior és sempre de parells trenats: el PAU fa la transició.',
    nets:[`xs_pt_${U}`,`xi_dat_${U}`], links:[`rtr_${U}`]});
   def({id:`div_tba_${U}`, fam:'punt', layer:'punts', svc:'tba', floor:f, unit:U, zone:'privada', parent:`rtr_${U}`,
    name:`Distribuïdor coaxial de TBA — ${N}`, sigla:'',
@@ -2910,7 +2910,7 @@ const SIMPLIFICATIONS = [
  'Tots els habitatges tenen la mateixa distribució (sala d\'estar, cuina, dos dormitoris, bany i rebedor; els B, C i D són simètrics de l\'A respecte dels eixos de l\'edifici) i la dotació mínima de preses: 4 de RTV, 6 registres de parells trenats (2 amb BAT doble), 2 coaxials de TBA, 1 de fibra òptica a la sala i 1 registre configurable. Les preses de corrent properes no es dibuixen.',
  'Les preses s\'han situat de manera orientativa. En un projecte real la posició depèn del mobiliari previst i de les distàncies que fixa la normativa.',
  'La xarxa de distribució de fibra es mostra com un sol cable multifibra. Configuració escollida: empalmament a la caixa de segregació de cada planta i fibres en pas per a les altres plantes.',
- 'Els cables de parells trenats en estrella (un per habitatge) es dibuixen com un feix al tram vertical.',
+ 'La xarxa comuna de parells segueix l\'opció de cables de parells del RD 346/2011 (mànega multiparell i regletes), la més habitual en edificis existents; la xarxa interior és de parells trenats.',
  'No es representa la xarxa de distribució i dispersió coaxial de TBA (es considera que no hi ha operador de cable: el tub de la canalització secundària queda amb fil guia). Sí que es representa la xarxa interior coaxial de TBA fins al distribuïdor del registre de terminació de xarxa. No es representa la xarxa d\'accés sense fils (SAI). La presa de terra i l\'alimentació elèctrica només es detallen al RITS.',
  'Els envans interiors es mostren a mitja alçada per veure l\'interior. El RITI es representa tancat amb dues portes abatibles, com un armari. El RITS és un recinte d\'obra amb porta metàl·lica; el sostre i la paret frontal es poden retirar des del panell «Configuració del RITS».',
  'RITS: el recinte és a escala real, però els equips, connectors i cables de dins estan ampliats ×2 (ampliació didàctica). Els equips són exemples comercials documentats (Televes), no una recomanació; les formes dels connectors i les posicions dels ports són aproximades.',
@@ -3132,11 +3132,64 @@ function buildRITIFibre(){
   });
 }
 
+/* ---------- telefonia per parells (STDP, RD 346/2011 annex II, xarxa de cables de parells) ----------
+   Regletes tipus Krone (LSA, connexió per desplaçament d'aïllant) de 10 parells. Demanda: 16 habitatges × 2 línies
+   + local 3 + serveis comuns 2 = 37 línies; × 1,2 = 44,4 → mànega normalitzada de 50 parells (5 regletes de sortida).
+   Regletes d'entrada: 1,5 × 50 = 75 → 8 regletes (80 parells). A cada planta, sangrat de 10 parells cap a una regleta
+   del registre secundari: 8 connectats a les quatre acometides de 2 parells i 2 lliures. */
+const KR={L:0.125, h:0.022, d:0.032, pitch:0.034};
+const KRI={xl:2.7725, xr:3.1275, yTop:1.80, zb:-4.71, xm:2.95};
+let KRONE_TEX=null;
+function kroneTex(){ return KRONE_TEX ||= canvasTex(512,96,(g,w,h)=>{ g.fillStyle='#F2F1EC'; g.fillRect(0,0,w,h);
+  const cw=(w-16)/20; for(let i=0;i<20;i++){ g.fillStyle='#55595D'; g.fillRect(8+i*cw+cw*0.38,4,cw*0.24,40); }
+  g.fillStyle='#D3D0C8'; g.fillRect(0,47,w,3);
+  g.fillStyle='#1A1A1A'; g.font='700 30px Arial, sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  for(let p=0;p<10;p++) g.fillText(String((p+1)%10), 8+(p+0.5)*(w-16)/10, 73); }); }
+/* posició del contacte del parell p (1–10) a la cara frontal d'una regleta centrada a xc */
+const krX = (xc,p) => xc-KR.L/2+0.004+(p-0.5)*(KR.L-0.008)/10;
+function kroneModule(el, xc, yc, zb, o={}){
+  const {L,h,d}=KR, zf=zb+d;
+  rBox(el,xc-L/2,xc+L/2,yc-h/2,yc+h/2,zb,zf-0.0005,0xEDEBE4,'plastic',{pick:o.pick!==false});
+  rPlane(el,L,h,V(xc,yc,zf),V(0,0,1),kroneTex());
+  /* suports grisos dels extrems */
+  rBox(el,xc-L/2-0.008,xc-L/2,yc-h/2-0.003,yc+h/2+0.003,zb-0.004,zb+d*0.7,0xA7ABAE,'plastic');
+  rBox(el,xc+L/2,xc+L/2+0.008,yc-h/2-0.003,yc+h/2+0.003,zb-0.004,zb+d*0.7,0xA7ABAE,'plastic');
+}
+/* columna de regletes sobre dos perfils de muntatge, amb rètol */
+function kroneColumn(el, xc, yTop, n, label){
+  const {L,pitch}=KR, ys=[];
+  for(let i=0;i<n;i++){ const yc=yTop-i*pitch; kroneModule(el,xc,yc,KRI.zb); ys.push(yc); }
+  const y0=ys[n-1]-0.03, y1=yTop+0.03;
+  for(const s of [-1,1]){ const xx=xc+s*(L/2+0.004); rBox(el,xx-0.006,xx+0.006,y0,y1,-4.725,KRI.zb-0.004,0xB9BEC2,'galv'); }
+  rPlane(el,L+0.02,0.034,V(xc,y1+0.026,-4.718),V(0,0,1),textTex(label,{w:300,h:100,fs:[38,28],bold:[true,false],border:'#55595D',bw:3}));
+  return ys;
+}
+function wire(el, pts, color, r=0.0015){ return ictMesh(tubeGeo(P(pts),r,6), color, el, {std:RM.pvc, fixedColor:true}); }
+function buildRITIPairs(){
+  const el='pi_pt', zf=KRI.zb+KR.d;
+  const yl=kroneColumn(el,KRI.xl,KRI.yTop,8,['OPERADOR','entrada · 80 parells']);
+  const yr=kroneColumn(el,KRI.xr,KRI.yTop,5,['EDIFICI','sortida · 50 parells']);
+  /* anelles guia per als ponts */
+  const rings=[1.74,1.62,1.50];
+  for(const yy of rings){
+    const t=ictMesh(new THREE.TorusGeometry(0.012,0.0022,6,16),0x2A2D31,el,{std:RM.plastic}); t.position.set(KRI.xm,yy,-4.672); t.rotation.y=Math.PI/2;
+    rBox(el,KRI.xm-0.002,KRI.xm+0.002,yy-0.014,yy-0.010,-4.725,-4.672,0x2A2D31,'plastic');
+  }
+  /* ponts (línies d'alta): parell de la regleta d'entrada de l'operador → parell de la regleta de sortida de l'habitatge */
+  const J=[[0,2,0,1],[1,5,0,4],[2,1,1,3],[3,7,2,2],[4,3,3,6],[5,8,1,8],[6,4,2,7]];
+  J.forEach(([mi,p,mo,q],i)=>{
+    const x1=krX(KRI.xl,p), y1=yl[mi]-0.005, x2=krX(KRI.xr,q), y2=yr[mo]-0.005;
+    const ry=rings.find(r=>r<Math.min(y1,y2)-0.015) ?? rings[rings.length-1];
+    wire(el,[[x1,y1,zf+0.001],[x1,y1-0.012,zf+0.012],[KRI.xm,ry,-4.672],[x2,y2-0.012,zf+0.012],[x2,y2,zf+0.001]], i%2?0x1565C0:0xC62828);
+  });
+}
+
 /* ===================================================================
    ICT: geometria + connexions
    =================================================================== */
 const RX={rtv:0.55, fo:0.8, pt:1.05, res:1.3}, RZ=-4.5;
-const DER={a:0.42, b:0.68};           // derivadors dins del registre secundari
+const DER={a:0.42, b:0.68};
+const RSK={x:1.40, y:1.62};          // regleta de parells dins del registre secundari           // derivadors dins del registre secundari
 const OFF={a:[-0.03,-0.02], b:[0.03,0.02]};
 const mx=(u,x)=> (u.s==='A'||u.s==='D') ? x : -x;   // disposició A (x negatiu); B i C reflectits en x; C i D reflectits en z (vegeu building.js)
 
@@ -3160,19 +3213,17 @@ function buildICT(){
   /* Xarxes d'alimentació (fibra x-0.03, parells x+0.03) */
   /* fibra: dos operadors, cadascun amb el seu cable fins al premsaestopes de la seva CTO (vegeu CTO_FO) */
   const foTail = op => { const g=CTO_FO.ops[op].gland; return [[CTO_FO.cx,2.05,g[2]],[CTO_FO.cx,g[1]+0.05,g[2]],[CTO_FO.cx+0.02,g[1],g[2]],g]; };
-  for(const [k,dx,el,tail] of [['fo',-0.035,'xal_fo',foTail(0)],['fo2',-0.075,'xal_fo',foTail(1)],['pt',0.035,'xal_pt',[[3.1,2.05,-4.45],[3.1,1.95,-4.55]]]]){
+  for(const [k,dx,el,tail] of [['fo',-0.035,'xal_fo',foTail(0)],['fo2',-0.075,'xal_fo',foTail(1)],['pt',0.035,'xal_pt',[[2.688,2.05,-4.6],[2.688,1.84,-4.705],[2.688,1.50,-4.705]]]]){
     const x=ax+dx, tx=tail[0][0];
-    cable(`xal_${k}_1`, el, [[x,-0.55,14],[x,-0.55,7.55],[x,-0.75,7.2],[x,-0.75,6.8]], {from:'operador', to:'arqueta'});
-    cable(`xal_${k}_2`, el, [[x,-0.75,6.8],[x,-0.5,6.5],[x,-0.5,5.0]], {from:'arqueta', to:'peg', via:'canal_ext'});
-    cable(`xal_${k}_3`, el, [[x,-0.5,5.0],[x,-0.5,4.62],[x,0.62,4.62],[x,2.55,4.62],[x,2.55,-3.48+dx],[tx,2.55,-3.48+dx],...tail], {from:'peg', to: el==='xal_fo'?'pi_fo':'pi_pt', via:'canal_enllac_inf'});
+    const r = k==='pt' ? 0.009 : undefined;   // mànega multiparell de l'operador
+    cable(`xal_${k}_1`, el, [[x,-0.55,14],[x,-0.55,7.55],[x,-0.75,7.2],[x,-0.75,6.8]], {from:'operador', to:'arqueta', r});
+    cable(`xal_${k}_2`, el, [[x,-0.75,6.8],[x,-0.5,6.5],[x,-0.5,5.0]], {from:'arqueta', to:'peg', via:'canal_ext', r});
+    cable(`xal_${k}_3`, el, [[x,-0.5,5.0],[x,-0.5,4.62],[x,0.62,4.62],[x,2.55,4.62],[x,2.55,-3.48+dx],[tx,2.55,-3.48+dx],...tail], {from:'peg', to: el==='xal_fo'?'pi_fo':'pi_pt', via:'canal_enllac_inf', r});
   }
   /* --- RITI: registres principals i punts d'interconnexió --- */
   regBox('rp_fo',0.75,1.0,0.3,2.05,1.45,-4.6,C.reg,C.regLid);   // les CTO del punt d'interconnexió òptic es construeixen a buildRITIFibre()
   regBox('rp_pt',0.6,1.0,0.3,2.95,1.45,-4.6,C.reg,C.regLid);
-  iBox('pi_pt',0.45,0.22,0.08,2.95,1.68,-4.66,0xE07B24);
-  iBox('pi_pt',0.45,0.22,0.08,2.95,1.25,-4.66,0x2F6FDE);
-  for(let i=0;i<4;i++) cable(`pi_pt_l${i}`,'pi_pt',[[2.8+i*0.1,1.6,-4.6],[2.76+i*0.1,1.45,-4.56],[2.8+i*0.1,1.33,-4.6]],{tram:'usr',tech:'pt',r:0.012});
-  buildEnclosures(); buildRITS(); buildRITIFibre();
+  buildEnclosures(); buildRITS(); buildRITIFibre(); buildRITIPairs();
   /* --- Canalització principal: 4 tubs, interromputs pels registres secundaris --- */
   const breaks=[[2.2,3.95],[5.65,6.95],[8.65,9.95],[11.65,12.95],[14.65,14.96]];
   for(const [k,x] of Object.entries(RX)) for(const [y0,y1] of breaks)
@@ -3186,7 +3237,11 @@ function buildICT(){
     if(f===1) for(const c of ['a','b']) iCyl('deriv_1',0.025,0.08,DER[c],y+1.4,-4.62,0x222222,'y',{pick:false});
     iBox(`cseg_${f}`,0.22,0.34,0.08,0.95,y+1.5,-4.62,0xF2F2F2);
     iBox(`cseg_${f}`,0.16,0.06,0.02,0.95,y+1.56,-4.575,0x0AA5C2,{pick:false});
-    for(const yy of [1.62,1.36,1.88]){ const tg=new THREE.TorusGeometry(0.08,0.014,6,20); const m=ictMesh(tg,cableColor('dist','pt',REAL.pt),`bucle_${f}`,{tram:'dist',tech:'pt',svc:'pt',cableLike:true,real:REAL.pt}); m.position.set(1.38,y+yy,-4.6); addProxy(m,new THREE.BoxGeometry(0.22,0.22,0.12)); }
+    /* punt de distribució de parells: regleta Krone de 10 parells sobre placa, alimentada pel sangrat de la mànega */
+    rBox(`bucle_${f}`,RSK.x-0.085,RSK.x+0.085,y+RSK.y-0.04,y+RSK.y+0.04,-4.725,-4.715,0xB9BEC2,'galv',{pick:true});
+    kroneModule(`bucle_${f}`,RSK.x,y+RSK.y,-4.715);
+    rCyl('xd_pt',0.0125,0.035,V(RX.pt,y+1.45,RZ),UP,0xC9C4B4,'pvc');      // finestra del sangrat a la coberta de la mànega
+    cable(`xd_pt_s${f}`,'xd_pt',[[RX.pt,y+1.45,RZ],[RX.pt+0.07,y+1.5,-4.62],[RSK.x-KR.L/2-0.03,y+RSK.y,-4.70],[RSK.x-KR.L/2+0.004,y+RSK.y,-4.705]],{from:`rs_${f}`, to:`bucle_${f}`, r:0.004});
   }
   /* --- El sistema de captació (torre, antenes, parabòlica), l'enllaç superior i el RITS es construeixen a antenes.js i rits.js --- */
   /* --- Xarxa de distribució de RTV (2 cables, de dalt a baix) --- */
@@ -3202,9 +3257,9 @@ function buildICT(){
   const go=CTO_FO.out;
   cable('xd_fo_0','xd_fo',[go,[go[0],2.05,go[2]],[RX.fo,2.05,RZ],...foIn(3)],{from:'pi_fo', to:'cseg_1', via:'canal_principal'});
   for(const f of [1,2,3]) cable(`xd_fo_${f}`,'xd_fo',[[0.95,yb(f)+1.67,-4.62],[0.95,yb(f)+1.8,-4.6],[RX.fo,yb(f)+2.0,RZ],...foIn(yb(f+1))],{from:`cseg_${f}`, to:`cseg_${f+1}`, via:'canal_principal'});
-  /* --- Parells trenats: feix vertical en estrella --- */
-  cable('xd_pt_0','xd_pt',[[2.95,1.95,-4.55],[2.95,2.12,-4.52],[RX.pt,2.12,RZ],[RX.pt,yb(1)+1.5,RZ]],{from:'pi_pt', to:'rs_1', via:'canal_principal', r:0.046});
-  for(const f of [1,2,3]) cable(`xd_pt_${f}`,'xd_pt',[[RX.pt,yb(f)+1.5,RZ],[RX.pt,yb(f+1)+1.5,RZ]],{from:`rs_${f}`, to:`rs_${f+1}`, via:'canal_principal', r:0.046*(1-f*0.15)});
+  /* --- Parells: mànega multiparell de 50 parells (sangrat a cada planta) --- */
+  cable('xd_pt_0','xd_pt',[[3.212,1.60,-4.705],[3.212,1.95,-4.705],[3.212,2.12,-4.6],[RX.pt,2.12,RZ],[RX.pt,yb(1)+1.5,RZ]],{from:'pi_pt', to:'rs_1', via:'canal_principal', r:0.009});
+  for(const f of [1,2,3]) cable(`xd_pt_${f}`,'xd_pt',[[RX.pt,yb(f)+1.5,RZ],[RX.pt,yb(f+1)+1.5,RZ]],{from:`rs_${f}`, to:`rs_${f+1}`, via:'canal_principal', r:0.009});
 
   /* --- Per habitatge --- */
   for(const u of UNITS) buildUnit(u, C);
@@ -3238,8 +3293,9 @@ function buildUnit(u, C){
   }
   const pf = X(-3.12);
   cable(`xs_fo_${id}`, `xs_fo_${id}`, [[0.95+0.11*sgn,y+1.5+dy,-4.62],[0.95+0.25*sgn,y+1.95,-4.55],[inner,y+CS_H2(1.52),zl-0.022],...shiftP(csPath(u,y,1.52),-0.022).slice(1),[X(-2.98),y+1.52,Z(-4.645)],[X(-2.99),y+1.66,Z(-4.672)],[X(-3.035),y+1.69,Z(-4.672)]], {tram:'disp',tech:'fo',svc:'fo',from:`cseg_${u.f}`, to:`pau_fo_${id}`, via:`cs_${id}`});
-  const pp = X(-2.86), yy = {A:1.62,B:1.36,C:1.88,D:1.88}[u.s], zb = u.s==='D' ? -4.5 : -4.52;
-  cable(`xs_pt_${id}`, `xs_pt_${id}`, [[RX.pt,y+yy,zb],[1.28,y+yy,-4.5],[1.0,y+2.05,-4.42],[inner,y+CS_H2(1.52),zl+0.022],...shiftP(csPath(u,y,1.52),0.022).slice(1),[pp,y+1.6,Z(-4.64)],[pp,y+1.66,Z(-4.66)]], {tram:'disp',tech:'pt',svc:'pt',from:`bucle_${u.f}`, to:`pau_pt_${id}`, via:`cs_${id}`});
+  const pp = X(-2.86);
+  const kx = krX(RSK.x, 2*'ABCD'.indexOf(u.s)+1.5);   // parells 1-2 (A), 3-4 (B), 5-6 (C), 7-8 (D); el 9 i el 10 lliures
+  cable(`xs_pt_${id}`, `xs_pt_${id}`, [[kx,y+RSK.y+0.011,-4.69],[kx,y+RSK.y+0.06,-4.65],[1.25,y+1.82,-4.52],[1.0,y+2.05,-4.42],[inner,y+CS_H2(1.52),zl+0.022],...shiftP(csPath(u,y,1.52),0.022).slice(1),[pp,y+1.6,Z(-4.64)],[pp,y+1.66,Z(-4.66)]], {tram:'disp',tech:'pt',svc:'pt',from:`bucle_${u.f}`, to:`pau_pt_${id}`, via:`cs_${id}`, r:0.005});
   buildInterior(u);
 }
 
@@ -3292,7 +3348,7 @@ function buildInterior(u){
   scPlug(`xi_fo_${U}`,X(-3.16),yS);                                                     // sortida 1 → fibra interior cap a la sala
   iBox(PF,0.03,0.012,0.03,X(-3.08),yS-0.028,Z(-4.6725),0xE6E6E6,{pick:false});           // sortida 2: tap antipols (reserva)
   iBox(`div_tba_${U}`,0.2,0.1,0.05,X(-3.12),y+1.3,Z(-4.67),0xC9CED4); iBox(`div_tba_${U}`,0.04,0.03,0.02,X(-3.16),y+1.3,Z(-4.64),0xC2185B,{pick:false});
-  iBox(`pau_pt_${U}`,0.14,0.12,0.06,X(-2.86),y+1.72,Z(-4.67),0xF7F7F7); iBox(`pau_pt_${U}`,0.18,0.14,0.06,X(-2.86),y+1.42,Z(-4.67),0xE3DCCB);
+  iBox(`pau_pt_${U}`,0.14,0.12,0.06,X(-2.86),y+1.72,Z(-4.67),0xF7F7F7); for(const dx of [-0.035,0.035]) iBox(`pau_pt_${U}`,0.032,0.026,0.004,X(-2.86+dx),y+1.715,Z(-4.6385),0x2B2E31,{pick:false});   // dues rosetes RJ45: línia 1 i línia 2 iBox(`pau_pt_${U}`,0.18,0.14,0.06,X(-2.86),y+1.42,Z(-4.67),0xE3DCCB);
   /* latiguillo al RTR: uneix el cable de retorn de la sala amb el de l'estància de destinació */
   cable(`patch_rtr_${U}`,`pau_pt_${U}`,[[X(-2.95),y+1.24,Z(-4.6)],[X(-2.86),y+1.3,Z(-4.55)],[X(-2.77),y+1.24,Z(-4.6)]],{tram:'usr',tech:'pt',svc:'pt',r:0.011});
   /* registre de pas al camí de la paret del televisor */
@@ -3877,7 +3933,7 @@ function updateStatus(){
 function renderLegend(){
   const by=S.colorBy;
   if(by==='real'){ const sw=(c,t)=>`<span><span class="sw" style="background:${c};border:1px solid #888"></span>${t}</span>`;
-    $('#legend').innerHTML=`<b>Llegenda — colors d'aspecte real:</b>`+sw('#F4F3EF','Coaxial de RTV · cable de distribució 1 (i cables interiors)')+sw('#1C1D1F','Coaxial de RTV · cable de distribució 2')+sw('#F2C200','Fibra òptica')+sw('#2E9B3F','Connectors de fibra SC/APC')+sw('#9EA4AA','Parells trenats')+
+    $('#legend').innerHTML=`<b>Llegenda — colors d'aspecte real:</b>`+sw('#F4F3EF','Coaxial de RTV · cable de distribució 1 (i cables interiors)')+sw('#1C1D1F','Coaxial de RTV · cable de distribució 2')+sw('#F2C200','Fibra òptica')+sw('#2E9B3F','Connectors de fibra SC/APC')+sw('#9EA4AA','Parells de coure (mànegues, acometides i cables interiors)')+
       `<span><span class="sw tube"></span>Tub de canalització</span><span><span class="sw box"></span>Recinte o registre</span><span class="muted">Per veure el tram de xarxa, tria «Per tram de xarxa».</span>`; return; }
   let h=`<b>Llegenda — el color dels cables indica ${by==='tram'?'<u>el tram de xarxa</u>':'<u>la tecnologia del cable</u>'}:</b>`;
   if(by==='tram') for(const t of Object.values(TRAMS)) h+=`<span><span class="sw" style="background:${t.color}"></span>${t.sym} ${esc(t.name)}</span>`;
@@ -4063,7 +4119,7 @@ function buildStaticUI(){
    <h3>Configuració representada</h3><ul><li>RTV: torre de 6 m amb tres tirants i màstil amb antenes TDT, DAB i FM; parabòlica offset amb LNB doble (es pot amagar) → cinc coaxials independents per l\'enllaç superior → capçalera al RITS amb dos amplificadors de FI i mesclador (cable 1: terrestre + SAT A; cable 2: terrestre + SAT B) → dos cables de distribució en arbre-branca amb derivadors a cada registre secundari → dos cables de dispersió (blanc i negre) fins al PAU + repartidor (2 entrades F, una carregada; 4 sortides) → xarxa interior en estrella.</li>
    <li>Fibra òptica: operador → arqueta → canalització externa → punt d'entrada general → enllaç inferior → registre principal òptic (punt d'interconnexió) → cable multifibra de distribució → caixa de segregació amb empalmaments a cada planta → acometida → roseta òptica (PAU) → fibra interior → presa òptica de la sala d'estar → ONT i encaminador (equips de l'usuari) → retorn per la BAT RJ45 doble fins al registre de terminació de xarxa → xarxa interior de parells trenats.</li>
    <li>Preses de cada habitatge (dotació mínima): 4 de RTV, 6 registres de parells trenats (BAT doble a la sala i al dormitori 1), 2 coaxials de TBA (sala i dormitori 1), 1 de fibra òptica a la sala i 1 registre configurable al rebedor. El bany no en té.</li>
-   <li>Parells trenats: distribució/dispersió en estrella des del panell RJ45 del RITI fins al PAU, sense punt de distribució físic al registre secundari.</li></ul>
+   <li>Parells (STDP): mànega de l'operador → 8 regletes Krone d'entrada → ponts → 5 regletes de sortida → mànega de 50 parells (37 línies × 1,2) → sangrat de 10 parells a cada planta → regleta del registre secundari (8 parells connectats, 2 lliures) → acometida de 2 parells → dues rosetes RJ45 al PAU.</li></ul>
    <h3>Fonts tècniques</h3><ul><li>Reial decret 346/2011, d'11 de març, Reglament regulador de les infraestructures comunes de telecomunicacions (text consolidat, BOE-A-2011-5834): annex I (RTV), annex II (telefonia i banda ampla) i annex III (canalitzacions, recintes i elements complementaris; apartat 5.13 en la redacció de l'Ordre ECE/983/2019). <a href="https://www.boe.es/buscar/act.php?id=BOE-A-2011-5834" target="_blank" rel="noopener">boe.es</a></li></ul>
    <h3>Fonts dels models del RITS</h3><ul class="small">
     <li>Televes AVANT 12 PRO SAT, ref. 532204: 4 entrades VHF+UHF, 1 d'FM i 1 de satèl·lit (FI, guany 41 dB, alimentació de l'LNB); sortida TV (només terrestre) i sortida TV+SAT. <a href="https://www.televes.com/es/532204-central-programable-avant-12-pro-sat-para-terrestre-satelite-32-filtros-digitales-y-programacion-automatica-avanzada-mediante-asuite-bluetoothr.html" target="_blank" rel="noopener">televes.com</a></li>

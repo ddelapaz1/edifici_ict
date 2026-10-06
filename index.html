@@ -2139,7 +2139,8 @@ function buildUnit(u, C){
        el cable baixa per davant del PAU, fa una U (radi 33 mm) i puja fins al connector. El que va més lluny baixa més endavant per no tocar l'altre. */
     const PR=pauRtvPos(u), E=PR.at(c==='a'?'in':'inc').add(V(0,0.004-FC_LENGTH,0)), yu=E.y-0.06;
     const far=Math.abs(PR.at(c==='a'?'in':'inc').x-tp[tp.length-1][0]) > Math.abs(PR.at(c==='a'?'inc':'in').x-tp[tp.length-1][0]), zf=E.z+sz*(far?0.084:0.068);
-    const tail = [[E.x,H,zf],[E.x,yu,zf],[E.x,yu,E.z],[E.x,E.y,E.z]];
+    const te=tp[tp.length-1][1]+v[1];                                                   // alçada d'entrada al RTR
+    const tail = [[E.x,te,zf],[E.x,yu,zf],[E.x,yu,E.z],[E.x,E.y,E.z]];
     cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [...rs,...tubeIn(tp,v),...tail], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
   }
   /* fibra: de la caixa de segregació puja i va horitzontal a l'alçada del tub; entra al PAU de fibra pel pretallat lateral
@@ -2351,7 +2352,7 @@ function buildInterior(u){
     /* RTR → tub: sortida recta del connector, descens fins a la capa pròpia (LAY), tram horitzontal a 1,20 m,
        baixada davant del tub i entrada per terra. Capes diferents per als recorreguts que se solapen: cap creuament. */
     let src, from;
-    if(p.t==='rtv'){ const t=RTVTAIL[k]; src=[t,[t[0],y+1.44,t[2]]]; from=`pau_rtv_${U}`; }
+    if(p.t==='rtv'){ const t=RTVTAIL[k]; src=[t,[t.x,y+1.44,t.z]]; from=`pau_rtv_${U}`; }
     else if(p.t==='tba'){ const tx=X(k==='tba_sala'?-3.33:-3.27); src=[[tx,y+1.31,Z(-4.67)],[tx,y+1.275,Z(-4.67)]]; from=`div_tba_${U}`; }   // dues sortides del distribuïdor
     else if(p.t==='fo'){ src=[PF_TAIL,[PF_TAIL[0],PF_TAIL[1]-0.035,PF_TAIL[2]]]; from=`pau_fo_${U}`; }
     else from=`pau_pt_${U}`;

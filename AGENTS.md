@@ -88,6 +88,9 @@ mallas: el edificio ya tiene unas 4.700.
   (tubos y caminos antiguos). `pathSamples()` + `sweepGeo()` sustituyen a `TubeGeometry`: tramos rectos con dos anillos
   y arcos cada 7,5°.
 - Registro secundario: constantes `RSW`, `TAPR`, `RISE`, `CSEG`, `RSK`, `PT50` (ver comentario junto a `RSK`).
+- Canalización secundaria: tramo comunitario (4 × Ø25, `CSC`, `cscPath()`, `buildSecTrunk()`), registro de pas `RPS` y
+  acceso a cada vivienda (3 × Ø25, `csPath()`). Desplazamiento de los cables en los tubos: `cscV()` (tramo comunitario) y
+  `cscW()` (acceso), elegidos para que no se crucen en el registro secundario ni en el de pas.
   Mánega de 50 pares: `buildPairRiser()` y `pairWindow()` (sangrado). RTR: capas `LAY` en `buildInterior()`.
 - Tras tocar recorridos, comprueba `__ICT.BEND` y que no haya interpenetraciones (muestras en `G.cables[k].sm`, radio
   en `G.cables[k].r`).
@@ -166,6 +169,8 @@ Cómo funcionan en la web:
   externa); los dos entran por debajo con una U de 33 mm. Salidas asignadas de izquierda a derecha (lógica) a cocina, sala, dorm. 2 y 1.
 - Derivadores: la señal baja desde la cubierta, así que la **pérdida de derivación crece al subir**
   (`TAPF`: 1.ª 12 dB 519342, 2.ª 16 dB 519343, 3.ª 20 dB 519344, 4.ª 24 dB 519345); la 1.ª cierra el paso con carga.
+- Canalizaciones (RD 346/2011): externa y enlace inferior 4 × Ø63 (`ALX`), enlace superior 2 × Ø40, principal 6 × Ø50
+  (`RX`, `RZ`, `RPR`), secundaria 4 × Ø25 hasta un registro de pas por lado + 3 × Ø25 por vivienda, interior Ø20 (`RIT`).
 - Red de pares: STDP con regletas Krone y manguera de 50 pares (RD 346/2011, factor 1,2); en el RTR, roseta doble RJ45
   y multiplexor con teléfono solo en las BAT dobles de sala y dormitorio 1.
 - Fondo: cielo con nubes (panorama generado), montañas 3D y niebla lejana; en el modo «Només ICT», fondo liso.

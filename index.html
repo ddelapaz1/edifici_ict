@@ -659,7 +659,28 @@ for (const f of [1,2,3,4]) {
    connects:'Allotja els derivadors de RTV, la caixa de segregació de fibra i la regleta de 10 parells del punt de distribució de parells.',
    example:`A la ${P.toLowerCase()}, si obres la tapa veus els dos derivadors, la caixa de segregació, la mànega de parells amb el sangrat i la regleta d\'on surten les acometides dels quatre habitatges (${ALL}).`,
    confusion:'El registre secundari és la caixa; el punt de distribució és l\'element de connexió que hi ha a dins. Al model, cada registre secundari té tres punts de distribució: derivadors (RTV), caixa de segregació (fibra) i regleta (parells).',
-   nets:['xd_rtv','xd_fo','xd_pt'], canals:['canal_principal',...SIDES.map(s=>`cs_${f}${s}`)], links:[]});
+   nets:['xd_rtv','xd_fo','xd_pt'], canals:['canal_principal',`csc_${f}e`,`csc_${f}d`], links:[`rps_${f}e`,`rps_${f}d`]});
+  for(const [k,cs,us] of [['e','esquerra','AD'],['d','dreta','BC']]){
+    const UU=[...us].map(s=>`${ORD[f]} ${s}`).join(' i ');
+    def({id:`csc_${f}${k}`, fam:'canal', layer:'canalitzacions', svc:'all', floor:f, zone:'comuna',
+     name:`Canalització secundària, tram comunitari (${cs}) — ${P}`, sigla:'',
+     what:`Són quatre tubs de Ø25 mm, un per a cada servei (RTV, fibra òptica, parells o parells trenats i coaxial de TBA), que van pel sostre del distribuïdor des del registre secundari fins al registre de pas del costat ${cs}.`,
+     purpose:`Porten junts els cables de dispersió dels dos habitatges d'aquest costat (${UU}) fins al punt on es reparteixen.`,
+     where:`${P}, sostre del distribuïdor comú, entre el registre secundari i el registre de pas.`,
+     connects:`Registre secundari → registre de pas. Pel tub de RTV hi passen quatre coaxials (dos per habitatge); pel de fibra i pel de parells, una acometida per habitatge; el de TBA queda de reserva.`,
+     example:`Si cal canviar l'acometida de fibra del ${[...us].map(s=>`${ORD[f]} ${s}`)[0]}, s'estira des del registre de pas sense tocar els cables de l'altre habitatge.`,
+     confusion:'El diàmetre del tram comunitari depèn del nombre de PAU que atén (Ø25, Ø32 o Ø40 mm): aquí n\'atén dos, per això Ø25 mm. Els tubs d\'accés a cada habitatge són una altra part de la canalització secundària.',
+     nets:[...[...us].flatMap(s=>[`xs_rtv_${f}${s}`,`xs_fo_${f}${s}`,`xs_pt_${f}${s}`])], links:[`rs_${f}`,`rps_${f}${k}`]});
+    def({id:`rps_${f}${k}`, fam:'recinte', layer:'registres', svc:'all', floor:f, zone:'comuna', container:true, lid:true,
+     name:`Registre de pas de la canalització secundària (${cs}) — ${P}`, sigla:'',
+     what:'És una caixa de registre de pas tipus A (360 × 360 × 120 mm) encastada a la paret del distribuïdor, prop del sostre.',
+     purpose:'Separa el tram comunitari de la canalització secundària dels tubs d\'accés a cada habitatge i permet estirar els cables per trams curts.',
+     where:`${P}, paret del distribuïdor, sobre la mitgera entre el ${UU.replace(' i ',' i el ')}.`,
+     connects:`Hi arriben per un lateral els quatre tubs del tram comunitari i en surten pel fons, per dins de la paret, els tres tubs d'accés de cada habitatge (${UU}). Els cables hi passen sense connexions.`,
+     example:'Per passar un cable nou fins a un habitatge, l\'instal·lador obre aquest registre i el registre de terminació de xarxa, i estira el cable només pel tub d\'accés.',
+     confusion:'No és un registre secundari: no hi ha cap punt de distribució ni cap connexió, només hi passen cables.',
+     nets:[...[...us].flatMap(s=>[`xs_rtv_${f}${s}`,`xs_fo_${f}${s}`,`xs_pt_${f}${s}`])], canals:[`csc_${f}${k}`,...[...us].map(s=>`cs_${f}${s}`)], links:[`rs_${f}`]});
+  }
   def({id:`deriv_${f}`, fam:'punt', layer:'punts', svc:'rtv', floor:f, zone:'comuna', rs:true, parent:`rs_${f}`,
    name:`Derivadors de RTV de ${TAPF[f].db} dB (punt de distribució) — ${P}`, sigla:'',
    what:`Són dispositius passius, un per cada cable de distribució, que treuen una part del senyal cap als habitatges de la planta i deixen passar la resta cap avall. Al model: derivadors de 4 sortides de la sèrie F (exemple: Televes ref. ${TAPF[f].ref}, ${TAPF[f].db} dB, 109 × 54 × 18 mm).`,
@@ -670,7 +691,7 @@ for (const f of [1,2,3,4]) {
    confusion:'El derivador no és el registre secundari (és dins seu) i no és un amplificador: no afegeix senyal, la reparteix.',
    more:['Per què cada planta porta un derivador diferent',
      `El senyal baixa des de la capçalera del RITS, a la coberta, pels cables de distribució. A cada planta, el derivador en treu una part cap als habitatges (pèrdua de derivació) i deixa passar la resta cap avall amb una petita pèrdua de pas (uns 2-3 dB). Com més avall és la planta, més metres de cable i més derivadors ha travessat el senyal, i hi arriba amb menys nivell. Per igualar el nivell a les preses de tots els habitatges, les plantes altes, més a prop de la capçalera, porten derivadors amb més pèrdua de derivació, i a mesura que es baixa se'n posen de menys pèrdua: 4a planta 24 dB (ref. 519345), 3a 20 dB (519344), 2a 16 dB (519343) i 1a 12 dB (519342). Dit a l'inrevés: des de la planta baixa, cada planta que es puja porta més pèrdua. La 1a planta és la darrera del recorregut i la sortida de pas es tanca amb una càrrega de 75 Ω (ref. 4061). Aquesta planta: ${TAPF[f].db} dB nominals; derivació mesurada ${TAPF[f].der} dB i pas ${TAPF[f].pas} dB (terrestre / satèl·lit). Els valors exactes s'han de calcular al projecte amb els nivells de la capçalera i les longituds reals de cable.`],
-   nets:['xd_rtv',...SIDES.map(s=>`xs_rtv_${f}${s}`)], canals:['canal_principal',...SIDES.map(s=>`cs_${f}${s}`)], links:[`rs_${f}`]});
+   nets:['xd_rtv',...SIDES.map(s=>`xs_rtv_${f}${s}`)], canals:['canal_principal',`csc_${f}e`,`csc_${f}d`], links:[`rs_${f}`]});
   def({id:`cseg_${f}`, fam:'punt', layer:'punts', svc:'fo', floor:f, zone:'comuna', rs:true, parent:`rs_${f}`,
    name:`Caixa de segregació de fibra òptica — ${P}`, sigla:'',
    what:'És la realització física del punt de distribució òptic: una caixa on es fan els empalmaments entre les fibres de distribució de la planta i els cables d\'acometida dels habitatges.',
@@ -720,16 +741,16 @@ const PTYPE = {
 const cap = s => s[0].toUpperCase()+s.slice(1);
 
 for (const u of UNITS) {
-  const f=u.f, P=FLOORNAME(f).toLowerCase(), N=u.name, U=u.id, ex = U==='2A';
+  const f=u.f, P=FLOORNAME(f).toLowerCase(), N=u.name, U=u.id, ex = U==='2A', K=(u.s==='A'||u.s==='D')?'e':'d';
   def({id:`cs_${U}`, fam:'canal', layer:'canalitzacions', svc:'all', floor:f, unit:U, zone:'comuna', main: ex,
-   name:`Canalització secundària — ${N}`, sigla:'',
-   what:'És el conjunt de tubs que porta els cables des del registre secundari fins al registre de terminació de xarxa de l\'habitatge. Dona suport a la xarxa de dispersió.',
+   name:`Canalització secundària, accés al ${N}`, sigla:'',
+   what:'Són els tres tubs de Ø25 mm que porten els cables des del registre de pas del distribuïdor fins al registre de terminació de xarxa de l\'habitatge. Formen l\'últim tram de la canalització secundària, que dona suport a la xarxa de dispersió.',
    purpose:'Fa que els cables surtin de la zona comuna i entrin a l\'habitatge protegits.',
-   where:`${FLOORNAME(f)}: des del registre secundari del distribuïdor, pel sostre de la zona comuna, fins al rebedor del ${N}.`,
-   connects:'Al model són tres tubs: un per a parells trenats i fibra, un per a coaxial de TBA (telecomunicacions de banda ampla; aquí de reserva, amb fil guia) i un per als dos coaxials de RTV.',
-   example:`A la ${P}, permet que els cables surtin de la zona comuna i arribin al registre del ${N}.`,
-   confusion:'La canalització és el conducte que protegeix i allotja els cables. La xarxa està formada pels cables i els seus elements de connexió. Aquí no cal registre de pas perquè el recorregut és curt i hi ha quatre habitatges per planta (menys de sis).',
-   nets:[`xs_rtv_${U}`,`xs_fo_${U}`,`xs_pt_${U}`], links:[`rs_${f}`,`rtr_${U}`]});
+   where:`${FLOORNAME(f)}: des del registre de pas del distribuïdor, per dins de la paret, fins al rebedor del ${N}.`,
+   connects:'Tres tubs de Ø25 mm (RD 346/2011): un per als dos coaxials de RTV, un per a parells o parells trenats i fibra òptica, i un per a coaxial de TBA (telecomunicacions de banda ampla; aquí de reserva, amb fil guia).',
+   example:`A la ${P}, permet que els cables passin del registre de pas al registre del ${N} sense tocar els dels altres habitatges.`,
+   confusion:'La canalització és el conducte que protegeix i allotja els cables. La xarxa està formada pels cables i els seus elements de connexió. El tram comunitari (quatre tubs, un per servei) arriba fins al registre de pas; des d\'allà, cada habitatge té els seus tres tubs d\'accés.',
+   nets:[`xs_rtv_${U}`,`xs_fo_${U}`,`xs_pt_${U}`], links:[`rps_${f}${K}`,`rtr_${U}`]});
   def({id:`rtr_${U}`, fam:'recinte', layer:'registres', svc:'all', floor:f, unit:U, zone:'privada (frontera)', container:true, lid:true, main: ex,
    name:`Registre de terminació de xarxa — ${N}`, sigla:'RTR',
    what:'És la caixa encastada dins de l\'habitatge, a prop de l\'entrada, on acaben les xarxes de dispersió i comença la xarxa interior.',
@@ -758,7 +779,7 @@ for (const u of UNITS) {
    connects:`Derivadors de la ${P} → PAU de RTV.`,
    example:`Si la comunitat posa canals de satèl·lit al segon cable, el ${N} els pot rebre canviant el cable al PAU, sense obres a la zona comuna.`,
    confusion:'La dispersió encara és instal·lació comuna: arriba fins al PAU. Després del PAU comença la xarxa interior.',
-   canals:[`cs_${U}`], links:[`deriv_${f}`,`pau_rtv_${U}`]});
+   canals:[`csc_${f}${K}`,`cs_${U}`], links:[`deriv_${f}`,`pau_rtv_${U}`]});
   def({id:`xs_fo_${U}`, fam:'xarxa', layer:'xarxes', svc:'fo', tram:'disp', tech:'fo', floor:f, unit:U, zone:'comuna',
    name:`Xarxa de dispersió de fibra òptica — ${N}`, sigla:'',
    what:`És el cable d\'acometida òptica (dues fibres, Ø3,8 mm) que surt per dalt de la caixa de segregació de la ${P} i acaba a la roseta òptica del ${N}.`,
@@ -767,7 +788,7 @@ for (const u of UNITS) {
    connects:'Empalmament a la caixa de segregació → roseta òptica (PAU).',
    example:`A la caixa de segregació, l\'acometida del ${N} està empalmada a fibres del cable de distribució etiquetades amb el seu nom.`,
    confusion:'La fibra de dispersió acaba a la roseta del PAU. Des d\'allà, una fibra interior la porta fins a la presa òptica de la sala, on es connecta l\'ONT.',
-   canals:[`cs_${U}`], links:[`cseg_${f}`,`pau_fo_${U}`]});
+   canals:[`csc_${f}${K}`,`cs_${U}`], links:[`cseg_${f}`,`pau_fo_${U}`]});
   def({id:`xs_pt_${U}`, fam:'xarxa', layer:'xarxes', svc:'pt', tram:'disp', tech:'pt', floor:f, unit:U, zone:'comuna',
    name:`Xarxa de dispersió de parells — ${N}`, sigla:'',
    what:`És el cable d\'acometida de 2 parells (Ø4 mm) del ${N}: surt per dalt de la regleta del registre secundari i arriba al PAU de parells.`,
@@ -776,7 +797,7 @@ for (const u of UNITS) {
    connects:'Regleta del punt de distribució de la planta → rosetes RJ45 del PAU (una per línia).',
    example:`Per comprovar la línia del ${N}, el tècnic mesura des de la regleta de la planta (sense aixecar connexions) fins a la roseta del PAU.`,
    confusion:'Comparteix tub amb la fibra, però són cables i serveis diferents.',
-   canals:[`cs_${U}`], links:[`bucle_${f}`,`pau_pt_${U}`,'pi_pt']});
+   canals:[`csc_${f}${K}`,`cs_${U}`], links:[`bucle_${f}`,`pau_pt_${U}`,'pi_pt']});
 
   /* PAU i elements del registre de terminació de xarxa */
   def({id:`pau_rtv_${U}`, fam:'punt', layer:'punts', svc:'rtv', floor:f, unit:U, zone:'frontera comuna/privada', parent:`rtr_${U}`,
@@ -1491,7 +1512,7 @@ const SIMPLIFICATIONS = [
  'Les corbes dels cables són arcs amb el radi mínim de curvatura de cada tipus (RG-6 33 mm, fibra d\'acometida 18 mm, fibra de distribució 80 mm, mànega 144 mm, Cat 6 25 mm). Dins dels tubs, cada cable segueix el camí del tub desplaçat, amb el mateix radi, i no en surt. Al RITS, dins dels corrugats d\'entrada i als ponts entre mòduls, i a l\'entrada dels cables de l\'operador a les CTO del RITI, algunes corbes queden per sota del mínim perquè l\'espai del model no dona per més.',
  'Registre secundari: els coaxials van per carrils arran de la placa del fons i pugen junt a les parets; la fibra i els parells de dispersió hi passen per davant; els baixants entren i surten dels tubs en posicions fixes. Sangrat de la mànega: es representa una finestra de 16 cm amb la coberta oberta, 8 grups de parells en pas (en lloc dels 40, 30, 20 o 10 parells reals) i els 10 parells de la planta, trenats, que entren per sota a la regleta; les acometides en surten per dalt.',
  'Per defecte els cables tenen un aspecte real habitual: els dos coaxials de distribució de RTV es distingeixen pel color (cable 1 blanc, cable 2 negre, també a la dispersió), la fibra és groga i els connectors SC/APC verds. Les opcions «per tram» i «per tecnologia» són un codi didàctic d\'aquesta aplicació. Cap color és obligatori.',
- 'Les canalitzacions externa i d\'enllaç es representen amb un sol tub. La canalització principal té quatre tubs i la secundària tres; no s\'indiquen diàmetres ni quantitats normatives.',
+ 'Les canalitzacions tenen el nombre de tubs i el diàmetre del RD 346/2011; els tubs es dibuixen translúcids i llisos (sense corrugat), excepte a la coberta i al RITS.',
  'Tots els habitatges tenen la mateixa distribució (sala d\'estar, cuina, dos dormitoris, bany i rebedor; els B, C i D són simètrics de l\'A respecte dels eixos de l\'edifici) i la dotació mínima de preses: 4 de RTV, 6 registres de parells trenats (2 amb BAT doble), 2 coaxials de TBA, 1 de fibra òptica a la sala i 1 registre configurable. Les preses de corrent properes no es dibuixen.',
  'Les preses s\'han situat de manera orientativa. En un projecte real la posició depèn del mobiliari previst i de les distàncies que fixa la normativa.',
  'La xarxa de distribució de fibra es mostra com un sol cable multifibra. Configuració escollida: empalmament a la caixa de segregació de cada planta i fibres en pas per a les altres plantes.',
@@ -2033,6 +2054,7 @@ function buildICT(){
   for(const f of [1,2,3,4]){
     const y=yb(f);
     regBox(`rs_${f}`,1.3,1.7,0.4,0.95,y+1.8,-4.55,C.reg,C.regLid);
+    buildSecTrunk(f,C);
     for(const c of ['a','b']){
       if(MODELS.deriv?.scene){
         const ms=placeModel('deriv',`deriv_${f}`,DER[c],y+1.55,-4.715);
@@ -2103,10 +2125,34 @@ function buildICT(){
   for(const u of UNITS) buildUnit(u, C);
 }
 
-/* canalització secundària: tres tubs per habitatge que pugen del registre secundari al sostre del
-   distribuïdor i baixen dins de l'habitatge fins al costat del registre de terminació de xarxa.
-   h1: alçada d'arribada al RTR (1.26, 1.52, 1.78); el tram de sostre va a 2.2–2.52. */
+/* canalització secundària (RD 346/2011), a cada costat del distribuïdor (esquerra: A i D; dreta: B i C):
+   - tram comunitari: 4 tubs de Ø25 mm (atén 2 PAU), un per servei, del registre secundari (cara x = 0,3 o 1,6) al
+     registre de pas, pel sostre del distribuïdor. Entren al registre de pas per la cara lateral (z = RPS.zf).
+   - registre de pas (tipus A, 360 × 360 × 120 mm) a la paret del distribuïdor (x = ±2), sobre la mitgera z = −5.
+   - accés: 3 tubs de Ø25 mm per habitatge (RTV; parells i fibra; TBA) des del fons del registre de pas, per dins de la
+     paret, fins al RTR. h1: alçada d'arribada al RTR (1.26, 1.52, 1.78); al registre de pas, 2.20–2.52. */
 const CS_H2 = h1 => 2.2 + (h1-1.26)/0.26*0.16;
+const CSR=0.0125;   // tubs de Ø25 mm
+const CSC={rtv:{h:2.52,z:-4.55}, fo:{h:2.40,z:-4.45}, pt:{h:2.32,z:-4.62}, tba:{h:2.20,z:-4.55}};   // tram comunitari (alçada i z)
+const RPS={x:1.94, y:2.36, z:-5.0, zf:-4.82, w:0.36, d:0.12, zA:-4.90};   // registre de pas (|x| del centre); zA: z dels tubs d'accés de A/B
+const cscPath = (R,y,k) => { const c=CSC[k]; return [[R<0?0.3:1.6,y+c.h,c.z],[R*RPS.x,y+c.h,c.z],[R*RPS.x,y+c.h,RPS.zf]]; };
+/* desplaçament d'un cable dins del tram comunitari (s: mig pas). x: cap al fons del registre de pas el de l'habitatge que
+   gira primer (A, B), cap enfora el que passa per davant seu (D, C); y: més alt el que passa per sobre de les columnes dels
+   altres dins del registre secundari; z: perpendicular a la corba del sostre (x → −z) respecte del cable de l'altre habitatge.
+   Al tub d'accés, cscW: separats només en y i z (mai en la direcció d'una corba), conservant l'ordre en alçada. */
+const cscV = (u,s,up) => { const vx=mx(u,ZM(u)?s:-s); return [vx, up?s:-s, XS(u)===1?-vx:vx]; };
+const cscW = (u,up) => { const a=up?0.004:-0.004; return [0, a, ZM(u)?-a:a]; };
+function buildSecTrunk(f, C){
+  const y=yb(f);
+  for(const [R,k] of [[-1,'e'],[1,'d']]){
+    for(const t of Object.keys(CSC)) tube(`csc_${f}${k}`,cscPath(R,y,t),CSR,{tubeSvc:t, R:RCS});
+    /* registre de pas: caixa amb tapa cap al distribuïdor (−x a la dreta, +x a l'esquerra) */
+    const el=`rps_${f}${k}`, yc=y+RPS.y, h=RPS.w, w=RPS.w, d=RPS.d, t=0.02, xc=R*RPS.x;
+    iBox(el,t,h,w,R*(2.0-t/2),yc,RPS.z,C.reg);
+    for(const sg of [-1,1]){ iBox(el,d,h,t,xc,yc,RPS.z+sg*(w/2-t/2),C.reg); iBox(el,d,t,w,xc,yc+sg*(h/2-t/2),RPS.z,C.reg); }
+    iBox(el,0.03,h+0.02,w+0.02,R*(RPS.x-d/2-0.012),yc,RPS.z,C.regLid,{lidOf:el});
+  }
+}
 /* PAU de fibra (Televes 231502) al RTR de l'habitatge u: origen (centre de la cara posterior), gir, cara ampla dels SC i
    punts del model (sc1…sc4, entrada_d, entrada_e). La sortida 1 cau sempre a X(-3.16), sigui quina sigui l'orientació. */
 const PFD={sc1:[-0.04123,-0.05004,0.0235], sc2:[-0.02158,-0.05004,0.0235], entrada_d:[0.0597,0.02334,0.007], entrada_e:[-0.0597,0.02334,0.007]};
@@ -2126,50 +2172,52 @@ function pauRtvPos(u){
   const PO=new THREE.Vector3(mx(u,-3.48),yb(u.f)+1.60,mz(u,-4.722));
   return {PO, rot, at:n=>PO.clone().add(pt(n))};
 }
+/* tub d'accés: del fons del registre de pas, per dins de la paret, fins al lateral del RTR */
 function csPath(u, y, h1){
-  const h2=y+CS_H2(h1), H1=y+h1, R=XS(u)===1 ? -1 : 1;   // costat del registre secundari (esquerra A i D, dreta B i C)
-  const face = R<0 ? 0.3 : 1.6, zl = ZM(u) ? -4.62 : -4.45;
-  if(!ZM(u)) return [[face,h2,zl],[R*2.45,h2,zl],[R*2.45,H1,-4.58],[R*2.7,H1,-4.58]];
-  const xj = R<0 ? -1.85 : 1.86;
-  return [[face,h2,zl],[xj,h2,zl],[xj,h2,-5.42],[R*2.45,h2,-5.42],[R*2.45,H1,-5.42],[R*2.7,H1,-5.42]];
+  const h2=y+CS_H2(h1), H1=y+h1, R=XS(u)===1 ? -1 : 1, zA=mz(u,RPS.zA), zr=mz(u,-4.58);
+  return [[R*(2.0-0.005),h2,zA],[R*2.45,h2,zA],[R*2.45,H1,zr],[R*2.7,H1,zr]];
 }
 function buildUnit(u, C){
   const y=yb(u.f), id=u.id, X=x=>mx(u,x), Z=z=>mz(u,z), sz=SZ(u);
-  for(const [yy,svc] of [[1.78,'rtv'],[1.52,'all'],[1.26,'all']]) tube(`cs_${id}`,csPath(u,y,yy),0.065,{tubeSvc:svc, R:RCS});
+  for(const [yy,svc] of [[1.78,'rtv'],[1.52,'all'],[1.26,'tba']]) tube(`cs_${id}`,csPath(u,y,yy),CSR,{tubeSvc:svc, R:RCS});
   /* registre de terminació de xarxa (C i D: tapa cap a -z) */
   regBox(`rtr_${id}`,1.0,0.8,0.3,X(-3.2),y+1.5,Z(-4.6),0xE9E6DF,0xF4F2EE,SZ(u));
-  /* dispersió: dins del registre secundari, recorreguts ordenats (vegeu RSW); dins del tub, el camí del tub traslladat
-     un vector fix v (mateix radi de corba RCS), de manera que el cable no en surt ni a les corbes. Els quatre cables
-     (coaxial a i b, fibra i parells) tenen vectors diferents perquè tampoc no es toquin on els tubs s'encreuen. */
-  const tubeIn=(tp,v)=>[...inTube(tp.slice(1,-1),v,RCS), tp[tp.length-1].map((q,i)=>q+v[i])];
+  /* dispersió: dins del registre secundari, recorreguts ordenats (vegeu RSW); dins dels tubs, el camí del tub traslladat
+     un vector fix (mateix radi de corba RCS), de manera que el cable no en surt ni a les corbes: v al tram comunitari
+     (cscV, compartit amb l'altre habitatge del costat) i w al tub d'accés. Al registre de pas, el cable baixa pel lateral
+     fins a la z del seu tub d'accés i gira cap al fons. */
+  const R=XS(u)===1?-1:1, zA=mz(u,RPS.zA);
+  const accIn=(ap,w)=>[...inTube(ap.slice(0,-1),w,RCS), ap[ap.length-1].map((q,i)=>q+w[i])];
+  const viaRPS=(k,v,ap,w)=>[...inTube(cscPath(R,y,k).slice(1),v,RCS), [R*RPS.x+v[0],ap[0][1]+w[1],zA+w[2]], ...accIn(ap,w)];
   const port={A:'t1',D:'t2',C:'t3',B:'t4'}[u.s];
   for(const c of ['a','b']){
-    const oz=c==='a'?-0.022:0.022, v=[oz,0.7*oz,oz], tp=csPath(u,y,1.78), t=TAPR[c][port];
-    /* la columna puja arran de placa (per darrere dels carrils de fibra i parells, a 2,34–2,38) i avança fins a la z del tub
-       just a sota de l'entrada (el tub de RTV és el més alt, a 2,52) */
-    const pe=DERPORT[`${u.f}${c}`][port], x=pe.x, z0=t.fwd?RSW.zF:RSW.zP, zt=tp[0][2]+v[2], H=tp[1][1]+v[1];
+    const up=(R<0)===(c==='a'), w=cscW(u,up), v=cscV(u,0.0037,up), tp=csPath(u,y,1.78), t=TAPR[c][port];
+    /* la columna puja arran de placa (per darrere dels carrils de fibra i parells) i avança fins a la z del tub just a sota
+       de la sortida (el tub de RTV és el més alt, a 2,52) */
+    const pe=DERPORT[`${u.f}${c}`][port], x=pe.x, z0=t.fwd?RSW.zF:RSW.zP, zt=CSC.rtv.z+v[2], H=y+CSC.rtv.h+v[1];
     const rs=[pe, ...(t.fwd?[[x,y+1.475,RSW.zP],[x,y+1.445,z0]]:[]), [x,y+t.lane,z0],[t.col,y+t.lane,z0],[t.col,y+2.41,z0],[t.col,H-0.066,zt],[t.col,H,zt]];
     /* RTR: el cable 1 (blanc) va a l'entrada del PAU i el 2 (negre) a l'entrada carregada (reserva). Els ports miren avall:
        el cable baixa per davant del PAU, fa una U (radi 33 mm) i puja fins al connector. El que va més lluny baixa més endavant per no tocar l'altre. */
     const PR=pauRtvPos(u), E=PR.at(c==='a'?'in':'inc').add(V(0,0.004-FC_LENGTH,0)), yu=E.y-0.06;
     const far=Math.abs(PR.at(c==='a'?'in':'inc').x-tp[tp.length-1][0]) > Math.abs(PR.at(c==='a'?'inc':'in').x-tp[tp.length-1][0]), zf=E.z+sz*(far?0.084:0.068);
-    const te=tp[tp.length-1][1]+v[1];                                                   // alçada d'entrada al RTR
+    const te=tp[tp.length-1][1]+w[1];                                                   // alçada d'entrada al RTR
     const tail = [[E.x,te,zf],[E.x,yu,zf],[E.x,yu,E.z],[E.x,E.y,E.z]];
-    cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [...rs,...tubeIn(tp,v),...tail], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
+    cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [...rs,...viaRPS('rtv',v,tp,w),...tail], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
   }
   /* fibra: de la caixa de segregació puja i va horitzontal a l'alçada del tub; entra al PAU de fibra pel pretallat lateral
      del costat del tub, amb un passacables de goma */
-  { const gx=CSEG.gx[u.s], v=[0.022,-0.0154,-0.022], tp=csPath(u,y,1.52), zt=tp[0][2]+v[2], H=tp[1][1]+v[1], dz=Math.abs(zt-CSEG.gz), E=tp[tp.length-1][1]+v[1];
+  { const gx=CSEG.gx[u.s], w=cscW(u,true), v=cscV(u,0.004,ZM(u)), tp=csPath(u,y,1.52), zt=CSC.fo.z+v[2], H=y+CSC.fo.h+v[1], dz=Math.abs(zt-CSEG.gz), E=tp[tp.length-1][1]+w[1];
     const pf=pauFoPos(u), ed=pf.at('entrada_d'), ee=pf.at('entrada_e'), en=Math.abs(ed.x-X(-2.96))<Math.abs(ee.x-X(-2.96))?ed:ee, out=Math.sign(X(-2.96)-en.x);
     rCyl(`pau_fo_${id}`,0.0036,0.003,V(en.x+out*0.001,en.y,en.z),V(1,0,0),0x2A2D31,'rubber',{r2:0.0036});
-    cable(`xs_fo_${id}`, `xs_fo_${id}`, [[gx,y+CSEG.y+0.17,CSEG.gz],[gx,y+1.72,CSEG.gz],[gx,y+1.72+dz,zt],[gx,H,zt],...tubeIn(tp,v),
+    cable(`xs_fo_${id}`, `xs_fo_${id}`, [[gx,y+CSEG.y+0.17,CSEG.gz],[gx,y+1.72,CSEG.gz],[gx,y+1.72+dz,zt],[gx,H,zt],...viaRPS('fo',v,tp,w),
       [X(-2.96),E,en.z],[X(-2.96),en.y,en.z],[en.x-out*0.008,en.y,en.z]], {tram:'disp',tech:'fo',svc:'fo',from:`cseg_${u.f}`, to:`pau_fo_${id}`, via:`cs_${id}`}); }
-  /* parells: acometida de 2 parells des de la sortida (part de dalt) de la regleta; la del D passa per davant de la del C */
-  { const kx=krX(RSK.x,2*'ABCD'.indexOf(u.s)+1.5), v=[-0.022,0.0154,0.022], tp=csPath(u,y,1.52), zt=tp[0][2]+v[2], H=tp[1][1]+v[1], E=tp[tp.length-1][1]+v[1];
+  /* parells: acometida de 2 parells des de la sortida (part de dalt) de la regleta; la del D passa per darrere de les del
+     C i el B, i la del B per sobre de la columna del C */
+  { const kx=krX(RSK.x,2*'ABCD'.indexOf(u.s)+1.5), w=cscW(u,false), v=cscV(u,0.004,(R<0)===ZM(u)), tp=csPath(u,y,1.52), zt=CSC.pt.z+v[2], H=y+CSC.pt.h+v[1], E=tp[tp.length-1][1]+w[1];
     const z0=-4.69, pp=X(-2.86);   // parells 1-2 (A), 3-4 (B), 5-6 (C), 7-8 (D); el 9 i el 10 lliures
     const col = u.s==='D' ? [[kx,y+2.20,z0],[kx,y+2.23,-4.66],[kx,H,-4.66],[1.28,H,-4.66],[1.22,H,zt]]
-              : (yy=>[[kx,y+yy,z0],[kx,y+yy+Math.abs(zt-z0),zt],[kx,H,zt]])(u.s==='C'?2.24:2.00);
-    cable(`xs_pt_${id}`, `xs_pt_${id}`, [[kx,y+RSK.y+0.014,z0],...col,...tubeIn(tp,v),[pp,E,Z(-4.705)],[pp,y+1.69,Z(-4.712)]], {tram:'disp',tech:'pt',svc:'pt',from:`bucle_${u.f}`, to:`pau_pt_${id}`, via:`cs_${id}`}); }
+              : (yy=>[[kx,y+yy,z0],[kx,y+yy+Math.abs(zt-z0),zt],[kx,H,zt]])(u.s==='C'?2.16:2.00);
+    cable(`xs_pt_${id}`, `xs_pt_${id}`, [[kx,y+RSK.y+0.014,z0],...col,...viaRPS('pt',v,tp,w),[pp,E,Z(-4.705)],[pp,y+1.69,Z(-4.712)]], {tram:'disp',tech:'pt',svc:'pt',from:`bucle_${u.f}`, to:`pau_pt_${id}`, via:`cs_${id}`}); }
   buildInterior(u);
 }
 

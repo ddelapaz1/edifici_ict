@@ -2216,10 +2216,10 @@ for (const u of UNITS) {
    nets:[`xs_fo_${U}`,`xi_fo_${U}`], links:[`bat_fo_sala_${U}`,`rtr_${U}`]});
   def({id:`pau_pt_${U}`, fam:'punt', layer:'punts', svc:'pt', floor:f, unit:U, zone:'frontera comuna/privada', parent:`rtr_${U}`,
    name:`PAU de parells (rosetes RJ45 i multiplexor passiu) — ${N}`, sigla:'PAU',
-   what:'Són dues rosetes RJ45, una per línia: cada parell de l\'acometida acaba als contactes 4 i 5 d\'una roseta. Al costat hi ha el multiplexor passiu i els extrems RJ45 etiquetats dels cables interiors.',
+   what:'És una roseta doble RJ45 de superfície, una boca per línia: cada parell de l\'acometida acaba als contactes 4 i 5 d\'una boca. A sota hi ha el multiplexor passiu (142 × 60 × 24 mm), on s\'endollen els cables interiors.',
    purpose:'Fa de punt de tall i de prova entre la xarxa comuna (propietat) i la interior (usuari), i permet portar cada línia a qualsevol presa de l\'habitatge.',
    where:`Dins del registre de terminació de xarxa del ${N}.`,
-   connects:'Acometida de 2 parells → rosetes RJ45 (línia 1 i línia 2) → multiplexor passiu → extrems RJ45 dels cables interiors de les sis preses de parells trenats.',
+   connects:'Acometida de 2 parells → roseta doble RJ45 (línia 1 i línia 2) → latiguillo a l\'entrada (Line In) del multiplexor passiu, que té 8 sortides telefòniques i 1 d\'ADSL. Sis cables interiors hi van endollats; els altres dos (sala i dormitori 1) s\'uneixen amb el latiguillo de dades de l\'encaminador.',
    example:'Per tenir el telèfon a la cuina, s\'endolla l\'extrem RJ45 de la presa de la cuina a la sortida del multiplexor que porta la línia 1.',
    confusion:'La xarxa comuna és de cables de parells (telefonia), però la xarxa interior és sempre de parells trenats: el PAU fa la transició.',
    nets:[`xs_pt_${U}`,`xi_dat_${U}`], links:[`rtr_${U}`]});
@@ -3314,6 +3314,24 @@ const EXIT_ORDER = ['dat_cuina','rtv_cuina','tba_sala','rtv_sala','dat_sala','fo
 const PTCOL = {rtv:0xFFFFFF, dat:0xFFFFFF, tba:0xF3F0E6, fo:0xFFFFFF};
 function dedupe(pts){ const o=[]; for(const p of pts){ const l=o[o.length-1]; if(!l || Math.hypot(l[0]-p[0],l[1]-p[1],l[2]-p[2])>1e-4) o.push(p); } return o; }
 
+/* multiplexor passiu RJ45 de l'RTR (1 entrada, 8 sortides telefòniques i 1 sortida ADSL), 142 × 60 × 24 mm.
+   Disposició del frontal en mm des de la cantonada superior esquerra; MUXJ() retorna [lx, ly] en metres des del centre. */
+const MUX={W:0.142, H:0.06, D:0.024, cols:[17,37,57,77], rows:[20,42], rx:118, ry:{adsl:17, line:42}};
+const MUXJ = n => n==='line' ? [(MUX.rx-71)/1000,(30-MUX.ry.line)/1000] : n==='adsl' ? [(MUX.rx-71)/1000,(30-MUX.ry.adsl)/1000]
+                 : [(MUX.cols[(n-1)%4]-71)/1000,(30-MUX.rows[Math.floor((n-1)/4)])/1000];
+/* sortida del multiplexor de cada cable interior de parells trenats; els dos restants s'uneixen amb el latiguillo de dades */
+const MUXOUT={dat_cuina:1, dat_d2:2, dat2_sala:3, dat_sala_a:4, dat_d1_a:5, dat2_d1:6};
+const PATCHED={dat_sala_b:-2.95, dat_d1_b:-2.77};
+let MUX_TEX=null;
+function muxTex(){ return MUX_TEX ||= canvasTex(568,240,(g,w,h)=>{ const k=4;
+  g.fillStyle='#2C2E31'; g.fillRect(0,0,w,h); g.strokeStyle='#45484C'; g.lineWidth=6; g.strokeRect(3,3,w-6,h-6);
+  const jack=(xm,ym)=>{ const x=xm*k, y=ym*k; g.fillStyle='#4A4D51'; g.fillRect(x-30,y-26,60,50); g.fillStyle='#0E0F10'; g.fillRect(x-24,y-20,48,38);
+    g.fillStyle='#C9A13A'; for(let i=0;i<8;i++) g.fillRect(x-17+i*4.6,y-18,2.4,10); g.fillStyle='#0E0F10'; g.fillRect(x-8,y+14,16,8); };
+  g.fillStyle='#8D9196'; g.font='600 20px Arial, sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  MUX.rows.forEach((ry,r)=>MUX.cols.forEach((cx,c)=>{ jack(cx,ry); g.fillText('☎ '+(r*4+c+1), cx*k, (ry+9.5)*k); }));
+  g.fillStyle='#36393C'; g.fillRect((MUX.rx-14)*k,5*k,28*k,51*k); g.strokeStyle='#5A5E62'; g.lineWidth=3; g.strokeRect((MUX.rx-14)*k,5*k,28*k,51*k);
+  jack(MUX.rx,MUX.ry.adsl); jack(MUX.rx,MUX.ry.line);
+  g.fillStyle='#8D9196'; g.font='600 16px Arial, sans-serif'; g.fillText('ADSL Out',(MUX.rx)*k,(MUX.ry.adsl+10)*k); g.fillText('Line In',(MUX.rx)*k,(MUX.ry.line+10)*k); }); }
 /* rectangle arrodonit extrudit (centrat), per a caixes de plàstic */
 function rrectGeo(w,h,d,r,bev){ const s=new THREE.Shape(), x=-w/2+bev, y=-h/2+bev, W=w-2*bev, H=h-2*bev, R=Math.max(0.0005,r-bev);
   s.moveTo(x+R,y); s.lineTo(x+W-R,y); s.quadraticCurveTo(x+W,y,x+W,y+R); s.lineTo(x+W,y+H-R); s.quadraticCurveTo(x+W,y+H,x+W-R,y+H);
@@ -3353,6 +3371,7 @@ function buildInterior(u){
   scPlug(`xi_fo_${U}`,X(-3.16),yS);                                                     // sortida 1 → fibra interior cap a la sala
   iBox(PF,0.03,0.012,0.03,X(-3.08),yS-0.028,Z(-4.6725),0xE6E6E6,{pick:false});           // sortida 2: tap antipols (reserva)
   iBox(`div_tba_${U}`,0.2,0.1,0.05,X(-3.12),y+1.3,Z(-4.67),0xC9CED4); iBox(`div_tba_${U}`,0.04,0.03,0.02,X(-3.16),y+1.3,Z(-4.64),0xC2185B,{pick:false});
+  let PAU_PATCH;
   /* PAU de parells: roseta doble RJ45 de superfície (línia 1 i línia 2) a la paret del fons del RTR, amb les boques cap avall */
   {
     const el=`pau_pt_${U}`, rx=X(-2.86), ry=y+1.72, W=0.07, H=0.07, hb=(H-0.008)/2, zb=-4.722, zm=Z(zb+0.021), zf=zb+0.036;
@@ -3370,11 +3389,28 @@ function buildInterior(u){
     /* connector RJ45 a la línia 1 i cable fins al multiplexor passiu */
     const j1=X(-2.877);
     iBox(el,0.0145,0.02,0.0125,j1,ry-hb-0.008,zm,0xCFD8DC,{pick:false,opacity:0.85});
-    cable(`patch_pau_${U}`,el,[[j1,ry-hb-0.018,zm],[j1,ry-0.1,Z(zb+0.03)],[X(-2.89),y+1.495,Z(-4.66)]],{tram:'usr',tech:'pt',svc:'pt',r:0.0028});
+        PAU_PATCH=[j1,ry-hb-0.018,zm];
   }
-  iBox(`pau_pt_${U}`,0.18,0.14,0.06,X(-2.86),y+1.42,Z(-4.67),0xE3DCCB);   // multiplexor passiu
+  /* multiplexor passiu (model inspirat en el Televes 546501, sense marca), cargolat a la paret del fons del RTR */
+  const MX0=X(-2.86), MY=y+1.40, mzb=-4.722, mzf=mzb+MUX.D, mxw = lx => MX0+lx*sz;   // el frontal es llegeix d'esquerra a dreta des de l'habitatge
+  {
+    const el=`pau_pt_${U}`;
+    const body=ictMesh(rrectGeo(MUX.W,MUX.H,MUX.D,0.004,0.0015),0x2B2D30,el,{std:{roughness:0.6,metalness:0}}); body.position.set(MX0,MY,Z(mzb+MUX.D/2));
+    addProxy(body,new THREE.BoxGeometry(0.18,0.1,0.06));
+    rPlane(el,MUX.W-0.003,MUX.H-0.003,V(MX0,MY,Z(mzf+0.0003)),SZV,muxTex(),{rotZ:0});
+    for(const s2 of [-1,1]){ const ex=MX0+s2*(MUX.W/2+0.006);                                             // orelles de fixació
+      iBox(el,0.014,0.044,0.003,ex,MY-0.006,Z(mzb+0.0015),0x1F2124,{pick:false});
+      iBox(el,0.004,0.012,0.0035,ex+s2*0.001,MY-0.012,Z(mzb+0.0015),0xD9D5CC,{pick:false}); }
+  }
+  /* connector RJ45 endollat a una boca del frontal; retorna on comença el cable */
+  const muxPlug = (el,n) => { const [lx,ly]=MUXJ(n), px=mxw(lx), py=MY+ly-0.0015;
+    iBox(el,0.0115,0.0095,0.014,px,py,Z(mzf+0.007),0xCFD8DC,{pick:false,opacity:0.85});
+    iBox(el,0.0105,0.009,0.008,px,py,Z(mzf+0.018),0x9EA4AA,{pick:false});
+    return [px,py,Z(mzf+0.022)]; };
+  const lineIn = muxPlug(`pau_pt_${U}`,'line');
+  cable(`patch_pau_${U}`,`pau_pt_${U}`,[PAU_PATCH,[PAU_PATCH[0],MY+0.06,Z(-4.69)],[lineIn[0],MY+0.04,Z(mzf+0.04)],[lineIn[0],lineIn[1]+0.012,lineIn[2]+0.004],lineIn],{tram:'usr',tech:'pt',svc:'pt',r:0.0028});
   /* latiguillo al RTR: uneix el cable de retorn de la sala amb el de l'estància de destinació */
-  cable(`patch_rtr_${U}`,`pau_pt_${U}`,[[X(-2.95),y+1.24,Z(-4.6)],[X(-2.86),y+1.3,Z(-4.55)],[X(-2.77),y+1.24,Z(-4.6)]],{tram:'usr',tech:'pt',svc:'pt',r:0.011});
+  cable(`patch_rtr_${U}`,`pau_pt_${U}`,[[X(-2.95),y+1.24,Z(-4.6)],[X(-2.86),y+1.3,Z(-4.55)],[X(-2.77),y+1.24,Z(-4.6)]],{tram:'usr',tech:'pt',svc:'pt',r:0.0045});
   /* registre de pas al camí de la paret del televisor */
   iBox(`rpas_${U}`,0.3,0.36,0.46,X(-4.24),y+0.19,Z(-1.5),0x8D9AA8,{opacity:0.55});
   /* tubs i cables en estrella */
@@ -3401,7 +3437,10 @@ function buildInterior(u){
     const offs = p.dbl ? [['a',-0.011],['b',0.011]] : [['',0]];
     for(const [ab,dx] of offs){
       const sh=pts.map(v=>[v[0]+dx,v[1],v[2]]);
-      cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...start,...sh], {tram:'int',tech:T.tech,svc:T.svc, from, to:`bat_${pid}`, via:`ci_${U}`, r: p.t==='fo'?0.0075:p.t==='dat'?0.018:0.012});
+      if(p.t==='dat'){ const key=ab?`${k}_${ab}`:k;
+        if(MUXOUT[key]){ const pl=muxPlug(`${T.net}_${U}`,MUXOUT[key]); start=[pl,[pl[0],pl[1]-0.035,Z(mzf+0.03)],[xe,y+1.2,Z(-4.64)]]; }
+        else start=[[X(PATCHED[key]),y+1.24,Z(-4.6)],[xe,y+1.2,Z(-4.64)]]; }
+      cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...start,...sh], {tram:'int',tech:T.tech,svc:T.svc, from, to:`bat_${pid}`, via:`ci_${U}`, r: p.t==='fo'?0.0075:p.t==='dat'?0.0035:0.012});
     }
     /* registre de presa (caixa) i BAT (placa frontal) */
     const w = p.dbl ? 0.4 : 0.3;

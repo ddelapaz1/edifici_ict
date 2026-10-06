@@ -37,13 +37,16 @@ Primitivas básicas (material Lambert, para elementos esquemáticos):
 - `ictMesh(geo, color, elId, o)` — malla genérica registrada al elemento.
 - `iBox(elId, w, h, d, x, y, z, color, o)` — caja centrada en (x, y, z).
 - `iCyl(elId, r, h, x, y, z, color, axis, o)`, `regBox(...)` (registro con tapa), `tube(...)` (canalización).
-- `cable(key, elId, pts, o)` — cable con datos de conexión (`from`, `to`, `via`); el color depende del modo.
+- `cable(key, elId, pts, o)` — cable con datos de conexión (`from`, `to`, `via`); el color depende del modo. El diámetro y
+  el radio mínimo de curvatura salen de `CBL` según la clave (`CBL_KEY`); no pases `r` salvo casos especiales.
+  Los puntos pueden ser `[x,y,z,R]` (radio propio de esa esquina). `inTube(pts, v, R)` da el camino de un tubo
+  desplazado `v` con el mismo radio: así el cable no sale del tubo ni en las curvas.
 
 Primitivas «realistas» (material físico; requieren `ritsMats()`, que se ejecuta en `buildRITS()`):
 
 - `rBox(el, x0, x1, y0, y1, z0, z1, color, mat, o)` — caja definida por sus límites.
 - `rCyl(el, r, h, pos, dir, color, mat, o)`, `rHex(...)` (prisma hexagonal), `rPlane(el, w, h, pos, normal, tex, o)`.
-- `rCable(...)`, `polyR(...)`, `fFemale` / `fMale` / `fLoad` (conectores F), `rj45(...)` (RJ45 macho),
+- `rCable(...)` (RG-6, arcos de 33 mm), `polyR(...)`, `fFemale` / `fMale` / `fLoad` (conectores F), `rj45(...)` (RJ45 macho),
   `rrectGeo(...)` (rectángulo redondeado extruido), `mergeParts(...)` (fusiona geometrías en una sola malla).
 - Materiales (`mat`): `'plastic'`, `'zamak'`, `'zamakDark'`, `'nickel'`, `'galv'`, `'steel'`, `'pvc'`, `'rubber'`,
   `'copper'`… (ver `ritsMats()`).
@@ -67,11 +70,25 @@ mallas: el edificio ya tiene unas 4.700.
 | Repartidores Krone (STDP) | `KR`, `kroneModule()`, `kroneColumn()`, `buildRITIPairs()` |
 | Viviendas y RTR (PAU, roseta, multiplexor) | `buildUnit()`, `buildInterior()`, `MUX`, `rj45()` |
 | RITS (recinto, entrada, cabecera) | `buildRITSRoom()`, `buildRITSEntry()`, `buildCapVariant(v)` (variante `'A'` central programable / `'B'` monocanales T12), `buildMix740710()` |
-| Derivadores de RTV (registros secundarios) | `TAPF` (pérdida por planta, en el bloque de datos), `DER`, `DERPORT`, bucle de registros secundarios en `buildICT()` |
+| Derivadores de RTV (registros secundarios) | `TAPF` (pérdida por planta, en el bloque de datos), `DER`, `DPX`, `DERPORT`, bucle de registros secundarios en `buildICT()` |
+| Mánega de 50 pares y sangrado | `PT50`, `buildPairRiser()`, `pairWindow()`, `PAIRC` |
 | Conectores F y cargas | `fFemale()`, `fMale()`, `coaxPlug()` (modelo 417101), `fLoad()` (modelo 4061) |
 | Modelos glTF | `MODELS`, `loadModels()`, `placeModel()`, `modelPoint()` (al final del segundo `<script>`) |
 | Paisaje de fondo | `skyTexture()`, `buildMountains()`, `buildLandscape()`, `landscapeVisibility()` |
 | Antenas | `buildAntennas()` |
+
+### Cables: diámetros y curvas
+
+- `CBL` (antes de `cable()`) centraliza diámetro `d` y radio mínimo `rb` de cada tipo, con la referencia comercial
+  citada en el comentario. Three.js recibe **radios** (`d/2`).
+- `polyCurve(pts, cr, R, tag)`: con `R` las esquinas son arcos tangentes de ese radio (radio físico real); si el tramo
+  no da para tanto, el radio se reduce y se anota en `BEND` (`__ICT.BEND` con `?debug`). Sin `R`, esquina Bézier
+  (tubos y caminos antiguos). `pathSamples()` + `sweepGeo()` sustituyen a `TubeGeometry`: tramos rectos con dos anillos
+  y arcos cada 7,5°.
+- Registro secundario: constantes `RSW`, `TAPR`, `RISE`, `CSEG`, `RSK`, `PT50` (ver comentario junto a `RSK`).
+  Mánega de 50 pares: `buildPairRiser()` y `pairWindow()` (sangrado). RTR: capas `LAY` en `buildInterior()`.
+- Tras tocar recorridos, comprueba `__ICT.BEND` y que no haya interpenetraciones (muestras en `G.cables[k].sm`, radio
+  en `G.cables[k].r`).
 
 ## Escala y coordenadas
 

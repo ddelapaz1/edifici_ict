@@ -2176,7 +2176,7 @@ function applyVisibility(){
   for(const mat of AM.list){ mat.transparent=tr; mat.opacity=tr?S.transp:1; mat.depthWrite=!tr; mat.needsUpdate=true; }
   for(const m of G.meshes) m.visible = meshVisible(m);
   for(const l of G.refs) l.visible = (S.mode==='ict') || (S.mode==='planta' && l.userData.floor===S.floor);
-  ritsVisibility(); applyMaterials();
+  ritsVisibility(); landscapeVisibility(); applyMaterials();
   $('#transpWrap').classList.toggle('hidden', S.mode!=='transp');
   updateStatus(); renderList(); needLabels=true;
 }
@@ -3128,6 +3128,64 @@ function buildGround(){
   // gual del garatge a la vorera
   aBoxB(8.3,12.1,-0.02,0.005,5.0,8.5,AM.lineY,Gd);
 }
+
+/* ---------- PAISATGE DE FONS: cel amb núvols i muntanyes (panorama generat) i plana fins a l'horitzó ----------
+   El panorama és una textura equirectangular dibuixada amb canvas (sense imatges externes). La plana i el tram de carrer
+   allargat s'esvaeixen amb boira llunyana del mateix color que l'horitzó del panorama. En el mode «Només ICT» es manté
+   el fons llis. */
+const BG_PLAIN=new THREE.Color(0xEEF2F6), HORIZ=0xD6E0D8;
+let SKY_TEX=null, FOG=null, MOUNTS=null;
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function skyTexture(){
+  const W=2048, H=1024, HZ=H/2, R=rng(7), c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  const hex=n=>'#'+n.toString(16).padStart(6,'0');
+  /* cel i terra llunyana */
+  let gr=g.createLinearGradient(0,0,0,HZ); gr.addColorStop(0,'#5E98D6'); gr.addColorStop(0.55,'#9CC3E8'); gr.addColorStop(1,'#DDE9F3');
+  g.fillStyle=gr; g.fillRect(0,0,W,HZ);
+  g.fillStyle=hex(HORIZ); g.fillRect(0,HZ,W,H-HZ);
+  /* núvols: grups d'el·lipses suaus; més amples a prop del zenit (compensa la deformació de la projecció) */
+  const puff=(x,y,rx,ry,a)=>{ for(const dx of [0,-W,W]){ const q=g.createRadialGradient(x+dx,y,0,x+dx,y,rx);
+      q.addColorStop(0,`rgba(255,255,255,${a})`); q.addColorStop(0.6,`rgba(250,251,253,${a*0.6})`); q.addColorStop(1,'rgba(255,255,255,0)');
+      g.save(); g.translate(x+dx,y); g.scale(1,ry/rx); g.translate(-(x+dx),-y); g.fillStyle=q; g.beginPath(); g.arc(x+dx,y,rx,0,7); g.fill(); g.restore(); } };
+  for(let i=0;i<46;i++){
+    const y=110+R()*330, el=(HZ-y)/HZ*Math.PI/2, k=Math.min(3,1/Math.cos(el)), sz=(0.35+0.65*(y-60)/400)*(26+R()*34);
+    const x=R()*W, n=6+Math.floor(R()*7);
+    for(let j=0;j<n;j++) puff(x+(R()-0.5)*sz*3.2*k, y+(R()-0.5)*sz*0.5, sz*(0.6+R()*0.7)*k, sz*(0.45+R()*0.35), 0.55+R()*0.3);
+  }
+  const t=new THREE.CanvasTexture(c); t.mapping=THREE.EquirectangularReflectionMapping; t.colorSpace=THREE.SRGBColorSpace;
+  t.generateMipmaps=false; t.minFilter=THREE.LinearFilter;          // sense mipmaps: evita la franja borrosa a la costura del panorama
+  return t;
+}
+/* serralades en 3D: tres anells (230–270 m) amb el perfil d'una suma de sinusoides periòdica; colors de boira, sense
+   il·luminació ni boira de l'escena; més altes darrere de l'edifici (−z) i amb neu a l'anell del fons */
+function buildMountains(){
+  const grp=new THREE.Group(), cH=new THREE.Color(HORIZ), white=new THREE.Color(0xF4F7FA);
+  for(const [seed,R,base,amp,rough,top,snow] of [[11,270,62,48,0.85,0x8FA4BE,true],[23,250,40,32,0.9,0x7E94A8,false],[37,230,18,15,1.0,0x718C7B,false]]){
+    const r=rng(seed), terms=[]; for(let k=1;k<=60;k++) terms.push([k, r()*Math.PI*2, Math.pow(k,-rough)*(0.6+r()*0.8)]);
+    const N=720, pos=[], col=[], idx=[], cT=new THREE.Color(top);
+    const H=[]; for(let i=0;i<=N;i++){ const u=i/N; let h=0; for(const [k,ph,a] of terms) h+=a*Math.sin(2*Math.PI*k*u+ph);
+      const env=0.5+0.5*Math.cos(2*Math.PI*(u-0.75)); H.push(Math.max(1.5,(base+h*amp*0.22)*(0.35+0.65*env))); }
+    const hmax=Math.max(...H);
+    /* tres files de vèrtexs: base (color de l'horitzó), 70 % de l'alçada (color de la serralada) i cim (neu als més alts) */
+    for(let i=0;i<=N;i++){ const a=i/N*Math.PI*2, x=Math.cos(a)*R, z=Math.sin(a)*R;
+      pos.push(x,-1,z, x,H[i]*0.7,z, x,H[i],z);
+      const c=snow && H[i]>hmax*0.78 ? cT.clone().lerp(white,Math.min(1,(H[i]/hmax-0.78)/0.1)) : cT;
+      col.push(cH.r,cH.g,cH.b, cT.r,cT.g,cT.b, c.r,c.g,c.b);
+      if(i<N) for(const r of [0,1]){ const b=i*3+r; idx.push(b,b+3,b+1, b+1,b+3,b+4); } }
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); g.setIndex(idx);
+    grp.add(new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true, side:THREE.DoubleSide, fog:false})));
+  }
+  scene.add(grp); return grp;
+}
+function buildLandscape(){
+  SKY_TEX=skyTexture(); FOG=new THREE.Fog(HORIZ,110,290); MOUNTS=buildMountains();
+  const Gd={ground:true, floor:0}, F=320;
+  // plana al voltant del terreny i carrer allargat a banda i banda (s'esvaeixen amb la boira)
+  aBoxB(-F,F,-0.32,-0.16,-F,-40,AM.ground,Gd); aBoxB(-F,F,-0.32,-0.16,30,F,AM.ground,Gd);
+  aBoxB(-F,-30,-0.32,-0.16,-40,8.5,AM.ground,Gd); aBoxB(30,F,-0.32,-0.16,-40,8.5,AM.ground,Gd);
+  aBoxB(-F,-30,-0.32,-0.16,8.5,30,AM.street,Gd); aBoxB(30,F,-0.32,-0.16,8.5,30,AM.street,Gd);
+}
+function landscapeVisibility(){ if(!scene || !SKY_TEX) return; const on=S.mode!=='ict'; scene.background = on ? SKY_TEX : BG_PLAIN; scene.fog = on ? FOG : null; if(MOUNTS) MOUNTS.visible=on; }
 
 /* ---------- SOTERRANI: aparcament ---------- */
 function buildBasement(){
@@ -4529,7 +4587,7 @@ function init(){
   const gl=initGL();
   if(gl){
     TEX.fo=makeTex('fo'); TEX.pt=makeTex('pt');
-    archMats(); buildArchitecture(); ritsEnv(); buildICT(); finalizeLids(); buildRefs();
+    archMats(); buildArchitecture(); buildLandscape(); ritsEnv(); buildICT(); finalizeLids(); buildRefs();
     for(const m of G.arch) if(m.userData.floor===5) m.receiveShadow=true;
     onResize();
     const v=VIEWS.start(); camera.position.copy(v.p); controls.target.copy(v.t);

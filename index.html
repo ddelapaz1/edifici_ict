@@ -1894,8 +1894,9 @@ function dedupe(pts){ const o=[]; for(const p of pts){ const l=o[o.length-1]; if
 /* multiplexor passiu RJ45 de l'RTR (1 entrada, 8 sortides telefòniques i 1 sortida ADSL), 142 × 60 × 24 mm.
    Disposició del frontal en mm des de la cantonada superior esquerra; MUXJ() retorna [lx, ly] en metres des del centre. */
 const MUX={W:0.142, H:0.06, D:0.024, cols:[17,37,57,77], rows:[20,42], rx:118, ry:{adsl:17, line:42}};
-const MUXJ = n => n==='line' ? [(MUX.rx-71)/1000,(30-MUX.ry.line)/1000] : n==='adsl' ? [(MUX.rx-71)/1000,(30-MUX.ry.adsl)/1000]
-                 : [(MUX.cols[(n-1)%4]-71)/1000,(30-MUX.rows[Math.floor((n-1)/4)])/1000];
+const MUXJ = n => { const mp=modelPoint('mux', typeof n==='number' ? 'j'+n : n); if(mp) return [mp.x,mp.y];   // boques del model glTF
+  return n==='line' ? [(MUX.rx-71)/1000,(30-MUX.ry.line)/1000] : n==='adsl' ? [(MUX.rx-71)/1000,(30-MUX.ry.adsl)/1000]
+                 : [(MUX.cols[(n-1)%4]-71)/1000,(30-MUX.rows[Math.floor((n-1)/4)])/1000]; };
 /* cables interiors de parells trenats a l'RTR: a les BAT dobles de la sala i del dormitori 1, una boca és de telefonia
    (sortida del multiplexor) i l'altra de dades (latiguillo de l'encaminador); la resta queden lliures amb el connector RJ45 */
 const MUXOUT={dat_sala_a:1, dat_d1_a:2};
@@ -2017,7 +2018,10 @@ function buildInterior(u){
   }
   /* multiplexor passiu (model inspirat en el Televes 546501, sense marca), cargolat a la paret del fons del RTR */
   const MX0=X(-2.86), MY=y+1.40, mzb=-4.722, mzf=mzb+MUX.D, mxw = lx => MX0+lx*sz;   // el frontal es llegeix d'esquerra a dreta des de l'habitatge
-  {
+  if(MODELS.mux.scene){                                                                                  // model glTF (models/multiplexor.glb)
+    const ms=placeModel('mux',`pau_pt_${U}`,MX0,MY,Z(mzb),{},sz<0?Math.PI:0);
+    addProxy(ms[0],new THREE.BoxGeometry(0.15,0.07,0.03).translate(MX0,MY,Z(mzb)+sz*0.012));                                          // zona de selecció
+  } else {
     const el=`pau_pt_${U}`;
     const body=ictMesh(rrectGeo(MUX.W,MUX.H,MUX.D,0.004,0.0015),0x2B2D30,el,{std:{roughness:0.6,metalness:0}}); body.position.set(MX0,MY,Z(mzb+MUX.D/2));
     addProxy(body,new THREE.BoxGeometry(0.18,0.1,0.06));
@@ -2028,7 +2032,7 @@ function buildInterior(u){
   }
   /* connector RJ45 endollat a una boca del frontal; retorna on comença el cable */
   const muxPlug = (el,n) => { const [lx,ly]=MUXJ(n);
-    return rj45(el,V(mxw(lx),MY+ly,Z(mzf-0.012)),V(0,0,-sz),V(0,-1,0)); };   // contactes cap amunt, pestanya cap avall (com les boques del frontal)
+    return rj45(el,V(mxw(lx),MY+ly,Z(mzf-0.012)),V(0,0,-sz),V(0,MODELS.mux.scene?1:-1,0)); };   // pestanya cap a l'osca de la boca   // contactes cap amunt, pestanya cap avall (com les boques del frontal)
   const lineIn = muxPlug(`pau_pt_${U}`,'line');
   cable(`patch_pau_${U}`,`pau_pt_${U}`,[PAU_PATCH,[PAU_PATCH[0],PAU_PATCH[1]-0.012,PAU_PATCH[2]],[PAU_PATCH[0],MY+0.06,Z(-4.69)],[lineIn[0],MY+0.045,Z(mzf+0.045)],[lineIn[0],lineIn[1]+0.006,lineIn[2]+sz*0.014],lineIn],{tram:'usr',tech:'pt',svc:'pt',r:0.0028});
   /* latiguillo al RTR: uneix el cable de retorn de la sala amb el de l'estància de destinació */
@@ -4529,16 +4533,16 @@ function init(){
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */
-const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}};
+const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}};
 function loadModels(){
   if(!THREE.GLTFLoader || location.protocol==='file:') return Promise.resolve();
   const loader=new THREE.GLTFLoader();
   return Promise.all(Object.values(MODELS).map(m=>loader.loadAsync(m.url).then(g=>{ g.scene.updateMatrixWorld(true); m.scene=g.scene; }).catch(()=>{})));
 }
-/* col·loca una còpia del model k a la posició (x, y, z) i registra cada malla a l'element el.
-   recolor: {nomDeMaterial: color} per canviar colors (p. ex. la franja dels mòduls de FI). */
-function placeModel(k, el, x, y, z, recolor={}){
-  const tpl=MODELS[k].scene, T=new THREE.Matrix4().makeTranslation(x,y,z), out=[];
+/* col·loca una còpia del model k a la posició (x, y, z), girada rotY radians al voltant de l'eix vertical, i registra
+   cada malla a l'element el. recolor: {nomDeMaterial: color} per canviar colors (p. ex. la franja dels mòduls de FI). */
+function placeModel(k, el, x, y, z, recolor={}, rotY=0){
+  const tpl=MODELS[k].scene, T=new THREE.Matrix4().makeTranslation(x,y,z).multiply(new THREE.Matrix4().makeRotationY(rotY)), out=[];
   tpl.traverse(n=>{ if(!n.isMesh) return; const mt=n.material, nm=mt.name||'';
     const g=n.geometry.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(T,n.matrixWorld));
     const col = recolor[nm] ?? mt.color.getHex();

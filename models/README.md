@@ -1,13 +1,14 @@
 # Models 3D (glTF)
 
 La web carrega els models d'aquesta carpeta si existeixen (`loadModels()` a `index.html`); si no, fa servir el model
-procedural. Convenis: metres, origen al centre de l'aresta inferior de la cara posterior, frontal cap a +Z en glTF
+procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor, al centre de la cara posterior); frontal cap a +Z en glTF
 (−Y a Blender). Els objectes buits `port_*` i `dc` marquen on s'enganxen ponts i latiguillos.
 
 | Model | Fitxer | Font |
 |---|---|---|
 | Mòdul T12 (35 × 198 × 103 mm) | `t12.glb` | `src/t12.blend` |
 | Font d'alimentació T12, ref. 549812 (70 × 198 × 92 mm) | `font_t12.glb` | `src/font_t12.blend` |
+| Multiplexor passiu RJ45, ref. 546501 (142 × 60 × 24 mm) | `multiplexor.glb` | `src/multiplexor.blend` |
 
 ## Regenerar el T12
 
@@ -32,4 +33,15 @@ taronja `#FFA000` i alumini `#C7C8CA`), convertits a DXF a `src/`:
 dwg2dxf -y -o models/src/FA_frontal.dxf FA_frontal.dwg
 python3 models/src/scripts/font_t12_serigrafia.py
 /Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/font_t12_model.py
+```
+
+## Regenerar el multiplexor
+
+Plànol del fabricant `546501_CAD04230001.dwg` convertit a `src/546501.dxf`. Els números i els rètols de la serigrafia
+s'escriuen amb tipografia (Arial Bold) perquè al plànol alguns dígits estan mal traçats.
+
+```bash
+dwg2dxf -y -o models/src/546501.dxf 546501_CAD04230001.dwg
+python3 models/src/scripts/multiplexor_serigrafia.py
+/Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/multiplexor_model.py
 ```

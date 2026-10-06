@@ -1155,13 +1155,13 @@ RD({id:'cap_jump', fam:'xarxa', layer:'xarxes', parent:'capcalera', tram:'capt',
  vt:{A:{connects:"Sortida TV de la centraleta → entrada TERR del mesclador. Sortida de l'amplificador de FI 2 → entrada SAT del mesclador."},
      B:{connects:"Sortida MATV (mòdul FM) → entrada TERR del mesclador. Amplificador de FI 1 → SAT A. Amplificador de FI 2 → SAT B."}}});
 RD({id:'cap_conF', fam:'punt', layer:'punts', parent:'capcalera',
- name:'Connectors F de compressió (exemple: ref. 4104)',
- what:'Connectors F mascle de compressió amb femella hexagonal, muntats als extrems dels cables coaxials.',
- purpose:'Fan una connexió de 75 Ω estanca i fiable sense deixar el conductor exposat.',
+ name:'Connectors F mascle roscats (exemple: ref. 417101)',
+ what:'Connectors F mascle amb femella hexagonal i cos moletejat que es rosca sobre la coberta del cable coaxial.',
+ purpose:'Uneixen els cables coaxials als ports F dels equips. El conductor central del cable pelat fa de contacte mascle; la malla connecta amb el cos metàl·lic.',
  where:'A cada extrem de cable coaxial del RITS.',
  connects:'Cables coaxials ↔ connectors F femella dels equips.',
  example:'Un connector mal rematat amb la malla tocant el conductor central pot curtcircuitar l\'alimentació d\'antena.',
- confusion:'Al model els connectors són a mida real: femella hexagonal d\'11 mm i rosca de 3/8".',
+ confusion:'No són connectors de compressió: el cos es rosca sobre el cable. El model 417101 segueix el perfil del plànol del fabricant (21,1 mm de llarg); la rosca interior i el moletejat són aproximats.',
  links:['cap_mix','rits_ff']});
 RD({id:'cap_carregues', fam:'punt', layer:'punts', parent:'capcalera',
  name:'Càrregues de 75 Ω',
@@ -1481,7 +1481,7 @@ const QUIZ = [
 
 const SIMPLIFICATIONS = [
  'Model didàctic simplificat. La configuració real depèn del projecte i de la normativa aplicable.',
- 'Fora del RITS, tubs, cables, caixes i equips petits estan ampliats i fora d\'escala per poder-los veure i seleccionar.',
+ 'Fora del RITS, tubs, caixes i alguns cables i equips petits estan ampliats per poder-los veure i seleccionar. Els connectors F roscats 417101 i els coaxials de distribució, dispersió i interior de RTV són a mida real (coaxial Ø6,6 mm).',
  'Per defecte els cables tenen un aspecte real habitual: els dos coaxials de distribució de RTV es distingeixen pel color (cable 1 blanc, cable 2 negre, també a la dispersió), la fibra és groga i els connectors SC/APC verds. Les opcions «per tram» i «per tecnologia» són un codi didàctic d\'aquesta aplicació. Cap color és obligatori.',
  'Les canalitzacions externa i d\'enllaç es representen amb un sol tub. La canalització principal té quatre tubs i la secundària tres; no s\'indiquen diàmetres ni quantitats normatives.',
  'Tots els habitatges tenen la mateixa distribució (sala d\'estar, cuina, dos dormitoris, bany i rebedor; els B, C i D són simètrics de l\'A respecte dels eixos de l\'edifici) i la dotació mínima de preses: 4 de RTV, 6 registres de parells trenats (2 amb BAT doble), 2 coaxials de TBA, 1 de fibra òptica a la sala i 1 registre configurable. Les preses de corrent properes no es dibuixen.',
@@ -1593,7 +1593,7 @@ const P = a => a.map(p => Array.isArray(p) ? V(...p) : p);
 function cable(key, elId, pts, o){
   pts=P(pts); const e=EL[elId];
   const tram=o.tram||e.tram, tech=o.tech||e.tech, svc=o.svc||e.svc;
-  const r=o.r ?? (tech==='fo'?0.0075: tech==='pt'?0.026:0.012);
+  const r=o.r ?? (tech==='fo'?0.0075: tech==='pt'?0.026:0.0033); // coaxial Ø6,6 mm per encaixar al connector F
   const real=o.real ?? realColorFor(key,tech);
   const color = cableColor(tram,tech,real);
   const m=ictMesh(tubeGeo(pts,r,8), color, elId, {cable:key, tram, tech, svc, real, texMap:TEX[tech]||null, map: S.colorBy==='real' ? null : (TEX[tech]||null)});
@@ -1765,7 +1765,8 @@ function buildRITIPairs(){
    ICT: geometria + connexions
    =================================================================== */
 const RX={rtv:0.55, fo:0.8, pt:1.05, res:1.3}, RZ=-4.5;
-const DER={a:0.42, b:0.68};           // derivadors dins del registre secundari
+const DER={a:0.42, b:0.68}; // derivadors dins del registre secundari
+const DERPORT={}; // extrems dels connectors F: planta, baixant i port
 const RSK={x:1.40, y:1.62};          // regleta de parells dins del registre secundari
 const OFF={a:[-0.03,-0.02], b:[0.03,0.02]};
 const mx=(u,x)=> (u.s==='A'||u.s==='D') ? x : -x;   // disposició A (x negatiu); B i C reflectits en x; C i D reflectits en z (vegeu building.js)
@@ -1826,6 +1827,17 @@ function buildICT(){
         for(const k of [0,1,2,3]) iCyl(`deriv_${f}`,0.012,0.03,DER[c]-0.054+k*0.036,y+1.45,-4.57,0xB0B6BC,'z',{pick:false});
         if(f===1) iCyl('deriv_1',0.025,0.08,DER[c],y+1.4,-4.62,0x222222,'y',{pick:false});
       }
+      /* Connectors als cables: la femella del port ja és al model del derivador. */
+      if(MODELS.deriv?.scene){
+        const ports=DERPORT[`${f}${c}`]={}, us={t1:'A',t2:'D',t3:'C',t4:'B'};
+        for(const name of ['in','out','t1','t2','t3','t4']){
+          if(name==='out' && f===1) continue; // càrrega terminal en lloc de cable
+          const mp=modelPoint('deriv',name); if(!mp) continue;
+          const tip=V(DER[c]+mp.x,y+1.55+mp.y,-4.715+mp.z), dir=V(0,-1,0);
+          const el=us[name]?`xs_rtv_${f}${us[name]}`:'xd_rtv';
+          ports[name]=coaxPlug(el,tip.addScaledVector(dir,-0.004),dir);
+        }
+      }
     }
     iBox(`cseg_${f}`,0.22,0.34,0.08,0.95,y+1.5,-4.62,0xF2F2F2);
     iBox(`cseg_${f}`,0.16,0.06,0.02,0.95,y+1.56,-4.575,0x0AA5C2,{pick:false});
@@ -1840,10 +1852,10 @@ function buildICT(){
   for(const c of ['a','b']){
     const rx=RX.rtv+OFF[c][0], rz=RZ+OFF[c][1], dx=DER[c];
     const inRS = y => MODELS.deriv?.scene
-      ? [[rx,y+2.0,rz],[dx-0.08,y+1.75,-4.65],[dx-0.08,y+1.44,-4.68],[dx-0.0426,y+1.44,-4.706],[dx-0.0426,y+1.523,-4.706]]
+      ? [[rx,y+2.0,rz],[dx-0.08,y+1.75,-4.65],[dx-0.08,y+1.44,-4.68],[dx-0.0426,y+1.44,-4.706],DERPORT[`${y/3}${c}`].in]
       : [[rx,y+2.0,rz],[dx,y+1.85,-4.6],[dx,y+1.66,-4.62]];
     const outRS= y => MODELS.deriv?.scene
-      ? [[dx+0.0424,y+1.523,-4.706],[dx+0.0424,y+1.44,-4.706],[dx+0.08,y+1.32,-4.65],[rx,y+1.0,rz]]
+      ? [DERPORT[`${y/3}${c}`].out,[dx+0.0424,y+1.44,-4.706],[dx+0.08,y+1.32,-4.65],[rx,y+1.0,rz]]
       : [[dx,y+1.44,-4.62],[dx,y+1.2,-4.6],[rx,y+1.0,rz]];
     cable(`xd_rtv_${c}_4`,'xd_rtv',[RITS_EXIT[c],[rx,14.6,rz],...inRS(12)],{from:'cap_mix', to:'deriv_4', via:'canal_principal'});
     for(const f of [3,2,1]) cable(`xd_rtv_${c}_${f}`,'xd_rtv',[...outRS(yb(f+1)),...inRS(yb(f))],{from:`deriv_${f+1}`, to:`deriv_${f}`, via:'canal_principal'});
@@ -1883,11 +1895,11 @@ function buildUnit(u, C){
   const dy = ZM(u) ? 0.12 : 0;
   for(const c of ['a','b']){
     const dx=DER[c], oz=c==='a'?-0.022:0.022, px = X(c==='a'?-3.42:-3.54);
-    const tail = c==='a' ? [[px,y+1.78,Z(-4.64)],[X(-3.40),y+1.80,Z(-4.672)],[X(-3.40),y+1.705,Z(-4.672)]]
-                         : [[px,y+1.80,Z(-4.64)],[X(-3.62),y+1.82,Z(-4.672)],[X(-3.655),y+1.77,Z(-4.672)],[X(-3.655),y+1.735,Z(-4.672)]];
+    const tail = c==='a' ? [[px,y+1.78,Z(-4.64)],[X(-3.40),y+1.80,Z(-4.672)],[X(-3.40),y+1.66+0.0035+FC_LENGTH,Z(-4.6725)]]
+                         : [[px,y+1.80,Z(-4.64)],[X(-3.62),y+1.82,Z(-4.672)],[X(-3.655),y+1.69,Z(-4.6725)],[X(-3.655),y+1.745-FC_LENGTH,Z(-4.6725)]];
     const tapX = {A:-0.0256, D:-0.0086, C:0.0084, B:0.0254}[u.s] ?? (0.054*sgn+(ZM(u)?0.018*sgn:0));
     const startPts = MODELS.deriv?.scene
-      ? [[dx+tapX,y+1.523,-4.706],[dx+tapX,y+1.44,-4.706],[dx+0.1*sgn,y+1.5+dy,-4.5]]
+      ? [DERPORT[`${u.f}${c}`][{A:'t1',D:'t2',C:'t3',B:'t4'}[u.s]],[dx+tapX,y+1.44,-4.706],[dx+0.1*sgn,y+1.5+dy,-4.5]]
       : [[dx+0.054*sgn+(ZM(u)?0.018*sgn:0),y+1.45,-4.57],[dx+0.1*sgn,y+1.5+dy,-4.5]];
     cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [...startPts,[inner,y+CS_H2(1.78),zl+oz],...shiftP(csPath(u,y,1.78),oz).slice(1),...tail], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
   }
@@ -1994,19 +2006,16 @@ function buildInterior(u){
   const P0=`pau_rtv_${U}`;
   iBox(P0,0.34,0.16,0.055,X(-3.48),y+1.58,Z(-4.6725),0xE9ECEE);
   rPlane(P0,0.30,0.07,V(X(-3.48),y+1.585,Z(-4.6725)+sz*0.0325),SZV,textTex(['PAU + REP','IN 1 · IN 2   →   4 × OUT'],{w:512,h:120,fs:[44,30],bold:[true],bg:'#E9ECEE',fg:'#263238'}),{});
-  const fPort=(el,x,yy,up,load)=>{ const s=up?1:-1;                       // port F femella vertical (cap amunt o cap avall)
-    iCyl(el,0.013,0.006,x,yy+s*0.003,Z(-4.6725),FN,'y',{pick:false}); iCyl(el,0.009,0.024,x,yy+s*0.015,Z(-4.6725),FN,'y',{pick:false});
-    if(load) iCyl(el,0.012,0.03,x,yy+s*0.035,Z(-4.6725),0xD9DCDF,'y',{pick:false}); };
-  const fPlug=(el,x,yy,up)=>{ const s=up?1:-1;                              // connector F mascle roscat (femella hexagonal + cos)
-    const h=ictMesh(new THREE.CylinderGeometry(0.0145,0.0145,0.012,6),FN,el,{}); h.position.set(x,yy+s*0.022,Z(-4.6725));
-    iCyl(el,0.0105,0.02,x,yy+s*0.037,Z(-4.6725),0xB8BBBE,'y',{pick:false}); };
+  const fPort=(el,x,yy,up,load)=>{ const dir=V(0,up?1:-1,0), base=V(x,yy,Z(-4.6725));
+    fFemale(el,base,dir); if(load) rCyl(el,0.0055,0.020,base.clone().addScaledVector(dir,0.018),dir,FN,'nickel',{pick:false}); };
+  const fPlug=(el,x,yy,up)=>coaxPlug(el,V(x,yy,Z(-4.6725)).add(V(0,(up?1:-1)*0.0035,0)),V(0,up?1:-1,0));
   const yT=y+1.66, yB=y+1.50;
   fPort(P0,X(-3.40),yT,true,false); fPlug(`xs_rtv_${U}`,X(-3.40),yT,true);           // entrada 1 ← cable 1 (blanc)
   fPort(P0,X(-3.54),yT,true,true);                                                    // entrada 2: càrrega de 75 Ω
-  const RTVOUT={rtv_cuina:-3.60,rtv_sala:-3.52,rtv_d2:-3.44,rtv_d1:-3.36};
-  for(const [k,xo] of Object.entries(RTVOUT)){ fPort(P0,X(xo),yB,false,false); fPlug(`xi_rtv_${U}`,X(xo),yB,false); }
+  const RTVOUT={rtv_cuina:-3.60,rtv_sala:-3.52,rtv_d2:-3.44,rtv_d1:-3.36}, RTVTAIL={};
+  for(const [k,xo] of Object.entries(RTVOUT)){ fPort(P0,X(xo),yB,false,false); RTVTAIL[k]=fPlug(`xi_rtv_${U}`,X(xo),yB,false); }
   /* cable 2 (negre) en reserva: connector F amb tap */
-  fPlug(`xs_rtv_${U}`,X(-3.655),y+1.745,false); iCyl(`xs_rtv_${U}`,0.012,0.02,X(-3.655),y+1.686,Z(-4.672),0x2B2B2B,'y',{pick:false});
+  fMaleFree(`xs_rtv_${U}`,V(X(-3.655),y+1.745,Z(-4.6725)),V(0,-1,0)); iCyl(`xs_rtv_${U}`,0.0048,0.004,X(-3.655),y+1.747,Z(-4.6725),0x2B2B2B,'y',{pick:false});
   /* PAU de fibra (caixa de terminació òptica) amb dues sortides SC/APC (adaptadors verds) */
   const PF=`pau_fo_${U}`, GR=0x2E9B3F;
   iBox(PF,0.17,0.24,0.055,X(-3.12),y+1.645,Z(-4.6725),0xF7F7F5);
@@ -2083,7 +2092,7 @@ function buildInterior(u){
     const p=PRESES.find(o=>o.k===k), T=PTYPE[p.t], pid=`${k}_${U}`;
     tube(`ci_${U}`,pts,0.032,{svc:T.svc});
     let start, from;
-    if(p.t==='rtv'){ const xo=X(RTVOUT[k]); start=[[xo,y+1.455,Z(-4.6725)],[xo,y+1.36,Z(-4.666)],[xe,y+1.2,Z(-4.64)]]; from=`pau_rtv_${U}`; }
+    if(p.t==='rtv'){ const xo=X(RTVOUT[k]); start=[RTVTAIL[k],[xo,y+1.36,Z(-4.666)],[xe,y+1.2,Z(-4.64)]]; from=`pau_rtv_${U}`; }
     else if(p.t==='tba'){ start=[[X(-3.12),y+1.25,Z(-4.64)],[xe,y+1.2,Z(-4.64)]]; from=`div_tba_${U}`; }
     else if(p.t==='fo'){ start=[[X(-3.16),y+1.39,Z(-4.6725)],[X(-3.16),y+1.30,Z(-4.66)],[xe,y+1.2,Z(-4.64)]]; from=`pau_fo_${U}`; }
     else { start=[[X(-2.86),y+1.32,Z(-4.6)],[xe,y+1.2,Z(-4.64)]]; from=`pau_pt_${U}`; }
@@ -2096,7 +2105,7 @@ function buildInterior(u){
         else if(PATCHED[key]){ const pl=rj45(el2,V(X(PATCHED[key]),y+1.258,Z(-4.62)),V(0,1,0),SZV.clone()); start=[pl,[pl[0],pl[1]-0.01,pl[2]],[xe,y+1.15,Z(-4.64)]]; }
         else { const pl=rj45(el2,V(X(FREEEND[key]),y+1.205,Z(-4.62)),V(0,1,0),SZV.clone());   // connector RJ45 lliure
           start=[pl,[pl[0],pl[1]-0.01,pl[2]],[xe,y+1.13,Z(-4.64)]]; } }
-      cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...start,...sh], {tram:'int',tech:T.tech,svc:T.svc, from, to:`bat_${pid}`, via:`ci_${U}`, r: p.t==='fo'?0.0075:p.t==='dat'?0.0035:0.012});
+      cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...start,...sh], {tram:'int',tech:T.tech,svc:T.svc, from, to:`bat_${pid}`, via:`ci_${U}`, r: p.t==='fo'?0.0075:p.t==='dat'?0.0035:p.t==='rtv'?0.0033:0.012});
     }
     /* registre de presa (caixa) i BAT (placa frontal) */
     const w = p.dbl ? 0.4 : 0.3;
@@ -2844,7 +2853,7 @@ function buildStaticUI(){
     <li>Televes AVANT 12 PRO SAT, ref. 532204: 4 entrades VHF+UHF, 1 d'FM i 1 de satèl·lit (FI, guany 41 dB, alimentació de l'LNB); sortida TV (només terrestre) i sortida TV+SAT. <a href="https://www.televes.com/es/532204-central-programable-avant-12-pro-sat-para-terrestre-satelite-32-filtros-digitales-y-programacion-automatica-avanzada-mediante-asuite-bluetoothr.html" target="_blank" rel="noopener">televes.com</a></li>
     <li>Televes sèrie T12: 509812 (monocanal UHF), 508312 (banda III), 508012 (FI 950‑2150 MHz, alimenta l'LNB, 350 mA màx.), font 549812 (24 V, 2,5 A, classe II), carril 5071, pont F 5074. <a href="https://www.televes.com/es/508012-amplificador-t12-fi-sat-950-2150mhz.html" target="_blank" rel="noopener">televes.com</a></li>
     <li>Mescladors Televes 740710 (TERR + SAT A + SAT B → OUT A i OUT B) i 745210 (MATV + FI → 1 sortida). <a href="https://www.televes.com/es/740710-mezclador-de-se-al-terrestre-y-2-satelites-3-entradas-matv-fi-fi.html" target="_blank" rel="noopener">televes.com</a></li>
-    <li>Televes filtre LTE/5G 403201, càrregues 4061 (amb bloqueig de CC) i 4058, adaptador F‑F 4173, connector F 4104, cables T100 (exterior PE negre i interior PVC blanc). <a href="https://www.televes.com" target="_blank" rel="noopener">televes.com</a></li>
+    <li>Televes filtre LTE/5G 403201, càrregues 4061 (amb bloqueig de CC) i 4058, adaptador F‑F 4173, connector F roscat 417101 (perfil del plànol CAD07190354 i fotos de referència), cables T100 (exterior PE negre i interior PVC blanc). <a href="https://www.televes.com" target="_blank" rel="noopener">televes.com</a></li>
     <li>Recinte (porta, safata, alimentació elèctrica, il·luminació, ventilació, placa i anell de terra): RD 346/2011, annex III, apartats 5.5 i 7.1. El model en fa una representació orientativa; no n'acredita el compliment.</li></ul>
    <h3>L'edifici del model</h3><p class="small">Edifici plurifamiliar entre mitgeres amb nucli central d'escala i ascensor: soterrani d'aparcament (16 places, rampa de vehicles, trasters i vestíbul d'independència), planta baixa (vestíbul, local de serveis, RITI i una botiga), quatre plantes amb quatre habitatges (A–D) al voltant d'un distribuïdor comú i coberta transitable amb el RITS i les antenes. Les dimensions (forjats de 3 m entre plantes, escala de dos trams amb esglaons de 17 × 28 cm, portes de 0,9 m, cabina d'ascensor d'uns 1,4 × 1,9 m) són plausibles però <b>no constitueixen un projecte arquitectònic</b> ni acrediten el compliment del CTE (DB-SUA, DB-SI) ni de la normativa d'accessibilitat.</p>
    <ul class="small"><li>Tipologies generals d'habitatge plurifamiliar amb nucli central i distribuïdor (manuals de projecte i exemples docents d'arquitectura); dimensions d'escales i passos de referència del CTE DB-SUA 1 (consulta orientativa). <a href="https://www.codigotecnico.org" target="_blank" rel="noopener">codigotecnico.org</a></li></ul>
@@ -3658,21 +3667,28 @@ function fFemale(el, base, dir, o={}){ dir=dir.clone().normalize();
   if(o.open){ rCyl(el,0.0031,0.0004,base.clone().addScaledVector(dir,0.0147),dir,0xF2F2EC,'plastic'); rCyl(el,0.0008,0.00045,base.clone().addScaledVector(dir,0.01485),dir,0x333333,'plastic'); }
   return b;
 }
-/* connector F mascle de compressió roscat a un port: femella hexagonal + cos; retorna on comença el cable */
-function fMale(el, base, dir, cel='cap_conF'){ dir=dir.clone().normalize();
+/* Connector roscat 417101: plànol CAD07190354, 21,10586 mm; boca a l'origen i cos cap a +Y. */
+const FC_LENGTH=0.02110585939695954;
+function coaxPlug(el,tip,dir){ dir=dir.clone().normalize();
+  const end=tip.clone().addScaledVector(dir,FC_LENGTH);
+  if(MODELS.conF?.scene){
+    const q=new THREE.Quaternion().setFromUnitVectors(UP,dir), ms=placeModel('conF',el,tip.x,tip.y,tip.z,{},q);
+    for(const m of ms){ m.userData.connectorF=true; }
+    if(ms[0]){ const pg=new THREE.CylinderGeometry(0.009,0.009,FC_LENGTH,8); pg.applyQuaternion(q); pg.translate((tip.x+end.x)/2,(tip.y+end.y)/2,(tip.z+end.z)/2); addProxy(ms[0],pg); }
+  } else {
+    rHex(el,0.0063,0.0047,tip.clone().addScaledVector(dir,0.00235),dir,NI,'nickel');
+    rCyl(el,0.0041,0.0053,tip.clone().addScaledVector(dir,0.00735),dir,NI,'nickel');
+    rCyl(el,0.0044,0.0111,tip.clone().addScaledVector(dir,0.01555),dir,NI,'nickel');
+  }
+  return end;
+}
+/* Port de l'equip + connector del cable; retorna l'entrada del cable al cos moletejat. */
+function fMale(el,base,dir,cel='cap_conF'){ dir=dir.clone().normalize();
   rHex(el,0.00625,0.0035,base.clone().addScaledVector(dir,0.00175),dir,NI,'nickel');
-  rHex(cel,0.00675,0.0085,base.clone().addScaledVector(dir,0.00775),dir,NI,'nickel');
-  rCyl(cel,0.0046,0.013,base.clone().addScaledVector(dir,0.0185),dir,0xB8BBBE,'nickel',{r2:0.00425});
-  rCyl(cel,0.0039,0.003,base.clone().addScaledVector(dir,0.0265),dir,0x2A2A2A,'rubber');
-  return base.clone().addScaledVector(dir,0.0275);
+  return coaxPlug(cel,base.clone().addScaledVector(dir,0.0035),dir);
 }
-/* connector mascle sol (per a la unió F‑F o extrem lliure) */
-function fMaleFree(el, tip, dir){ dir=dir.clone().normalize();
-  rHex(el,0.00675,0.0085,tip.clone().addScaledVector(dir,0.00425),dir,NI,'nickel');
-  rCyl(el,0.0046,0.013,tip.clone().addScaledVector(dir,0.015),dir,0xB8BBBE,'nickel',{r2:0.00425});
-  rCyl(el,0.0039,0.003,tip.clone().addScaledVector(dir,0.023),dir,0x2A2A2A,'rubber');
-  return tip.clone().addScaledVector(dir,0.024);
-}
+/* Connector solt: el viu és el del cable, la boca del model no porta un pin propi. */
+function fMaleFree(el,tip,dir){ return coaxPlug(el,tip,dir); }
 function fLoad(el, base, dir, dcBlock){ dir=dir.clone().normalize();
   rHex(el,0.00625,0.0035,base.clone().addScaledVector(dir,0.00175),dir,NI,'nickel');
   rHex('cap_carregues',0.00675,0.0085,base.clone().addScaledVector(dir,0.00775),dir,NI,'nickel');
@@ -4635,18 +4651,19 @@ function init(){
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */
-const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}, deriv:{url:'models/derivador.glb', scene:null}, carrega:{url:'models/carrega.glb', scene:null}};
+const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}, deriv:{url:'models/derivador.glb', scene:null}, carrega:{url:'models/carrega.glb', scene:null}, conF:{url:'models/conector_f.glb', scene:null}};
 function loadModels(){
   if(!THREE.GLTFLoader || location.protocol==='file:') return Promise.resolve();
   const loader=new THREE.GLTFLoader();
   return Promise.all(Object.values(MODELS).map(m=>loader.loadAsync(m.url).then(g=>{ g.scene.updateMatrixWorld(true); m.scene=g.scene; }).catch(()=>{})));
 }
-/* col·loca una còpia del model k a la posició (x, y, z), girada rot (radians en Y, o Euler [x,y,z]), i registra
+/* col·loca una còpia del model k a la posició (x, y, z), girada rot (radians en Y, Euler [x,y,z] o quaternion), i registra
    cada malla a l'element el. recolor: {nomDeMaterial: color} per canviar colors (p. ex. la franja dels mòduls de FI). */
 function placeModel(k, el, x, y, z, recolor={}, rot=0){
   const tpl=MODELS[k]?.scene; if(!tpl) return [];
   const R=new THREE.Matrix4();
-  if(typeof rot==='number') R.makeRotationY(rot);
+  if(rot?.isQuaternion) R.makeRotationFromQuaternion(rot);
+  else if(typeof rot==='number') R.makeRotationY(rot);
   else if(Array.isArray(rot)) R.makeRotationFromEuler(new THREE.Euler(...rot));
   else if(rot && typeof rot==='object') R.makeRotationFromEuler(new THREE.Euler(rot.x||0, rot.y||0, rot.z||0));
   const T=new THREE.Matrix4().makeTranslation(x,y,z).multiply(R), out=[];

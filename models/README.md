@@ -13,6 +13,7 @@ procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara p
 | Mesclador TER + 2 SAT, ref. 740710 (98 × 76 × 27 mm) | `mesclador.glb` | `src/mesclador.blend` |
 | Derivador F 4D, ref. 519345 (109 × 54 × 18 mm) | `derivador.glb` | `src/derivador.blend` |
 | Càrrega terminal 75 Ω tipus F amb bloqueig CC, ref. 4061 (12 × 29 × 12 mm) | `carrega.glb` | `src/carrega.blend` |
+| Connector F mascle roscat, ref. 417101 (L 21,106 mm, cos Ø8,824 mm, hexàgon 10,912 mm entre cares) | `conector_f.glb` | `src/conector_f.blend` |
 
 ## Regenerar el T12
 
@@ -89,3 +90,19 @@ Mides de catàleg i del connector F (Televes 4061):
 ```bash
 /Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/carrega_model.py
 ```
+
+## Regenerar el connector F roscat
+
+Perfil del DWG `417101 - Conector_F_Roscado_CX_T100_10_Sin_CAD07190354.dwg`, facilitat per l'usuari, amb unitats
+en mil·límetres. El model copia el perfil exterior; el moletejat de les fotos i les rosques interiors són aproximats.
+No inclou logotips ni un pin propi: el contacte mascle és el conductor central del cable pelat.
+
+```bash
+dwg2dxf -y -o models/src/417101.dxf '417101 - Conector_F_Roscado_CX_T100_10_Sin_CAD07190354.dwg'
+/Applications/Blender.app/Contents/MacOS/Blender --factory-startup -b -P models/src/scripts/conector_f_model.py
+```
+
+El generador ja conté les mides del plànol i pot regenerar el model sense el DXF. Una sola malla de níquel, sense
+textures externes. Origen al centre de la boca; cos cap a +Z a Blender (+Y en glTF). Marcadors `mouth` i `cable`.
+`coaxPlug()` orienta el model segons el port i retorna l'entrada del cable. S'utilitza a antenes, equips del RITS,
+unions F-F, derivadors i PAU; conserva la representació procedural si el GLB no es carrega.

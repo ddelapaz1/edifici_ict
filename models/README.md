@@ -14,6 +14,9 @@ procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara p
 | Derivador F 4D, ref. 519345 (109 × 54 × 18 mm) | `derivador.glb` | `src/derivador.blend` |
 | Càrrega terminal 75 Ω tipus F amb bloqueig CC, ref. 4061 (12 × 29 × 12 mm) | `carrega.glb` | `src/carrega.blend` |
 | Connector F mascle roscat, ref. 417101 (L 21,106 mm, cos Ø8,824 mm, hexàgon 10,912 mm entre cares) | `conector_f.glb` | `src/conector_f.blend` |
+| PAU de fibra òptica, ref. 231502 (119 × 94 × 33 mm; 97 mm amb els adaptadors) | `pau_fo.glb` | `src/pau_fo.blend` |
+| Adaptador SC/APC simplex amb tapa autoblocant (12,7 × 9,7 × 25,4 mm; marc 15,5 × 11 × 3,2 mm) | `adaptador_sc.glb` | `src/adaptador_sc.blend` |
+| Connector SC/APC simplex de latiguillo (grip 9,0 × 7,4 mm, 52 mm amb la mànega) | `sc_apc.glb` | `src/sc_apc.blend` |
 
 ## Regenerar el T12
 
@@ -106,3 +109,24 @@ El generador ja conté les mides del plànol i pot regenerar el model sense el D
 textures externes. Origen al centre de la boca; cos cap a +Z a Blender (+Y en glTF). Marcadors `mouth` i `cable`.
 `coaxPlug()` orienta el model segons el port i retorna l'entrada del cable. S'utilitza a antenes, equips del RITS,
 unions F-F, derivadors i PAU; conserva la representació procedural si el GLB no es carrega.
+
+## Regenerar el PAU de fibra òptica i els SC/APC
+
+Plànols del fabricant `231502_CAD04230058.dwg` (vista frontal amb l'etiqueta) i `231502 - PAU_Fo.10_Sin_CAD07180150.dwg`
+(contorn), convertits a `src/231502_a.dxf` i `src/231502_b.dxf`. Profunditat de la fitxa del producte (33 mm). L'etiqueta
+es copia del plànol (textos i icones de les sortides en colors); el requadre del logotip de la tapa queda llis.
+
+```bash
+dwg2dxf -y -o models/src/231502_a.dxf 231502_CAD04230058.dwg
+python3 models/src/scripts/pau_fo_serigrafia.py
+/Applications/Blender.app/Contents/MacOS/Blender --factory-startup -b -P models/src/scripts/pau_fo_model.py
+/Applications/Blender.app/Contents/MacOS/Blender --factory-startup -b -P models/src/scripts/adaptador_sc_model.py
+/Applications/Blender.app/Contents/MacOS/Blender --factory-startup -b -P models/src/scripts/sc_apc_model.py
+```
+
+PAU: origen al centre de la cara posterior; buits `sc1`…`sc4` (boca exterior de cada sortida, a la base; 1 i 2 a la
+fila davantera) i `entrada_d` / `entrada_e` (pretallat lateral superior per a l'acometida). Adaptador: origen al centre de
+la boca exterior, eix cap endins (+Y en glTF), cara ampla segons X; buits `sc` (pla d'acoblament, a 12,7 mm) i
+`interior`; la tapa autoblocant té el material `tapa`, que la web treu (`recolor {tapa: null}`) quan hi ha connector.
+Connector: origen a la punta de la virola, cable cap a +Y en glTF; buits `tip` i `cable` (a 52 mm).
+`scAdapter()` i `scPlug()` orienten els models (eix i cara ampla) i tenen reserva procedural.

@@ -73,6 +73,7 @@ mallas: el edificio ya tiene unas 4.700.
 | Derivadores de RTV (registros secundarios) | `TAPF` (pérdida por planta, en el bloque de datos), `DER`, `DPX`, `DERPORT`, bucle de registros secundarios en `buildICT()` |
 | Mánega de 50 pares y sangrado | `PT50`, `buildPairRiser()`, `pairWindow()`, `PAIRC` |
 | Conectores F y cargas | `fFemale()`, `fMale()`, `coaxPlug()` (modelo 417101), `fLoad()` (modelo 4061) |
+| Fibra en la vivienda (PAU 231502, SC/APC) | `pauFoPos()`, `scQuat()`, `scAdapter()`, `scPlug()`; presa óptica en el bucle de `PRESES` de `buildInterior()` |
 | Modelos glTF | `MODELS`, `loadModels()`, `placeModel()`, `modelPoint()` (al final del segundo `<script>`) |
 | Paisaje de fondo | `skyTexture()`, `buildMountains()`, `buildLandscape()`, `landscapeVisibility()` |
 | Antenas | `buildAntennas()` |
@@ -114,6 +115,9 @@ mallas: el edificio ya tiene unas 4.700.
 | Derivador F 4D 519345 (109 × 54 × 18) | `derivador.glb` | Registros secundarios (2 por planta) |
 | Carga 75 Ω 4061 (12 × 29 × 12) | `carrega.glb` | Entradas/salidas libres (`fLoad`) y paso de la 1.ª planta |
 | Conector F macho roscado 417101 | `conector_f.glb` | Conexiones coaxiales (`coaxPlug`) |
+| PAU de fibra óptica 231502 (119 × 94 × 33) | `pau_fo.glb` | RTR de cada vivienda (`pauFoPos(u)`) |
+| Adaptador SC/APC simplex con tapa autoblocante | `adaptador_sc.glb` | PAU de fibra y presa óptica de la sala (`scAdapter`) |
+| Conector SC/APC de latiguillo (52 mm) | `sc_apc.glb` | PAU, presa óptica y ONT (`scPlug`) |
 
 Cómo funcionan en la web:
 
@@ -124,7 +128,9 @@ Cómo funcionan en la web:
   `recolor` cambia colores por **nombre de material** (p. ej. `{banda: 0x1565C0}` en los T12 de FI).
 - Los **objetos vacíos** del modelo marcan puntos de anclaje y se leen con `modelPoint(k, nombre)`: puertos F
   (`port_in1`, `in`, `t1`… `out`, `sa`, `ter`…), bocas RJ45 (`j1`… `j8`, `line`, `adsl`), conector de 24 V (`dc`),
-  tomas (`power`, `terra`), tornillos (`forat_e`, `forat_d`). Los cables y conectores se enganchan ahí.
+  tomas (`power`, `terra`), tornillos (`forat_e`, `forat_d`), salidas SC del PAU (`sc1`… `sc4`) y entradas laterales
+  (`entrada_d`, `entrada_e`). Los cables y conectores se enganchan ahí.
+- `recolor` con `null` omite una pieza (p. ej. `{tapa: null}`: adaptador SC sin tapa porque lleva un conector).
 - Convenios de los modelos: metros; frontal hacia −Y en Blender (+Z en glTF); origen en el centro de la cara posterior
   (T12 y fuente: centro de la arista inferior posterior). Materiales: zamak `C2C6C9`, níquel `C9CCCF` (metálico 0,5;
   **nunca 1**, porque la escena no tiene mapa de entorno y el metal puro se ve negro).

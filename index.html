@@ -446,11 +446,11 @@ def({id:'canal_ext', fam:'canal', layer:'canalitzacions', svc:'all', floor:0, zo
  where:'Sota la vorera, entre l\'arqueta d\'entrada i la façana (es veu per la rasa oberta del model).',
  connects:'Allotja els cables d\'alimentació de fibra i de parells. Connecta l\'arqueta d\'entrada amb el punt d\'entrada general.',
  example:'Quan un segon operador vol donar servei, passa el seu cable per aquests tubs fins a la façana.',
- confusion:'La canalització externa és de l\'edifici encara que els cables que hi passen siguin dels operadors. Al model es dibuixa un sol tub per claredat.',
+ confusion:'La canalització externa és de l\'edifici encara que els cables que hi passen siguin dels operadors. Segons el RD 346/2011 són 4 tubs de Ø63 mm: al model, un per a cada cable d\'alimentació de fibra (dos operadors), un per a la de parells i un de reserva.',
  nets:['xal_fo','xal_pt'], links:['arqueta','peg']});
 def({id:'canal_enllac_inf', fam:'canal', layer:'canalitzacions', svc:'all', floor:0, zone:'comuna', main:true,
  name:'Canalització d\'enllaç inferior', sigla:'',
- what:'Són els tubs que continuen des del punt d\'entrada general fins al registre principal del RITI, amb registres d\'enllaç intercalats.',
+ what:'Són els tubs que continuen des del punt d\'entrada general fins al registre principal del RITI, amb registres d\'enllaç intercalats. N\'hi ha tants com a la canalització externa (4), de Ø40 a Ø63 mm segons els cables: aquí de Ø63 mm, perquè la mànega de parells de l\'operador fa Ø18 mm i necessita corbes amples.',
  purpose:'Porta els cables d\'alimentació dels operadors per dins de l\'edifici fins al recinte inferior.',
  where:'Planta baixa: des de la façana, pel sostre del vestíbul, fins al RITI.',
  connects:'Punt d\'entrada general → registre d\'enllaç inferior → RITI (registres principals).',
@@ -471,7 +471,7 @@ def({id:'canal_principal', fam:'canal', layer:'canalitzacions', svc:'all', floor
  what:'És el conjunt de tubs verticals que uneix el RITI, els registres secundaris de cada planta i el RITS.',
  purpose:'Dona suport a les xarxes de distribució de tots els serveis. És l\'«eix vertical» de la ICT.',
  where:'Zona comuna, al patinet d\'instal·lacions del distribuïdor de cada planta, des del RITI (planta baixa) fins al RITS (coberta).',
- connects:'Al model hi ha quatre tubs: RTV, fibra òptica, parells i reserva. Una canalització pot allotjar cables de diferents serveis segons com s\'organitzi; aquí s\'han separat per poder-los veure.',
+ connects:'Sis tubs de Ø50 mm (RD 346/2011): un per a RTV, un per a parells o parells trenats, dos per a cables coaxials (TBA), un per a fibra òptica i un de reserva. Al model, els de TBA i el de reserva són buits.',
  example:'Entre la 2a i la 3a planta, pel tub de RTV hi passen els dos coaxials de distribució i pel tub de parells, els cables que van als habitatges de la 3a i la 4a planta.',
  confusion:'La canalització principal és el conducte; la xarxa de distribució són els cables que hi ha a dins. Un tub buit continua sent canalització.',
  nets:['xd_rtv','xd_fo','xd_pt'], links:['riti','rits','rs_1','rs_2','rs_3','rs_4']});
@@ -741,7 +741,7 @@ for (const u of UNITS) {
    nets:[`xs_rtv_${U}`,`xs_fo_${U}`,`xs_pt_${U}`,`xi_rtv_${U}`,`xi_dat_${U}`,`xi_tba_${U}`,`xi_fo_${U}`], canals:[`cs_${U}`,`ci_${U}`], links:[`rconf_${U}`]});
   def({id:`ci_${U}`, fam:'canal', layer:'canalitzacions', svc:'all', floor:f, unit:U, zone:'privada',
    name:`Canalització interior d\'usuari — ${N}`, sigla:'',
-   what:'Són els tubs encastats que van en estrella des del registre de terminació de xarxa fins a cada registre de presa.',
+   what:'Són els tubs encastats, independents i de Ø20 mm com a mínim, que van en estrella des del registre de terminació de xarxa fins a cada registre de presa.',
    purpose:'Allotgen la xarxa interior. Cada registre de presa té el seu propi tub independent.',
    where:`Dins del ${N}: terra i parets, des del rebedor fins a les estàncies.`,
    connects:'Catorze tubs: quatre de RTV, sis de parells trenats, dos de coaxial de TBA, un de fibra òptica i un cap al registre de presa configurable. Els tubs cap a la paret del televisor de la sala passen per un registre de pas.',
@@ -1334,7 +1334,7 @@ Object.assign(EL.reg_enllac_sup, {lid:true,
  confusion:'És un pas protegit i un punt d\'accés, no un amplificador. Les unions F‑F són dins, amb la tapa tancada; obre la tapa per veure-les.',
  links:['rits','rits_ff','rits_corr_in']});
 Object.assign(EL.canal_enllac_sup, {
- what:'Tub corrugat negre que porta els cables d\'antena per la coberta fins al passamurs del RITS. La boca exterior està girada cap avall (coll de cigne) perquè no hi entri l\'aigua.',
+ what:'Dos tubs corrugats negres de Ø40 mm (RD 346/2011) que porten els cables d\'antena per la coberta fins al passamurs del RITS. Les boques exteriors estan girades cap avall (coll de cigne) perquè no hi entri l\'aigua.',
  where:'Coberta: des del peu de la torre d\'antenes, subjectat al terra amb suports i a la paret del RITS amb brides. Hi passen els quatre coaxials de captació.',
  links:['torre','reg_enllac_sup','rits']});
 Object.assign(EL.xd_rtv, {
@@ -1384,7 +1384,7 @@ Object.assign(EL.lnb, {name:"LNB doble (convertidor de baix soroll, dues sortide
 EL.parabola.nets=['cab_sat','cab_sat2']; EL.parabola.connects="Reflector → LNB doble → dos cables coaxials (sortides A i B) → RITS.";
 EL.torre.connects="Suporta el màstil (a la part superior), la parabòlica (en un lateral) i els cinc cables coaxials, subjectats amb brides a una de les cares."; EL.torre.links.push('cab_sat2');
 Object.assign(EL.cab_capt, {confusion:"Cada sortida d'antena té el seu propi cable fins al RITS: els cinc coaxials comparteixen el tub d'enllaç, però no s'uneixen fins a la capçalera."});
-Object.assign(EL.canal_enllac_sup, {where:"Coberta: des del peu de la torre d'antenes, subjectat al terra amb suports i a la paret del RITS amb brides. Hi passen els cinc coaxials de captació: TDT, DAB, FM i les dues sortides de l'LNB.",
+Object.assign(EL.canal_enllac_sup, {where:"Coberta: des del peu de la torre d'antenes, subjectat al terra amb suports i a la paret del RITS amb brides. Pel primer tub hi passen els coaxials de TDT, DAB i FM; pel segon, les dues sortides de l'LNB.",
  connects:"Torre d'antenes → passamurs i registre d'enllaç superior → RITS. Hi passen cinc coaxials independents.", nets:['cab_capt','cab_dab','cab_fm','cab_sat','cab_sat2']});
 Object.assign(EL.reg_enllac_sup, {what:"Passamurs encastat a la paret lateral del RITS i caixa de registre interior amb tapa, on es fan les cinc unions F‑F entre els cables exteriors i els interiors.",
  connects:"Tub d'enllaç superior → passamurs → registre (cinc unions F‑F: TDT, DAB, FM, SAT A i SAT B) → tub corrugat d'entrada.", nets:['cab_capt','cab_dab','cab_fm','cab_sat','cab_sat2']});
@@ -1487,7 +1487,7 @@ const QUIZ = [
 
 const SIMPLIFICATIONS = [
  'Model didàctic simplificat. La configuració real depèn del projecte i de la normativa aplicable.',
- 'Fora del RITS, tubs, caixes i alguns equips petits estan ampliats per poder-los veure i seleccionar (no el PAU de fibra, els adaptadors i connectors SC/APC ni el multiplexor, que són a mida real); els cables, en canvi, tenen el diàmetre real d\'una referència comercial documentada: coaxial RG-6 Ø6,6 mm (també latiguillos i RITS), acometida de 2 fibres Ø3,8 mm, cable de distribució de fibra Ø8 mm (el d\'un cable interior de 48 fibres, coherent amb el panell de sortida de 48 connectors), latiguillos de fibra Ø2 mm, mànega de 50 parells Ø14,4 mm, acometida de 2 parells Ø4 mm i Cat 6 Ø6,2 mm. Els cables fins es poden seleccionar igualment: la zona de clic és un volum invisible més gruixut.',
+ 'Els tubs tenen el diàmetre normatiu (RD 346/2011). Fora del RITS, caixes i alguns equips petits estan ampliats per poder-los veure i seleccionar (no el PAU de fibra, els adaptadors i connectors SC/APC ni el multiplexor, que són a mida real); els cables, en canvi, tenen el diàmetre real d\'una referència comercial documentada: coaxial RG-6 Ø6,6 mm (també latiguillos i RITS), acometida de 2 fibres Ø3,8 mm, cable de distribució de fibra Ø8 mm (el d\'un cable interior de 48 fibres, coherent amb el panell de sortida de 48 connectors), latiguillos de fibra Ø2 mm, mànega de 50 parells Ø14,4 mm, acometida de 2 parells Ø4 mm i Cat 6 Ø6,2 mm. Els cables fins es poden seleccionar igualment: la zona de clic és un volum invisible més gruixut.',
  'Les corbes dels cables són arcs amb el radi mínim de curvatura de cada tipus (RG-6 33 mm, fibra d\'acometida 18 mm, fibra de distribució 80 mm, mànega 144 mm, Cat 6 25 mm). Dins dels tubs, cada cable segueix el camí del tub desplaçat, amb el mateix radi, i no en surt. Al RITS, dins dels corrugats d\'entrada i als ponts entre mòduls, i a l\'entrada dels cables de l\'operador a les CTO del RITI, algunes corbes queden per sota del mínim perquè l\'espai del model no dona per més.',
  'Registre secundari: els coaxials van per carrils arran de la placa del fons i pugen junt a les parets; la fibra i els parells de dispersió hi passen per davant; els baixants entren i surten dels tubs en posicions fixes. Sangrat de la mànega: es representa una finestra de 16 cm amb la coberta oberta, 8 grups de parells en pas (en lloc dels 40, 30, 20 o 10 parells reals) i els 10 parells de la planta, trenats, que entren per sota a la regleta; les acometides en surten per dalt.',
  'Per defecte els cables tenen un aspecte real habitual: els dos coaxials de distribució de RTV es distingeixen pel color (cable 1 blanc, cable 2 negre, també a la dispersió), la fibra és groga i els connectors SC/APC verds. Les opcions «per tram» i «per tecnologia» són un codi didàctic d\'aquesta aplicació. Cap color és obligatori.',
@@ -1865,7 +1865,7 @@ function buildRITIPairs(){
    Un sol camí (radi de corba 144 mm = 10 × Ø14,4) que es talla a la finestra del sangrat de cada planta:
    dins del tub va a (x, z); al registre fa una S fins a la placa del fons (xp, zp), hi puja subjectada amb dues brides
    i torna a fer una S cap al tub superior. A la 4a planta la mànega acaba al registre amb un caputxó (parells 41–50 de reserva). */
-const PT50={x:1.05, z:-4.57, xp:1.17, zp:-4.712, w0:1.74, w1:1.90};
+const PT50={x:1.05, z:-4.56, xp:1.17, zp:-4.712, w0:1.74, w1:1.90};
 /* colors del codi de parells telefònic (25/50 parells): primari a × secundari b */
 const PAIRC={a:[0xF4F4F0,0xC62828,0x26282B,0xF2C200,0x7B3FA0], b:[0x1E63C6,0xF07F14,0x2E9B3F,0x7A4A21,0x8A9097]};
 const pairCols = n => [PAIRC.a[Math.floor((n-1)/5)%5], PAIRC.b[(n-1)%5]];
@@ -1899,10 +1899,12 @@ function cableFromSamples(key, elId, Sm, r, o={}){
 }
 function buildPairRiser(){
   const D=CBL.pt50, r=D.d/2, {x,z,xp,zp,w0,w1}=PT50, el='xd_pt', e=EL[el];
-  const pts=[[3.212,1.60,-4.705],[3.212,2.036,-4.67],[x,2.036,-4.67]];      // RITI: surt de la columna de sortida i va per la safata
+  /* RITI: surt de la columna de sortida, va per la safata i s'alinea amb el tub de parells (Ø50) abans d'entrar-hi a 2,20 m;
+     als registres secundaris torna a l'eix del tub abans de sortir per dalt (y+2,65) */
+  const pts=[[3.212,1.60,-4.705],[3.212,2.036,-4.67],[x+0.40,2.036,-4.67],[x,2.036,z]];
   for(const f of [1,2,3,4]){ const y=yb(f);
     pts.push([x,y+1.40,z],[xp,y+1.68,zp]);
-    if(f<4) pts.push([xp,y+2.40,zp],[x,y+2.68,z]); else pts.push([xp,y+2.20,zp]);
+    if(f<4) pts.push([xp,y+2.34,zp],[x,y+2.58,z]); else pts.push([xp,y+2.20,zp]);
   }
   const Sm=pathSamples(polyCurve(P(pts),0,D.rb,{key:'xd_pt',rb:D.rb}));
   const sAt=yy=>{ for(let i=1;i<Sm.P.length;i++){ const a=Sm.P[i-1], b=Sm.P[i];
@@ -1918,7 +1920,7 @@ function buildPairRiser(){
   for(const f of [1,2,3,4]){ pairWindow(f,Sm,cut[f-1][0],cut[f-1][1]);
     /* brides de subjecció a la placa del fons */
     const y=yb(f), cl=[], t=0.0013, Rb=r+t/2, M=new THREE.Matrix4();
-    for(const yy of (f<4?[2.05,2.30]:[2.05])){
+    for(const yy of (f<4?[2.05,2.25]:[2.05])){
       const band=new THREE.TorusGeometry(Rb,t/2+0.0004,6,16,Math.PI); band.rotateX(Math.PI/2);   // mitja anella per davant
       cl.push([band,M.clone().makeTranslation(xp,y+yy,zp),0xE6E6E2]);
       for(const s of [-1,1]) cl.push([new THREE.BoxGeometry(0.008,0.012,0.0025),M.clone().makeTranslation(xp+s*(Rb+0.004),y+yy,-4.7235),0xE6E6E2]);
@@ -1956,7 +1958,8 @@ function pairWindow(f, Sm, s0, s1){
 /* ===================================================================
    ICT: geometria + connexions
    =================================================================== */
-const RX={rtv:0.55, fo:0.8, pt:1.05, res:1.3}, RZ=-4.5;
+/* canalització principal (RD 346/2011): 6 tubs de Ø50 mm — RTV, 2 de coaxial (TBA), fibra, parells i reserva */
+const RX={rtv:0.55, tba1:0.675, fo:0.80, tba2:0.925, pt:1.05, res:1.175}, RZ=-4.56, RPR=0.025;
 const DER={a:0.48, b:0.68}; // derivadors dins del registre secundari (el «a», separat de la paret esquerra perquè els coaxials hi girin amb radi ≥ 33 mm)
 const DPX={in:-0.0426, t1:-0.0256, t2:-0.0086, t3:0.0084, t4:0.0254, out:0.0424};   // ports F del derivador (reserva sense model glTF)
 let TAPTX={};
@@ -1975,10 +1978,12 @@ const RSK={x:1.40, y:1.95};          // regleta de parells dins del registre sec
 const RSW={zP:-4.706, zF:-4.686, zIn:-4.64, yLoop:1.453};
 const TAPR={a:{t1:{lane:1.43,col:0.388}, t2:{lane:1.42,col:0.3795}, t3:{lane:1.285,col:1.538,fwd:true}, t4:{lane:1.295,col:1.5295,fwd:true}},
             b:{t1:{lane:1.41,col:0.371}, t2:{lane:1.40,col:0.3625}, t3:{lane:1.305,col:1.521}, t4:{lane:1.315,col:1.5125}}};
-const RISE={a:[DER.a+DPX.out,-4.535], b:[0.60,-4.535], fo:[0.80,-4.58]};   // posició (x, z) dels baixants dins dels tubs
+const RISE={a:[RX.rtv-0.008,RZ], b:[RX.rtv+0.008,RZ], fo:[RX.fo,RZ]};   // posició (x, z) dels baixants dins dels tubs (Ø50)
 const CSEG={x:0.95, y:1.5, z:-4.685, gz:-4.66, xf:0.86, gx:{A:0.91, D:0.94, C:1.00, B:1.03}};   // caixa de segregació (a la placa) i premsaestopes
 const RCS=0.10;   // radi de corba dels tubs de la canalització secundària (i dels cables que hi van a dins)
 const RCI=0.035;  // radi de corba dels tubs de la xarxa interior (≥ radi mínim del RG-6, 33 mm)
+const RIT=0.010;  // xarxa interior d'usuari: un tub de Ø20 mm (mínim RD 346/2011) del RTR a cada registre de presa
+const DXI=0.0045; // presa doble: dos cables al mateix tub de Ø20, desplaçats ±DXI (vegeu inTube) sense tocar-se ni sortir-ne
 const OFF={a:[-0.03,-0.02], b:[0.03,0.02]};
 const mx=(u,x)=> (u.s==='A'||u.s==='D') ? x : -x;   // disposició A (x negatiu); B i C reflectits en x; C i D reflectits en z (vegeu building.js)
 
@@ -1991,31 +1996,39 @@ function buildICT(){
   iBox('arqueta',0.08,0.86,1.0,ax-0.46,-0.5,az,0x9C9C96); iBox('arqueta',0.08,0.86,1.0,ax+0.46,-0.5,az,0x9C9C96);
   iBox('arqueta',1.04,0.05,1.04,ax,0.0,az,0x55595E,{lidOf:'arqueta'});
   /* --- Canalització externa i enllaç inferior --- */
-  tube('canal_ext',[[ax,-0.5,6.54],[ax,-0.5,5.0]],0.11);
-  tube('canal_enllac_inf',[[ax,-0.5,5.0],[ax,-0.5,4.62],[ax,0.37,4.62]],0.11);
-  tube('canal_enllac_inf',[[ax,0.87,4.62],[ax,2.55,4.62],[ax,2.55,-3.48],[3.3,2.55,-3.48]],0.11,{cr:0.35});
+  /* RD 346/2011: externa, 4 tubs de Ø63 mm; enllaç inferior, el mateix nombre (Ø40–63 segons els cables: aquí Ø63 per
+     l'alimentació de parells, Ø18 mm i radi de corba de 18 cm). Un tub per cable: fibra (2 operadors), parells i reserva.
+     Cada cable va per l'eix del seu tub amb el mateix radi de corba (RAL), de manera que no en surt a les cantonades. */
+  const RAL=0.25, ALX={fo2:-0.105, fo:-0.035, pt:0.035, res:0.105}, alInf=dx=>[[ax+dx,-0.5,5.0],[ax+dx,-0.5,4.62,RAL]];
+  const alUp=dx=>[[ax+dx,2.55,4.62,RAL],[ax+dx,2.55,-3.48+dx,RAL]];
+  for(const dx of Object.values(ALX)){
+    tube('canal_ext',[[ax+dx,-0.5,6.54],[ax+dx,-0.5,5.0]],0.0315);
+    tube('canal_enllac_inf',[...alInf(dx),[ax+dx,0.37,4.62]],0.0315,{R:RAL});
+    tube('canal_enllac_inf',[[ax+dx,0.87,4.62],...alUp(dx),[3.3,2.55,-3.48+dx]],0.0315,{R:RAL});
+  }
   /* PEG: pas a través del fonament */
   iCyl('peg',0.17,0.42,ax,-0.5,4.9,0xD08A3A,'z');
   iBox('peg',0.5,0.5,0.03,ax,-0.5,5.12,0xE6B47A,{opacity:0.9});
   /* Registre d'enllaç inferior */
   regBox('reg_enllac_inf',0.5,0.5,0.25,ax,0.62,4.6,C.reg,C.regLid);
-  /* Xarxes d'alimentació (fibra x-0.03, parells x+0.03) */
+  /* Xarxes d'alimentació: un cable per tub (vegeu ALX) */
   /* fibra: dos operadors, cadascun amb el seu cable fins al premsaestopes de la seva CTO (vegeu CTO_FO) */
   const foTail = op => { const g=CTO_FO.ops[op].gland; return [[CTO_FO.cx,2.05,g[2]],[CTO_FO.cx,g[1]+0.05,g[2]],[CTO_FO.cx+0.02,g[1],g[2]],g]; };
-  for(const [k,dx,el,tail] of [['fo',-0.035,'xal_fo',foTail(0)],['fo2',-0.075,'xal_fo',foTail(1)],['pt',0.035,'xal_pt',[[2.688,2.05,-4.6],[2.688,1.84,-4.705],[2.688,1.50,-4.705]]]]){
+  for(const [k,el,tail] of [['fo','xal_fo',foTail(0)],['fo2','xal_fo',foTail(1)],['pt','xal_pt',[[2.688,2.05,-4.6],[2.688,1.84,-4.705],[2.688,1.50,-4.705]]]]){
+    const dx=ALX[k];
     const x=ax+dx, tx=tail[0][0];
     cable(`xal_${k}_1`, el, [[x,-0.55,14],[x,-0.55,7.55],[x,-0.75,7.2],[x,-0.75,6.8]], {from:'operador', to:'arqueta'});
-    cable(`xal_${k}_2`, el, [[x,-0.75,6.8],[x,-0.5,6.5],[x,-0.5,5.0]], {from:'arqueta', to:'peg', via:'canal_ext'});
-    cable(`xal_${k}_3`, el, [[x,-0.5,5.0],[x,-0.5,4.62],[x,0.62,4.62],[x,2.55,4.62],[x,2.55,-3.48+dx],[tx,2.55,-3.48+dx],...tail], {from:'peg', to: el==='xal_fo'?'pi_fo':'pi_pt', via:'canal_enllac_inf'});
+    cable(`xal_${k}_2`, el, [[x,-0.75,6.8],[x,-0.5,6.68],[x,-0.5,5.0]], {from:'arqueta', to:'peg', via:'canal_ext'});
+    cable(`xal_${k}_3`, el, [...alInf(dx),...alUp(dx),[tx,2.55,-3.48+dx],...tail], {from:'peg', to: el==='xal_fo'?'pi_fo':'pi_pt', via:'canal_enllac_inf'});
   }
   /* --- RITI: registres principals i punts d'interconnexió --- */
   regBox('rp_fo',0.75,1.0,0.3,2.05,1.45,-4.6,C.reg,C.regLid);   // les CTO del punt d'interconnexió òptic es construeixen a buildRITIFibre()
   regBox('rp_pt',0.6,1.0,0.3,2.95,1.45,-4.6,C.reg,C.regLid);
   buildEnclosures(); buildRITS(); buildRITIFibre(); buildRITIPairs();
-  /* --- Canalització principal: 4 tubs, interromputs pels registres secundaris --- */
+  /* --- Canalització principal: 6 tubs de Ø50 mm, interromputs pels registres secundaris --- */
   const breaks=[[2.2,3.95],[5.65,6.95],[8.65,9.95],[11.65,12.95],[14.65,14.96]];
   for(const [k,x] of Object.entries(RX)) for(const [y0,y1] of breaks)
-    tube('canal_principal',[[x,y0,RZ],[x,y1,RZ]],0.11,{tubeSvc:k});
+    tube('canal_principal',[[x,y0,RZ],[x,y1,RZ]],RPR,{tubeSvc:k.replace(/\d/,'')});
   /* --- Registres secundaris --- */
   for(const f of [1,2,3,4]){
     const y=yb(f);
@@ -2070,7 +2083,8 @@ function buildICT(){
   const inRS=(c,y)=>{ const [tx,tz]=RISE[c], p=DERPORT[`${y/3}${c}`].in, x=p.x, yl=y+RSW.yLoop;
     return [[tx,y+2.05,tz],[x,y+1.80,RSW.zIn],[x,yl,RSW.zIn],[x,yl,RSW.zP],p]; };
   const outRS=(c,y)=>{ const [tx,tz]=RISE[c], p=DERPORT[`${y/3}${c}`].out, x=p.x, yl=y+RSW.yLoop;
-    return [p,[x,yl,RSW.zP],[x,yl,tz],...(Math.abs(x-tx)>1e-3?[[tx,yl,tz]]:[])]; };
+    const d=Math.abs(x-tx);   // desplaçament curt fins a la posició dins del tub (Ø50): en diagonal suau, no amb dues cantonades seguides
+    return [p,[x,yl,RSW.zP],[x,yl,tz],...(d<1e-3?[]:d<0.07?[[tx,yl-0.12,tz]]:[[tx,yl,tz]])]; };
   for(const c of ['a','b']){
     const [tx,tz]=RISE[c];
     cable(`xd_rtv_${c}_4`,'xd_rtv',[RITS_EXIT[c],[tx,14.80,tz],...inRS(c,12)],{from:'cap_mix', to:'deriv_4', via:'canal_principal'});
@@ -2329,7 +2343,7 @@ function buildInterior(u){
   /* tubs i cables en estrella */
   const N=EXIT_ORDER.length, LAY={}, used=[];
   { const iv=[]; EXIT_ORDER.forEach((k,i)=>{ if(k==='conf') return; const p=PRESES.find(o=>o.k===k), xe=-3.66+i*(0.92/(N-1));
-      for(const [ab,dx] of (p.dbl?[['a',-0.011],['b',0.011]]:[['',0]])){ const key=ab?`${k}_${ab}`:k;
+      for(const [ab,dx] of (p.dbl?[['a',-DXI],['b',DXI]]:[['',0]])){ const key=ab?`${k}_${ab}`:k;
         const sx = p.t==='rtv'?RTVOUT[k] : p.t==='tba'?(k==='tba_sala'?-3.33:-3.27) : p.t==='fo'?-3.16 : MUXOUT[key]?-2.86 : (PATCHED[key]??FREEEND[key]);
         iv.push([key,Math.min(sx,xe+dx)-0.03,Math.max(sx,xe+dx)+0.03]); } });
     iv.sort((a,b)=>a[1]-b[1]);
@@ -2343,12 +2357,12 @@ function buildInterior(u){
     const pts = AX ? dedupe([[xe,y+1.1,Z(-4.64)],[xe,y+yl,Z(-4.64)],[xe,y+yl,qz],[xt,y+yl,qz],[xt,y+0.21,qz]])
                    : dedupe([[xe,y+1.1,Z(-4.64)],[xe,y+yl,Z(-4.64)],[xe,y+yl,lane],[xt,y+yl,lane],[xt,y+yl,qz],[xt,y+0.21,qz]]);
     if(k==='conf'){
-      tube(`ci_${U}`,dedupe([[xe,y+1.1,Z(-4.64)],[xe,y+0.6,Z(-4.64)],[xt,y+0.6,Z(-4.66)],[xt,y+0.5,Z(-4.68)]]),0.032);
+      tube(`ci_${U}`,dedupe([[xe,y+1.1,Z(-4.64)],[xe,y+0.6,Z(-4.64)],[xt,y+0.6,Z(-4.66)],[xt,y+0.5,Z(-4.68)]]),RIT);
       regBox(`rconf_${U}`,0.3,0.3,0.08,xt,y+0.35,Z(-4.71),0x8D9AA8,0xB7C1CC,sz);
       return;
     }
     const p=PRESES.find(o=>o.k===k), T=PTYPE[p.t], pid=`${k}_${U}`;
-    tube(`ci_${U}`,pts,0.032,{svc:T.svc, R:RCI});
+    tube(`ci_${U}`,pts,RIT,{svc:T.svc, R:RCI});
     /* RTR → tub: sortida recta del connector, descens fins a la capa pròpia (LAY), tram horitzontal a 1,20 m,
        baixada davant del tub i entrada per terra. Capes diferents per als recorreguts que se solapen: cap creuament. */
     let src, from;
@@ -2356,7 +2370,7 @@ function buildInterior(u){
     else if(p.t==='tba'){ const tx=X(k==='tba_sala'?-3.33:-3.27); src=[[tx,y+1.31,Z(-4.67)],[tx,y+1.275,Z(-4.67)]]; from=`div_tba_${U}`; }   // dues sortides del distribuïdor
     else if(p.t==='fo'){ src=[PF_TAIL,[PF_TAIL[0],PF_TAIL[1]-0.035,PF_TAIL[2]]]; from=`pau_fo_${U}`; }
     else from=`pau_pt_${U}`;
-    const offs = p.dbl ? [['a',-0.011],['b',0.011]] : [['',0]];
+    const offs = p.dbl ? [['a',-DXI],['b',DXI]] : [['',0]];
     for(const [ab,dx] of offs){
       /* dins del tub: camí del tub traslladat v (dos cables: v oposats, separats en totes les direccions del tub) */
       const v=[dx,0.7*dx,0.7*dx], sh=inTube(pts,v,RCI), key=ab?`${k}_${ab}`:k;
@@ -4170,14 +4184,18 @@ function buildRITSEntry(){
   /* sistema de captació complet (torre, antenes, parabòlica) */
   buildAntennas();
   const TX=ANT.TX, TZ=ANT.TZ, MX=TX+0.55;          // boca del tub d'enllaç (coll de cigne cap avall)
-  /* tub d'enllaç superior: corrugat negre, des del peu de la torre fins al passamurs */
-  const ext=[[MX,15.62,TZ],[MX,15.82,TZ],[MX+0.18,15.82,TZ],[MX+0.18,15.06,TZ],[-0.62,15.06,-3.5],[-0.62,16.95,-3.5],[-0.40,16.95,-3.5]];
-  const T=corrTube('canal_enllac_sup',ext,0.035,{cut:[2.70,3.30],cutDir:V(0,1,0.35),cr:0.085,mouth1:false}); RFT.ext=T;
-  for(const x of [-3.45,-2.75,-2.0,-1.25]) clampAt('canal_enllac_sup',V(x,15.06,-3.5),V(1,0,0),V(0,1,0),0.035);
-  for(const y of [15.5,16.2]) clampAt('canal_enllac_sup',V(-0.62,y,-3.5),V(0,1,0),V(1,0,0),0.035,{stand:0.16});
+  /* enllaç superior (RD 346/2011): 2 tubs corrugats negres de Ø40 mm, paral·lels (el recorregut és al pla z = TZ):
+     el 1 porta TDT, DAB i FM; el 2, les dues sortides de l'LNB. Des del peu de la torre fins al passamurs. */
+  const ER=0.020, EZ=[TZ-0.025,TZ+0.025];
+  const ext=z=>[[MX,15.62,z],[MX,15.82,z],[MX+0.18,15.82,z],[MX+0.18,15.06,z],[-0.62,15.06,z],[-0.62,16.95,z],[-0.40,16.95,z]];
+  const ET=EZ.map(z=>corrTube('canal_enllac_sup',ext(z),ER,{cut:[2.70,3.30],cutDir:V(0,1,0.35),cr:0.085,mouth1:false})); RFT.ext=ET[0];
+  for(const z of EZ){
+    for(const x of [-3.45,-2.75,-2.0,-1.25]) clampAt('canal_enllac_sup',V(x,15.06,z),V(1,0,0),V(0,1,0),ER);
+    for(const y of [15.5,16.2]) clampAt('canal_enllac_sup',V(-0.62,y,z),V(0,1,0),V(1,0,0),ER,{stand:0.16});
+  }
   rCyl('canal_enllac_sup',0.010,0.80,V(MX+0.18,15.40,TZ+0.07),UP,0xA7ADB2,'galv');
   rBox('canal_enllac_sup',MX+0.14,MX+0.22,15.0,15.012,TZ+0.03,TZ+0.11,0xA7ADB2,'galv');
-  clampAt('canal_enllac_sup',V(MX+0.18,15.62,TZ),V(0,1,0),V(0,0,-1),0.035,{stand:0.07});
+  for(const [z,d] of [[EZ[1],0.045],[EZ[0],0.05]]) clampAt('canal_enllac_sup',V(MX+0.18,15.62,z),V(0,1,0),V(0,0,-1),ER,{stand:d});   // el tub 1 es lliga al 2
   /* passamurs a través de la paret esquerra */
   const sl=rCyl('reg_enllac_sup',0.05,0.20,V(-0.40,16.95,-3.5),V(1,0,0),0xC7CBCF,'pvc',{open:true,seg:24,cast:true,pick:true}); sl.material.side=THREE.DoubleSide;
   rCyl('reg_enllac_sup',0.075,0.012,V(-0.466,16.95,-3.5),V(1,0,0),0xC7CBCF,'pvc',{seg:24});
@@ -4192,14 +4210,15 @@ function buildRITSEntry(){
   rBox(R,-0.33,-0.30,16.83,17.07,-3.585,-3.515,0x9EA3A8,'plastic');      // suport de les unions
   /* quatre coaxials exteriors: antena → torre → gassa de goteig → boca → tub → registre */
   const SV=[['tdt','cab_capt','capt_mast','capt_tube','antena','TDT'],['dab','cab_dab','dab_mast','dab_tube','antena_dab','DAB'],['fm','cab_fm','fm_mast','fm_tube','antena_fm','FM'],['sat','cab_sat','sat_1','sat_2','lnb','SAT A'],['sat2','cab_sat2','satb_1','satb_2','lnb','SAT B']];
-  /* cinc cables dins del tub: en anell, separats 72° */
+  /* corrugat interior del RITS: cinc cables en anell, separats 72° */
   const RING=[0,1,2,3,4].map(i=>{ const a=(90+72*i)*Math.PI/180; return [0.016*Math.cos(a),0.016*Math.sin(a)]; });
-  const OFFE={fm:RING[1], tdt:RING[0], dab:RING[4], sat:RING[2], sat2:RING[3]};
-  const ft=T.ft, Lx=T.L, inT={};
-  for(const [k,el,k1,,from] of SV){ const [dn,db]=OFFE[k]; const zb=ANT.ZB[k];
-    const pts=[...ANT.cab[k], [TX+0.24,dn>0?15.35:15.375,zb], [MX+dn-0.07,dn>0?15.35:15.375,TZ-db], [MX+dn,15.47,TZ-db], [MX+dn,15.62,TZ-db]];
+  /* tubs d'enllaç (Ø40, Ø interior 32 mm): 3 cables a 120° al tub 1 i 2 cables al tub 2; [tub, dn, db] */
+  const OFFE={tdt:[0,0,0.0055], fm:[0,-0.0048,-0.0028], dab:[0,0.0048,-0.0028], sat:[1,-0.005,0], sat2:[1,0.005,0]};
+  const inT={};
+  for(const [k,el,k1,,from] of SV){ const [ti,dn,db]=OFFE[k]; const zb=ANT.ZB[k], zc=EZ[ti];
+    const pts=[...ANT.cab[k], [TX+0.24,dn>0?15.35:15.375,zb], [MX+dn-0.07,dn>0?15.35:15.375,zc-db], [MX+dn,15.47,zc-db], [MX+dn,15.62,zc-db]];
     rCable(k1,el,pts,PE,'pe',{from,to:'canal_enllac_sup',cr:0.035});
-    inT[k]=insidePath(ft,0,Lx,dn,db); }
+    inT[k]=insidePath(ET[ti].ft,0,ET[ti].L,dn,db); }
   /* unions F‑F: s'assignen per ordre d'arribada (de dalt a baix) perquè els cables no es creuin */
   const UY=[17.05,17.00,16.95,16.90,16.85];
   const ord=SV.map(x=>x[0]).sort((a,b)=>{ const A=inT[a][inT[a].length-1], B=inT[b][inT[b].length-1]; return (B.y-A.y)||(A.z-B.z); });
@@ -4223,15 +4242,15 @@ function buildRITSEntry(){
   for(const x of [0.45,1.25]) clampAt('rits_corr_in',V(x,16.70,-4.64),V(1,0,0),V(0,0,1),0.035,{stand:0.09});
   symSprite('rits_corr_in',V(0.20,16.80,-4.55),'〰 RF entrada','#8D5A1A');
   /* tub corrugat de sortida cap a la canalització principal */
-  const cout=[[2.30,15.45,-4.62],[2.30,15.30,-4.62],[0.55,15.30,-4.62],[0.55,15.30,-4.50],[0.55,14.95,-4.50]];
-  RFT.cout=corrTube('rits_corr_out',cout,0.04,{cut:[0.55,1.15],cutDir:V(0,0.3,1),cr:0.08,mouth1:false});
-  for(const x of [1.85,1.0]) clampAt('rits_corr_out',V(x,15.30,-4.62),V(1,0,0),V(0,0,1),0.04,{stand:0.11});
-  clampAt('rits_corr_out',V(2.30,15.40,-4.62),V(0,1,0),V(0,0,1),0.04,{stand:0.11});
+  const cout=[[2.30,15.45,RZ],[2.30,15.30,RZ],[RX.rtv,15.30,RZ],[RX.rtv,14.95,RZ]];   // continua el tub de RTV de la principal (Ø50)
+  RFT.cout=corrTube('rits_corr_out',cout,RPR,{cut:[0.55,1.15],cutDir:V(0,0.3,1),cr:0.08,mouth1:false});
+  for(const x of [1.85,1.0]) clampAt('rits_corr_out',V(x,15.30,RZ),V(1,0,0),V(0,0,1),RPR,{stand:0.17});
+  clampAt('rits_corr_out',V(2.30,15.40,RZ),V(0,1,0),V(0,0,1),RPR,{stand:0.17});
   symSprite('rits_corr_out',V(1.45,15.45,-4.50),'〰 RF distribució','#1E4FAE');
-  /* reserves de la canalització principal (fibra, parells, reserva): tubs tapats */
-  for(const k of ['fo','pt','res']){ const x=RX[k];
-    corrTube('canal_principal',[[x,14.95,RZ],[x,15.30,RZ]],0.035,{mouth1:false,mouth0:false});
-    rCyl('canal_principal',0.042,0.03,V(x,15.31,RZ),UP,0x2B2B2B,'rubber'); }
+  /* tubs de la canalització principal sense ús al RITS (TBA, fibra, parells, reserva): tapats */
+  for(const k of ['tba1','fo','tba2','pt','res']){ const x=RX[k];
+    corrTube('canal_principal',[[x,14.95,RZ],[x,15.30,RZ]],RPR,{mouth1:false,mouth0:false});
+    rCyl('canal_principal',RPR+0.006,0.03,V(x,15.31,RZ),UP,0x2B2B2B,'rubber'); }
   /* sortida dels dos cables de distribució al final del tub (els cables es fan amb cada capçalera) */
   for(const [c,dn] of [['a',-0.012],['b',0.012]]){ const inP=insidePath(RFT.cout.ft,0,RFT.cout.L,dn,0); RITS_EXIT[c]=inP[inP.length-1].clone(); }
 }
@@ -4430,8 +4449,8 @@ function buildCapVariant(v){
     return {I,O,earth:V(x0+W-0.01,y1-0.01,ZP+0.03)}; };
   /* cable de distribució dins del RITS: de la sortida fins al tub corrugat de sortida */
   const bajant=(c,start,via,from)=>{ const dn=c==='a'?-0.012:0.012; const inP=insidePath(RFT.cout.ft,0,RFT.cout.L,dn,0);
-    rCable(`xd_rtv_${c}_r`,'xd_rtv',[start,...via,[2.30+dn,15.52,-4.63],...inP],c==='a'?WH:PE,'pvc',{from,to:'canal_principal',via:'rits_corr_out',tram:'dist',hc:RFN.dist,cr:0.03});
-    cableTag('xd_rtv',V(2.30+dn,15.505,-4.628),V(c==='a'?-1:1,0,0),c==='a'?'Distribució 1':'Distribució 2'); };
+    rCable(`xd_rtv_${c}_r`,'xd_rtv',[start,...via,[2.30+dn,15.52,RZ],...inP],c==='a'?WH:PE,'pvc',{from,to:'canal_principal',via:'rits_corr_out',tram:'dist',hc:RFN.dist,cr:0.03});
+    cableTag('xd_rtv',V(2.30+dn,15.505,RZ+0.002),V(c==='a'?-1:1,0,0),c==='a'?'Distribució 1':'Distribució 2'); };
   const jump=(key,pts,from,to)=>rCable(key,'cap_jump',pts,WH,'pvc',{from,to,cr:0.02});
   /* arribada d'un cable a un connector frontal (des de dalt i per davant) */
   const arrive=(p,yTop)=>[[p.x,yTop,p.z+0.04],[p.x,p.y,p.z+0.04],p];   // 4 cm rectes davant del connector i corba de 33 mm

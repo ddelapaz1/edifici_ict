@@ -3998,6 +3998,12 @@ function buildCapVariant(v){
     return {xc,ports,M};
   };
   const fontBox=(x0,tag,left)=>{ const FN='cap_font';
+    if(MODELS.font.scene){                                                                                                   // model glTF (models/font_t12.glb)
+      const xc=x0+0.035, ms=placeModel('font',FN,xc,Y0,ZB); for(const m of ms) G.pick.push(m);
+      halo(ms[0],new THREE.BoxGeometry(0.0702,TH+0.002,0.094).translate(xc,Y0+TH/2,ZB+0.046),RFN.dc);
+      rPlane(FN,0.044,0.05,V(xc+0.00516,Y0+0.1165,ZFF+0.0012),Z,textTex([tag,'549812','24 V c.c. · 2,5 A','230 V ~ · 60 W','Classe II ▣'],{w:352,h:400,fs:[56,46,36,36,36],bold:[true,true],bg:'#202124',fg:'#ECEFF1'}));
+      const d=modelPoint('font','dc'); return V(xc+d.x,Y0+d.y,ZB+d.z);
+    }
     const fb=rBox(FN,x0,x0+0.07,Y0,Y1,ZB,ZFF,0x2A2C2F,'zamakDark',{pick:true,cast:true}); boxHalo(fb,RFN.dc);
     for(let i=0;i<9;i++) for(const x of [x0-0.0015,x0+0.0715]) rBox(FN,x-0.0015,x+0.0015,Y0+0.02+i*0.018,Y0+0.025+i*0.018,ZB+0.01,ZFF-0.01,0x3A3D41,'zamakDark');
     rBox(FN,x0+0.003,x0+0.067,Y1-0.014,Y1-0.003,ZFF,ZFF+0.001,0xF57C00,'plastic');
@@ -4523,7 +4529,7 @@ function init(){
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */
-const MODELS={t12:{url:'models/t12.glb', scene:null}};
+const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}};
 function loadModels(){
   if(!THREE.GLTFLoader || location.protocol==='file:') return Promise.resolve();
   const loader=new THREE.GLTFLoader();

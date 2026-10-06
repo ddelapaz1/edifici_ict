@@ -1,0 +1,6 @@
+# planos CAD del fabricante: només per a ús local (no es publiquen)
+models/src/*.dwg
+models/src/*.dxf
+models/src/*.svg
+# configuració local de Claude Code
+.claude/

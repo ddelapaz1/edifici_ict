@@ -3974,9 +3974,9 @@ function buildCapVariant(v){
   /* sèrie T12 a mida real (catàleg Televes): mòdul 35 × 198 × 103 mm, font 70 × 198 × 92 mm, penjats d'un suport de paret.
      Y0: base dels equips; ZB: cara posterior; ZF: frontal dels mòduls; ZFF: frontal de les fonts. */
   const Y0=16.10, TH=0.198, Y1=Y0+TH, ZB=ZP+0.008, ZF=ZB+0.103, ZFF=ZB+0.092, DCY=Y0+0.088;
-  /* ports F del frontal: dues entrades a dalt i dues sortides a baix, esglaonades (la superior a l'esquerra i la inferior
-     a la dreta), de manera que el pont F de 48 mm (ref. 5074) uneix la superior d'un mòdul amb la inferior del següent (Z) */
-  const PP={in1:[-0.003,0.172], in2:[0.003,0.147], out1:[-0.003,0.052], out2:[0.003,0.027]};
+  /* ports F del frontal (plànol CAD del fabricant): centrats, dues entrades a dalt i dues sortides a baix separades 20 mm.
+     El pont F de 48 mm (ref. 5074) uneix la boca superior d'un mòdul amb la inferior del següent: 35 × 20 mm, 29,7° (Z) */
+  const PP={in1:[0,0.1665], in2:[0,0.1465], out1:[0,0.0515], out2:[0,0.0315]};
   const t12=(M,xc,lab,o={})=>{
     if(MODELS.t12.scene){                                                                                                      // model glTF (models/t12.glb)
       const ms=placeModel('t12',M,xc,Y0,ZB,{banda:o.band||0xF57C00});

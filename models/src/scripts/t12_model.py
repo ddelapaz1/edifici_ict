@@ -17,7 +17,7 @@ def mat(name,hexc,met=0.0,rough=0.5,tex=None,alpha=False):
         if alpha: nt.links.new(im.outputs['Alpha'],b.inputs['Alpha']); m.blend_method='CLIP'; m.alpha_threshold=0.5
     return m
 M={'carcassa':mat('carcassa','1E1F22',0.3,0.55),'panell':mat('panell','26272A',0.0,0.6),'banda':mat('banda','F57C00',0.0,0.45),
-   'metall':mat('metall','C9CCCF',1.0,0.32),'dielectric':mat('dielectric','F0EFE8',0.0,0.5),'negre':mat('negre','111214',0.0,0.7),
+   'metall':mat('metall','C9CCCF',0.5,0.3),'dielectric':mat('dielectric','F0EFE8',0.0,0.5),'negre':mat('negre','111214',0.0,0.7),
    'led':mat('led','2E9B3F',0.0,0.3),'serigrafia':mat('serigrafia','FFFFFF',0.0,0.6,SRC+'tex/t12_serigrafia.png',True)}
 def link(o,m):
     o.data.materials.append(M[m]); 

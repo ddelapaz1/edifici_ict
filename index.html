@@ -4046,28 +4046,38 @@ function buildCapVariant(v){
 
   if(v==='A'){
     /* ---- centraleta programable amb FI (AVANT 12 PRO SAT, 532204): 201 × 120 × 42 mm ---- */
-    const A='cap_avant', ZFA=ZP+0.042, zc=ZP+0.021, GR=0xC5CACE;
-    const body=rBox(A,1.3825,1.5175,16.25,16.35,ZP,ZFA,GR,'zamak',{pick:true,cast:true}); boxHalo(body,RFN.eq);
-    for(const x0 of [1.3495,1.5175]){ const fl=rBox(A,x0,x0+0.033,16.24,16.36,ZP,ZP+0.035,GR,'zamak',{pick:true,cast:true}); boxHalo(fl,RFN.eq);
-      for(const y of [16.25,16.35]) rCyl(A,0.00375,0.002,V(x0+0.0165,y,ZP+0.036),Z,0x55595D,'steel'); }
-    for(let i=0;i<13;i++) rBox(A,1.390+i*0.0064,1.393+i*0.0064,16.2575,16.3425,ZFA,ZFA+0.006,GR,'zamak',{cast:true});   // aletes
-    rPlane(A,0.0375,0.08,V(1.499,16.30,ZFA+0.0003),Z,textTex(['AVANT 12','PRO SAT','','532204'],{w:150,h:320,fs:[30,24,10,22],bold:[true,true],bg:'#C9CED2',fg:'#263238'}));
-    rCyl(A,0.0095,0.005,V(1.499,16.285,ZFA+0.0025),Z,0xF57C00,'plastic',{seg:24});
-    rPlane(A,0.125,0.01,V(1.45,16.346,ZFA+0.0063),Z,textTex(['1   2   3   4 · VHF+UHF   SAT'],{w:512,h:40,size:28,bg:'#C9CED2',fg:'#263238'}));
-    rPlane(A,0.125,0.01,V(1.45,16.254,ZFA+0.0063),Z,textTex(['POWER      FM   TV   TV+SAT'],{w:512,h:40,size:26,bg:'#C9CED2',fg:'#263238'}));
-    rCyl(A,0.0015,0.002,V(1.418,16.2625,ZFA+0.0065),Z,0x43A047,'plastic',{led:0x1B8F2E});
-    rHex(A,0.004,0.004,V(1.534,16.285,ZP+0.037),Z,0xC0C3C6,'nickel');                     // cargol de terra
-    const ins=[1.4385,1.4555,1.4725,1.4895].map(x=>V(x,16.35,zc));
+    const A='cap_avant', ZFA=ZP+0.042, zc=ZP+0.021, GR=0xC5CACE, AV=!!MODELS.avant.scene;
+    /* punt d'un objecte buit del model glTF (models/avant.glb), o el valor per defecte del model procedural */
+    const ap=(n,fb)=>{ const q=modelPoint('avant',n); return q ? V(1.45+q.x,16.30+q.y,ZP+q.z) : fb; };
+    if(AV){
+      const ms=placeModel('avant',A,1.45,16.30,ZP); for(const m of ms) G.pick.push(m);
+      halo(ms[0],new THREE.BoxGeometry(0.204,0.124,0.044).translate(1.45,16.30,ZP+0.021),RFN.eq);
+    } else {
+      const body=rBox(A,1.3825,1.5175,16.25,16.35,ZP,ZFA,GR,'zamak',{pick:true,cast:true}); boxHalo(body,RFN.eq);
+      for(const x0 of [1.3495,1.5175]){ const fl=rBox(A,x0,x0+0.033,16.24,16.36,ZP,ZP+0.035,GR,'zamak',{pick:true,cast:true}); boxHalo(fl,RFN.eq);
+        for(const y of [16.25,16.35]) rCyl(A,0.00375,0.002,V(x0+0.0165,y,ZP+0.036),Z,0x55595D,'steel'); }
+      for(let i=0;i<13;i++) rBox(A,1.390+i*0.0064,1.393+i*0.0064,16.2575,16.3425,ZFA,ZFA+0.006,GR,'zamak',{cast:true});   // aletes
+      rPlane(A,0.0375,0.08,V(1.499,16.30,ZFA+0.0003),Z,textTex(['AVANT 12','PRO SAT','','532204'],{w:150,h:320,fs:[30,24,10,22],bold:[true,true],bg:'#C9CED2',fg:'#263238'}));
+      rCyl(A,0.0095,0.005,V(1.499,16.285,ZFA+0.0025),Z,0xF57C00,'plastic',{seg:24});
+      rPlane(A,0.125,0.01,V(1.45,16.346,ZFA+0.0063),Z,textTex(['1   2   3   4 · VHF+UHF   SAT'],{w:512,h:40,size:28,bg:'#C9CED2',fg:'#263238'}));
+      rPlane(A,0.125,0.01,V(1.45,16.254,ZFA+0.0063),Z,textTex(['POWER      FM   TV   TV+SAT'],{w:512,h:40,size:26,bg:'#C9CED2',fg:'#263238'}));
+      rCyl(A,0.0015,0.002,V(1.418,16.2625,ZFA+0.0065),Z,0x43A047,'plastic',{led:0x1B8F2E});
+      rHex(A,0.004,0.004,V(1.534,16.285,ZP+0.037),Z,0xC0C3C6,'nickel');                     // cargol de terra
+      rBox(A,1.390,1.404,16.244,16.25,zc-0.005,zc+0.005,0x2B2B2B,'plastic');
+    }
+    const ins=['in1','in2','in3','in4'].map((n,i)=>ap(n,V([1.4385,1.4555,1.4725,1.4895][i],16.35,zc)));
     const inEnd=fMale(A,ins[0],UP), dabEnd=fMale(A,ins[1],UP);
     for(let i=2;i<4;i++) fLoad(A,ins[i],UP,true);
-    const satEnd=satPort(A,'cab_sat_int',V(1.5065,16.35,zc),UP);                       // entrada SAT (FI integrada)
-    const fmEnd=fMale(A,V(1.4725,16.25,zc),DN);
-    const tvEnd=fMale(A,V(1.4895,16.25,zc),DN);                                        // sortida TV (només terrestre)
-    const tsEnd=fMale(A,V(1.5065,16.25,zc),DN);                                        // sortida TV+SAT
-    rBox(A,1.390,1.404,16.244,16.25,zc-0.005,zc+0.005,0x2B2B2B,'plastic');
-    rBox('rits_cordo',1.3895,1.4045,16.225,16.244,zc-0.0065,zc+0.0065,0x1E1E1E,'rubber',{cast:true,pick:true});
+    const sp=ap('sat',V(1.5065,16.35,zc));
+    const satEnd=AV ? fMale('cab_sat_int',sp,UP,'cab_sat_int') : satPort(A,'cab_sat_int',sp,UP);   // entrada SAT (FI integrada); el model ja porta la femella
+    const fmEnd=fMale(A,ap('fm',V(1.4725,16.25,zc)),DN);
+    const tvEnd=fMale(A,ap('tv',V(1.4895,16.25,zc)),DN);                               // sortida TV (només terrestre)
+    const tsEnd=fMale(A,ap('tvsat',V(1.5065,16.25,zc)),DN);                            // sortida TV+SAT
+    /* cable de 230 V: clavilla C7 endollada a la presa «vuit» (C8) del lateral inferior */
+    const pw=ap('power',V(1.397,16.244,zc));
+    rBox('rits_cordo',pw.x-0.0075,pw.x+0.0075,pw.y-0.019,pw.y,pw.z-0.0065,pw.z+0.0065,0x1E1E1E,'rubber',{cast:true,pick:true});
     const pl=euroPlug('rits_cordo',0.70,16.06);
-    cord('rits_cordo',[[1.397,16.225,zc],[1.397,15.93,zc],[1.397,15.93,-4.706],[0.70,15.93,-4.706],[0.70,15.95,-4.672],pl]);
+    cord('rits_cordo',[[pw.x,pw.y-0.019,pw.z],[pw.x,15.93,pw.z],[pw.x,15.93,-4.706],[0.70,15.93,-4.706],[0.70,15.95,-4.672],pl]);
     const top=(p)=>[[p.x,16.42,p.z],p];
     rCable('capt_in','cab_capt_int',[...inner,[1.42,16.52,-4.66],...top(inEnd)],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
     cableTag('cab_capt_int',V(inEnd.x,16.40,inEnd.z),V(-1,0,0),'TDT → entrada 1');
@@ -4096,7 +4106,9 @@ function buildCapVariant(v){
     /* cables de distribució: 1 directe de la centraleta (TV+SAT), 2 del mesclador */
     bajant('a',tsEnd,[[tsEnd.x,16.15,zc],[1.66,15.60,-4.66],[2.20,15.56,-4.66],[2.27,15.55,-4.64]],'cap_avant');
     bajant('b',mO,[[mO.x,mO.y-0.03,mO.z],[2.312,15.555,-4.645]],'cap_mix');
-    bond([[0.35,17.164,-4.700],[0.35,16.90,-4.688],[1.534,16.90,-4.688],[1.534,16.40,-4.688],[1.534,16.38,ZP+0.044],[1.534,16.295,ZP+0.044],[1.534,16.288,ZP+0.040]]);
+    { const ea=ap('terra',null);                                                         // born de terra de la centraleta
+      if(ea) bond([[0.35,17.164,-4.700],[0.35,16.90,-4.688],[ea.x,16.90,-4.688],[ea.x,16.37,-4.700],[ea.x,ea.y+0.006,ea.z+0.003],[ea.x,ea.y+0.003,ea.z+0.001]]);
+      else bond([[0.35,17.164,-4.700],[0.35,16.90,-4.688],[1.534,16.90,-4.688],[1.534,16.40,-4.688],[1.534,16.38,ZP+0.044],[1.534,16.295,ZP+0.044],[1.534,16.288,ZP+0.040]]); }
     bond([[0.20,17.164,-4.700],[0.20,15.80,-4.700],[2.34,15.80,-4.700],[2.34,15.74,-4.700],[mx.earth.x,mx.earth.y,mx.earth.z-0.002]]);
     symSprite(A,V(1.45,16.48,-4.60),'〰 RF','#8D5A1A',0.16);
     symSprite('cap_font',V(1.65,16.40,-4.55),'24 V c.c.','#E65100',0.20);
@@ -4533,7 +4545,7 @@ function init(){
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */
-const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}};
+const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}};
 function loadModels(){
   if(!THREE.GLTFLoader || location.protocol==='file:') return Promise.resolve();
   const loader=new THREE.GLTFLoader();

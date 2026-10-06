@@ -73,6 +73,7 @@ mallas: el edificio ya tiene unas 4.700.
 | Derivadores de RTV (registros secundarios) | `TAPF` (pérdida por planta, en el bloque de datos), `DER`, `DPX`, `DERPORT`, bucle de registros secundarios en `buildICT()` |
 | Mánega de 50 pares y sangrado | `PT50`, `buildPairRiser()`, `pairWindow()`, `PAIRC` |
 | Conectores F y cargas | `fFemale()`, `fMale()`, `coaxPlug()` (modelo 417101), `fLoad()` (modelo 4061) |
+| PAU de RTV en la vivienda (519534) | `PRD`, `pauRtvPos()`; cables de dispersión en `buildUnit()` (bucle en U por debajo) |
 | Fibra en la vivienda (PAU 231502, SC/APC) | `pauFoPos()`, `scQuat()`, `scAdapter()`, `scPlug()`; presa óptica en el bucle de `PRESES` de `buildInterior()` |
 | Modelos glTF | `MODELS`, `loadModels()`, `placeModel()`, `modelPoint()` (al final del segundo `<script>`) |
 | Paisaje de fondo | `skyTexture()`, `buildMountains()`, `buildLandscape()`, `landscapeVisibility()` |
@@ -113,6 +114,7 @@ mallas: el edificio ya tiene unas 4.700.
 | Mezclador TER + 2 SAT 740710 (98 × 76 × 27) | `mesclador.glb` | Cabecera B |
 | Multiplexor pasivo RJ45 546501 (142 × 60 × 24) | `multiplexor.glb` | RTR de cada vivienda |
 | Derivador F 4D 519345 (109 × 54 × 18) | `derivador.glb` | Registros secundarios (2 por planta) |
+| PAU repartidor 4D 519534 (109 × 54 × 18), entrada carregada | `pau_rtv.glb` | RTR de cada vivienda (`pauRtvPos(u)`) |
 | Carga 75 Ω 4061 (12 × 29 × 12) | `carrega.glb` | Entradas/salidas libres (`fLoad`) y paso de la 1.ª planta |
 | Conector F macho roscado 417101 | `conector_f.glb` | Conexiones coaxiales (`coaxPlug`) |
 | PAU de fibra óptica 231502 (119 × 94 × 33) | `pau_fo.glb` | RTR de cada vivienda (`pauFoPos(u)`) |
@@ -127,7 +129,7 @@ Cómo funcionan en la web:
   (añádelas a `G.pick` si deben seleccionarse). `rot`: número (giro en Y), `[x,y,z]` (Euler) o un `THREE.Quaternion`.
   `recolor` cambia colores por **nombre de material** (p. ej. `{banda: 0x1565C0}` en los T12 de FI).
 - Los **objetos vacíos** del modelo marcan puntos de anclaje y se leen con `modelPoint(k, nombre)`: puertos F
-  (`port_in1`, `in`, `t1`… `out`, `sa`, `ter`…), bocas RJ45 (`j1`… `j8`, `line`, `adsl`), conector de 24 V (`dc`),
+  (`port_in1`, `in`, `t1`… `out`, `inc`, `o1`… `o4`, `sa`, `ter`…), bocas RJ45 (`j1`… `j8`, `line`, `adsl`), conector de 24 V (`dc`),
   tomas (`power`, `terra`), tornillos (`forat_e`, `forat_d`), salidas SC del PAU (`sc1`… `sc4`) y entradas laterales
   (`entrada_d`, `entrada_e`). Los cables y conectores se enganchan ahí.
 - `recolor` con `null` omite una pieza (p. ej. `{tapa: null}`: adaptador SC sin tapa porque lleva un conector).
@@ -160,6 +162,8 @@ Cómo funcionan en la web:
   31,5 mm); puentes F de 48 mm (ref. 5074) en **Z**: de la boca superior de un módulo a la inferior del de la derecha.
   TDT 10 → 1 de izquierda a derecha (el filtro LTE va en la entrada superior del TDT 1).
 - Toda entrada o salida F libre lleva una **carga 4061** (`fLoad`).
+- PAU de RTV (519534): cable blanco a la entrada, cable negro (reserva) a la **entrada cargada** (75 Ω interna, sin carga
+  externa); los dos entran por debajo con una U de 33 mm. Salidas asignadas de izquierda a derecha (lógica) a cocina, sala, dorm. 2 y 1.
 - Derivadores: la señal baja desde la cubierta, así que la **pérdida de derivación crece al subir**
   (`TAPF`: 1.ª 12 dB 519342, 2.ª 16 dB 519343, 3.ª 20 dB 519344, 4.ª 24 dB 519345); la 1.ª cierra el paso con carga.
 - Red de pares: STDP con regletas Krone y manguera de 50 pares (RD 346/2011, factor 1,2); en el RTR, roseta doble RJ45

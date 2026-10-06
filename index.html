@@ -753,7 +753,7 @@ for (const u of UNITS) {
   def({id:`xs_rtv_${U}`, fam:'xarxa', layer:'xarxes', svc:'rtv', tram:'disp', tech:'coax', floor:f, unit:U, zone:'comuna',
    name:`Xarxa de dispersió de RTV — ${N}`, sigla:'',
    what:`Són els dos cables coaxials que surten dels derivadors del registre secundari de la ${P} i arriben al PAU de RTV del ${N}.`,
-   purpose:'Fan arribar a l\'habitatge els dos cables previstos: el cable 1 (blanc) es connecta a l\'entrada 1 del PAU + repartidor i el cable 2 (negre) queda en reserva.',
+   purpose:'Fan arribar a l\'habitatge els dos cables previstos: el cable 1 (blanc) es connecta a l\'entrada del PAU + repartidor i el cable 2 (negre), en reserva, a l\'entrada carregada.',
    where:`Registre secundari de la ${P} → tub de RTV de la canalització secundària → registre de terminació de xarxa del ${N}.`,
    connects:`Derivadors de la ${P} → PAU de RTV.`,
    example:`Si la comunitat posa canals de satèl·lit al segon cable, el ${N} els pot rebre canviant el cable al PAU, sense obres a la zona comuna.`,
@@ -780,13 +780,13 @@ for (const u of UNITS) {
 
   /* PAU i elements del registre de terminació de xarxa */
   def({id:`pau_rtv_${U}`, fam:'punt', layer:'punts', svc:'rtv', floor:f, unit:U, zone:'frontera comuna/privada', parent:`rtr_${U}`,
-   name:`PAU + repartidor de RTV (2 entrades, 4 sortides F) — ${N}`, sigla:'PAU',
-   what:"És un únic element passiu amb connectors F roscats: dues entrades per als dos cables de dispersió i quatre sortides, una per cada presa de RTV de l'habitatge.",
+   name:`PAU + repartidor de RTV (2 entrades, una carregada, 4 sortides F; exemple: Televes ref. 519534) — ${N}`, sigla:'PAU',
+   what:"És un únic element passiu de zamac (109 × 54 × 18 mm) amb sis connectors F roscats cap avall: l'entrada (fletxa amunt), l'entrada carregada (símbol de la resistència) i quatre sortides (fletxa avall), una per cada presa de RTV de l'habitatge. Banda de 5 a 2.400 MHz, amb 8–9 dB de pèrdua de distribució.",
    purpose:"Separa la instal·lació comuna de la privada (frontera de responsabilitats) i, alhora, reparteix el senyal en estrella cap a les preses.",
    where:`Dins del registre de terminació de xarxa del ${N} (rebedor).`,
-   connects:"Entrada 1 ← cable de dispersió 1 (blanc). Entrada 2 tancada amb una càrrega de 75 Ω; el cable de dispersió 2 (negre) queda en reserva al registre, amb el connector tapat. Sortides → quatre cables coaxials interiors: cuina, sala d'estar, dormitori 2 i dormitori 1 (una presa per estància, sense comptar el bany).",
-   example:"Si la comunitat posa un servei diferent al cable 2, n'hi ha prou de passar el connector del cable negre a l'entrada 2 i moure-hi la càrrega: no cal cap obra.",
-   confusion:"No és un derivador de planta: el derivador és a la zona comuna i alimenta habitatges; el PAU + repartidor és dins de l'habitatge i alimenta preses. L'entrada que no es fa servir sempre ha de quedar carregada.",
+   connects:"Entrada ← cable de dispersió 1 (blanc), que és el que arriba a les preses. Entrada carregada ← cable de dispersió 2 (negre): queda en reserva, tancat a dins amb una càrrega de 75 Ω. Els dos cables baixen per davant del PAU i fan una U per entrar als connectors per sota. Sortides → quatre cables coaxials interiors: cuina, sala d'estar, dormitori 2 i dormitori 1 (una presa per estància, sense comptar el bany).",
+   example:"Si la comunitat posa un servei diferent al cable 2, n'hi ha prou d'intercanviar els connectors del cable blanc i del negre entre les dues entrades: no cal cap obra ni cap càrrega externa.",
+   confusion:"No és un derivador de planta: el derivador és a la zona comuna i alimenta habitatges; el PAU + repartidor és dins de l'habitatge i alimenta preses. L'entrada carregada ja porta la càrrega de 75 Ω a dins: el cable que no es fa servir hi queda connectat i ben terminat.",
    nets:[`xs_rtv_${U}`,`xi_rtv_${U}`], links:[`rtr_${U}`]});
   def({id:`pau_fo_${U}`, fam:'punt', layer:'punts', svc:'fo', floor:f, unit:U, zone:'frontera comuna/privada', parent:`rtr_${U}`,
    name:`PAU de fibra òptica (roseta de terminació òptica, 2 × SC/APC; exemple: Televes ref. 231502) — ${N}`, sigla:'PAU',
@@ -2102,6 +2102,16 @@ function pauFoPos(u){
   const PO=new THREE.Vector3(mx(u,-3.16),yb(u.f)+1.645,mz(u,-4.722)).sub(new THREE.Vector3(pt('sc1').x,0,0));
   return {PO, rot, side:new THREE.Vector3(sz<0?-1:1,0,0), at:n=>PO.clone().add(pt(n))};
 }
+/* PAU + repartidor de RTV (Televes 519534, sense logotip): 109 × 54 × 18 mm, cargolat a la paret del fons del RTR amb els
+   sis connectors F cap avall (entrada, entrada carregada i 4 sortides, a 17 mm). El model no es reflecteix (serigrafia):
+   a les vivendes C i D està girat 180°, així que l'ordre dels ports en x depèn de l'habitatge. at(n): boca del port n. */
+const PRD={in:-0.0426, inc:-0.0256, o1:-0.0086, o2:0.0084, o3:0.0254, o4:0.0424};
+function pauRtvPos(u){
+  const sz=SZ(u), rot=sz<0?Math.PI:0, q=new THREE.Quaternion().setFromAxisAngle(UP,rot);
+  const pt=n=>(modelPoint('pauRtv',n)||new THREE.Vector3(PRD[n],-0.0267,0.009)).applyQuaternion(q);
+  const PO=new THREE.Vector3(mx(u,-3.48),yb(u.f)+1.60,mz(u,-4.722));
+  return {PO, rot, at:n=>PO.clone().add(pt(n))};
+}
 function csPath(u, y, h1){
   const h2=y+CS_H2(h1), H1=y+h1, R=XS(u)===1 ? -1 : 1;   // costat del registre secundari (esquerra A i D, dreta B i C)
   const face = R<0 ? 0.3 : 1.6, zl = ZM(u) ? -4.62 : -4.45;
@@ -2110,7 +2120,7 @@ function csPath(u, y, h1){
   return [[face,h2,zl],[xj,h2,zl],[xj,h2,-5.42],[R*2.45,h2,-5.42],[R*2.45,H1,-5.42],[R*2.7,H1,-5.42]];
 }
 function buildUnit(u, C){
-  const y=yb(u.f), id=u.id, X=x=>mx(u,x), Z=z=>mz(u,z);
+  const y=yb(u.f), id=u.id, X=x=>mx(u,x), Z=z=>mz(u,z), sz=SZ(u);
   for(const [yy,svc] of [[1.78,'rtv'],[1.52,'all'],[1.26,'all']]) tube(`cs_${id}`,csPath(u,y,yy),0.065,{tubeSvc:svc, R:RCS});
   /* registre de terminació de xarxa (C i D: tapa cap a -z) */
   regBox(`rtr_${id}`,1.0,0.8,0.3,X(-3.2),y+1.5,Z(-4.6),0xE9E6DF,0xF4F2EE,SZ(u));
@@ -2125,9 +2135,11 @@ function buildUnit(u, C){
        just a sota de l'entrada (el tub de RTV és el més alt, a 2,52) */
     const pe=DERPORT[`${u.f}${c}`][port], x=pe.x, z0=t.fwd?RSW.zF:RSW.zP, zt=tp[0][2]+v[2], H=tp[1][1]+v[1];
     const rs=[pe, ...(t.fwd?[[x,y+1.475,RSW.zP],[x,y+1.445,z0]]:[]), [x,y+t.lane,z0],[t.col,y+t.lane,z0],[t.col,y+2.41,z0],[t.col,H-0.066,zt],[t.col,H,zt]];
-    /* RTR: el cable 1 entra per dalt a l'entrada 1 del PAU; el 2 queda en reserva amb el connector F tapat */
-    const tail = c==='a' ? [[X(-3.40),y+1.83,Z(-4.6725)],[X(-3.40),y+1.66+0.0035+FC_LENGTH,Z(-4.6725)]]
-                         : [[X(-3.655),y+1.87,Z(-4.6725)],[X(-3.655),y+1.70+FC_LENGTH,Z(-4.6725)]];
+    /* RTR: el cable 1 (blanc) va a l'entrada del PAU i el 2 (negre) a l'entrada carregada (reserva). Els ports miren avall:
+       el cable baixa per davant del PAU, fa una U (radi 33 mm) i puja fins al connector. El que va més lluny baixa més endavant per no tocar l'altre. */
+    const PR=pauRtvPos(u), E=PR.at(c==='a'?'in':'inc').add(V(0,0.004-FC_LENGTH,0)), yu=E.y-0.06;
+    const far=Math.abs(PR.at(c==='a'?'in':'inc').x-tp[tp.length-1][0]) > Math.abs(PR.at(c==='a'?'inc':'in').x-tp[tp.length-1][0]), zf=E.z+sz*(far?0.084:0.068);
+    const tail = [[E.x,H,zf],[E.x,yu,zf],[E.x,yu,E.z],[E.x,E.y,E.z]];
     cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [...rs,...tubeIn(tp,v),...tail], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
   }
   /* fibra: de la caixa de segregació puja i va horitzontal a l'alçada del tub; entra al PAU de fibra pel pretallat lateral
@@ -2236,21 +2248,22 @@ function rrectGeo(w,h,d,r,bev){ const s=new THREE.Shape(), x=-w/2+bev, y=-h/2+be
 function buildInterior(u){
   const y=yb(u.f), U=u.id, X=x=>mx(u,x), Z=z=>mz(u,z), sz=SZ(u);
   /* PAU i elements dins del RTR */
-  /* PAU + repartidor de RTV: 2 entrades F (una carregada) i 4 sortides F, una per presa de RTV */
-  const FN=0xC9CCCF, SZV=V(0,0,sz);
-  const P0=`pau_rtv_${U}`;
-  iBox(P0,0.34,0.16,0.055,X(-3.48),y+1.58,Z(-4.6725),0xE9ECEE);
-  rPlane(P0,0.30,0.07,V(X(-3.48),y+1.585,Z(-4.6725)+sz*0.0325),SZV,textTex(['PAU + REP','IN 1 · IN 2   →   4 × OUT'],{w:512,h:120,fs:[44,30],bold:[true],bg:'#E9ECEE',fg:'#263238'}),{});
-  const fPort=(el,x,yy,up,load)=>{ const dir=V(0,up?1:-1,0), base=V(x,yy,Z(-4.6725));
-    fFemale(el,base,dir); if(load) rCyl(el,0.0055,0.020,base.clone().addScaledVector(dir,0.018),dir,FN,'nickel',{pick:false}); };
-  const fPlug=(el,x,yy,up)=>coaxPlug(el,V(x,yy,Z(-4.6725)).add(V(0,(up?1:-1)*0.0035,0)),V(0,up?1:-1,0));
-  const yT=y+1.66, yB=y+1.50;
-  fPort(P0,X(-3.40),yT,true,false); fPlug(`xs_rtv_${U}`,X(-3.40),yT,true);           // entrada 1 ← cable 1 (blanc)
-  fPort(P0,X(-3.54),yT,true,true);                                                    // entrada 2: càrrega de 75 Ω
-  const RTVOUT={rtv_cuina:-3.60,rtv_sala:-3.52,rtv_d2:-3.44,rtv_d1:-3.36}, RTVTAIL={};
-  for(const [k,xo] of Object.entries(RTVOUT)){ fPort(P0,X(xo),yB,false,false); RTVTAIL[k]=fPlug(`xi_rtv_${U}`,X(xo),yB,false); }
-  /* cable 2 (negre) en reserva: connector F amb tap */
-  fMaleFree(`xs_rtv_${U}`,V(X(-3.655),y+1.70,Z(-4.6725)),V(0,1,0)); iCyl(`xs_rtv_${U}`,0.0048,0.004,X(-3.655),y+1.698,Z(-4.6725),0x2B2B2B,'y',{pick:false});   // penja amb la boca cap avall
+  /* PAU + repartidor de RTV (Televes 519534): entrada ← cable 1 (blanc), entrada carregada ← cable 2 (negre, en reserva),
+     4 sortides → preses. Les sortides s'assignen d'esquerra a dreta (coordenades lògiques) a cuina, sala, dormitori 2 i 1. */
+  const SZV=V(0,0,sz);
+  const P0=`pau_rtv_${U}`, PR=pauRtvPos(u);
+  if(MODELS.pauRtv.scene){
+    const ms=placeModel('pauRtv',P0,PR.PO.x,PR.PO.y,PR.PO.z,{},PR.rot);
+    addProxy(ms[0],new THREE.BoxGeometry(0.14,0.10,0.05).translate(PR.PO.x,PR.PO.y-0.01,PR.PO.z+sz*0.02));                  // zona de selecció
+  } else {
+    iBox(P0,0.109,0.0263,0.018,PR.PO.x,PR.PO.y,PR.PO.z+sz*0.009,0xC2C6C9);                                                  // reserva: cos de 109 × 54 × 18 mm
+    for(const n of Object.keys(PRD)){ const b=PR.at(n).add(V(0,0.0145,0)); fFemale(P0,b,V(0,-1,0)); }
+  }
+  const pPlug=(el,n)=>coaxPlug(el,PR.at(n).add(V(0,0.004,0)),V(0,-1,0));
+  pPlug(`xs_rtv_${U}`,'in'); pPlug(`xs_rtv_${U}`,'inc');                                     // connectors F dels cables de dispersió
+  const outs=['o1','o2','o3','o4'].map(n=>[n,X(PR.at(n).x)]).sort((a,b)=>a[1]-b[1]);
+  const RTVOUT={}, RTVTAIL={};
+  ['rtv_cuina','rtv_sala','rtv_d2','rtv_d1'].forEach((k,i)=>{ RTVOUT[k]=outs[i][1]; RTVTAIL[k]=pPlug(`xi_rtv_${U}`,outs[i][0]); });
   /* PAU de fibra òptica (Televes 231502, sense logotip): 119 × 94 × 33 mm, cargolat a la paret del fons del RTR.
      Sortides SC/APC per la base (1 i 2 davant, 3 i 4 darrere); porta els 2 adaptadors de sèrie a les sortides 1 i 2.
      La sortida 1 cau sempre a X(-3.16), sigui quina sigui l'orientació de l'habitatge. */
@@ -2338,7 +2351,7 @@ function buildInterior(u){
     /* RTR → tub: sortida recta del connector, descens fins a la capa pròpia (LAY), tram horitzontal a 1,20 m,
        baixada davant del tub i entrada per terra. Capes diferents per als recorreguts que se solapen: cap creuament. */
     let src, from;
-    if(p.t==='rtv'){ const xo=X(RTVOUT[k]); src=[RTVTAIL[k],[xo,y+1.44,Z(-4.6725)]]; from=`pau_rtv_${U}`; }
+    if(p.t==='rtv'){ const t=RTVTAIL[k]; src=[t,[t[0],y+1.44,t[2]]]; from=`pau_rtv_${U}`; }
     else if(p.t==='tba'){ const tx=X(k==='tba_sala'?-3.33:-3.27); src=[[tx,y+1.31,Z(-4.67)],[tx,y+1.275,Z(-4.67)]]; from=`div_tba_${U}`; }   // dues sortides del distribuïdor
     else if(p.t==='fo'){ src=[PF_TAIL,[PF_TAIL[0],PF_TAIL[1]-0.035,PF_TAIL[2]]]; from=`pau_fo_${U}`; }
     else from=`pau_pt_${U}`;
@@ -4923,7 +4936,7 @@ function init(){
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */
-const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}, deriv:{url:'models/derivador.glb', scene:null}, carrega:{url:'models/carrega.glb', scene:null}, conF:{url:'models/conector_f.glb', scene:null}, pauFo:{url:'models/pau_fo.glb', scene:null}, adSC:{url:'models/adaptador_sc.glb', scene:null}, scApc:{url:'models/sc_apc.glb', scene:null}};
+const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}, deriv:{url:'models/derivador.glb', scene:null}, carrega:{url:'models/carrega.glb', scene:null}, conF:{url:'models/conector_f.glb', scene:null}, pauFo:{url:'models/pau_fo.glb', scene:null}, pauRtv:{url:'models/pau_rtv.glb', scene:null}, adSC:{url:'models/adaptador_sc.glb', scene:null}, scApc:{url:'models/sc_apc.glb', scene:null}};
 function loadModels(){
   if(!THREE.GLTFLoader || location.protocol==='file:') return Promise.resolve();
   const loader=new THREE.GLTFLoader();

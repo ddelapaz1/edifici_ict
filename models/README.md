@@ -1,7 +1,7 @@
 # Models 3D (glTF)
 
 La web carrega els models d'aquesta carpeta si existeixen (`loadModels()` a `index.html`); si no, fa servir el model
-procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor, la central AVANT, el mesclador i el derivador, al centre de la cara posterior; la càrrega, al centre de la femella); frontal cap a +Z en glTF
+procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor, la central AVANT, el mesclador, el derivador i el PAU de RTV, al centre de la cara posterior; la càrrega, al centre de la femella); frontal cap a +Z en glTF
 (−Y a Blender). Els objectes buits `port_*`, `in`, `out`, `t1`–`t4` i `dc` marquen on s'enganxen ponts i cables.
 
 | Model | Fitxer | Font |
@@ -12,6 +12,7 @@ procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara p
 | Central programable AVANT 12 PRO SAT, ref. 532204 (201 × 120 × 42 mm) | `avant.glb` | `src/avant.blend` |
 | Mesclador TER + 2 SAT, ref. 740710 (98 × 76 × 27 mm) | `mesclador.glb` | `src/mesclador.blend` |
 | Derivador F 4D, ref. 519345 (109 × 54 × 18 mm) | `derivador.glb` | `src/derivador.blend` |
+| PAU repartidor 4D amb entrada carregada, ref. 519534 (109 × 54 × 18 mm) | `pau_rtv.glb` | `src/pau_rtv.blend` |
 | Càrrega terminal 75 Ω tipus F amb bloqueig CC, ref. 4061 (12 × 29 × 12 mm) | `carrega.glb` | `src/carrega.blend` |
 | Connector F mascle roscat, ref. 417101 (L 21,106 mm, cos Ø8,824 mm, hexàgon 10,912 mm entre cares) | `conector_f.glb` | `src/conector_f.blend` |
 | PAU de fibra òptica, ref. 231502 (119 × 94 × 33 mm; 97 mm amb els adaptadors) | `pau_fo.glb` | `src/pau_fo.blend` |
@@ -84,6 +85,18 @@ Plànol del fabricant `519345.dwg` convertit a `src/519345.dxf`:
 dwg2dxf -y -o models/src/519345.dxf 519345.dwg
 python3 models/src/scripts/derivador_serigrafia.py
 /Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/derivador_model.py
+```
+
+## Regenerar el PAU repartidor de RTV
+
+Plànol del fabricant `519534_CAD02230216.dwg` convertit a `src/519534.dxf`. Mateix cos que el derivador 519345;
+canvien la serigrafia (sense logotip) i els noms dels ports: `in` (entrada), `inc` (entrada carregada amb 75 Ω
+interna) i `o1`… `o4` (sortides), a 17 mm entre si, a més de `terra`.
+
+```bash
+dwg2dxf -y -o models/src/519534.dxf 519534_CAD02230216.dwg
+python3 models/src/scripts/pau_rtv_serigrafia.py
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup -P models/src/scripts/pau_rtv_model.py
 ```
 
 ## Regenerar la càrrega terminal 75 Ω

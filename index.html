@@ -334,6 +334,10 @@ const LAYERS = {
 };
 /* llista natural d'habitatges d'una planta: «2n A, 2n B, 2n C i 2n D» */
 const floorUnitsTxt = f => { const n=SIDES.map(s=>`${ORD[f]} ${s}`); return n.slice(0,-1).join(', ')+' i '+n[n.length-1]; };
+/* derivadors F 4D de Televes (catàleg): el senyal baixa des de la capçalera de la coberta, de manera que la pèrdua de
+   derivació creix a mesura que es puja (les plantes altes reben més nivell). db: nominal; der i pas: mesurades TER/SAT. */
+const TAPF={4:{db:24, ref:'519345', der:'23,2 / 23,5', pas:'2,3 / 2,5'}, 3:{db:20, ref:'519344', der:'20', pas:'2,2'},
+            2:{db:16, ref:'519343', der:'17 / 17,5', pas:'2,5 / 3'}, 1:{db:12, ref:'519342', der:'12,5 / 13', pas:'2,5 / 3,6'}};
 const SERVICES = {all:'Tots els serveis', rtv:'RTV', fo:'Accés per fibra òptica', pt:'Parells (telefonia i dades)', tba:'Coaxial de TBA'};
 const TRAMS = {
   alim:{name:'Alimentació', color:'#E07B24', sym:'▲'},
@@ -657,13 +661,15 @@ for (const f of [1,2,3,4]) {
    confusion:'El registre secundari és la caixa; el punt de distribució és l\'element de connexió que hi ha a dins. Al model, cada registre secundari té tres punts de distribució: derivadors (RTV), caixa de segregació (fibra) i regleta (parells).',
    nets:['xd_rtv','xd_fo','xd_pt'], canals:['canal_principal',...SIDES.map(s=>`cs_${f}${s}`)], links:[]});
   def({id:`deriv_${f}`, fam:'punt', layer:'punts', svc:'rtv', floor:f, zone:'comuna', rs:true, parent:`rs_${f}`,
-   name:`Derivadors de RTV (punt de distribució) — ${P}`, sigla:'',
-   what:'Són dispositius passius, un per cada cable de distribució, que treuen una part del senyal cap als habitatges de la planta i deixen passar la resta cap avall.',
+   name:`Derivadors de RTV de ${TAPF[f].db} dB (punt de distribució) — ${P}`, sigla:'',
+   what:`Són dispositius passius, un per cada cable de distribució, que treuen una part del senyal cap als habitatges de la planta i deixen passar la resta cap avall. Al model: derivadors de 4 sortides de la sèrie F (exemple: Televes ref. ${TAPF[f].ref}, ${TAPF[f].db} dB, 109 × 54 × 18 mm).`,
    purpose:'Fan la realització física del punt de distribució de RTV: uneixen la xarxa de distribució amb la de dispersió.',
    where:`Dins del registre secundari de la ${P.toLowerCase()}.`,
    connects:`Entrada i sortida de pas: cable de distribució. Sortides de derivació (quatre): un cable cap a cada habitatge de la planta (${ALL}) per cada derivador.${f===1?' Com que és la darrera planta del recorregut, la sortida de pas s\'acaba amb una càrrega.':''}`,
    example:`Els dos cables que arriben al PAU del ${A} surten de dos derivadors diferents, un per cada cable de distribució.`,
    confusion:'El derivador no és el registre secundari (és dins seu) i no és un amplificador: no afegeix senyal, la reparteix.',
+   more:['Per què cada planta porta un derivador diferent',
+     `El senyal baixa des de la capçalera del RITS, a la coberta, pels cables de distribució. A cada planta, el derivador en treu una part cap als habitatges (pèrdua de derivació) i deixa passar la resta cap avall amb una petita pèrdua de pas (uns 2-3 dB). Com més avall és la planta, més metres de cable i més derivadors ha travessat el senyal, i hi arriba amb menys nivell. Per igualar el nivell a les preses de tots els habitatges, les plantes altes, més a prop de la capçalera, porten derivadors amb més pèrdua de derivació, i a mesura que es baixa se'n posen de menys pèrdua: 4a planta 24 dB (ref. 519345), 3a 20 dB (519344), 2a 16 dB (519343) i 1a 12 dB (519342). Dit a l'inrevés: des de la planta baixa, cada planta que es puja porta més pèrdua. La 1a planta és la darrera del recorregut i la sortida de pas es tanca amb una càrrega de 75 Ω (ref. 4061). Aquesta planta: ${TAPF[f].db} dB nominals; derivació mesurada ${TAPF[f].der} dB i pas ${TAPF[f].pas} dB (terrestre / satèl·lit). Els valors exactes s'han de calcular al projecte amb els nivells de la capçalera i les longituds reals de cable.`],
    nets:['xd_rtv',...SIDES.map(s=>`xs_rtv_${f}${s}`)], canals:['canal_principal',...SIDES.map(s=>`cs_${f}${s}`)], links:[`rs_${f}`]});
   def({id:`cseg_${f}`, fam:'punt', layer:'punts', svc:'fo', floor:f, zone:'comuna', rs:true, parent:`rs_${f}`,
    name:`Caixa de segregació de fibra òptica — ${P}`, sigla:'',
@@ -1766,6 +1772,9 @@ function buildRITIPairs(){
    =================================================================== */
 const RX={rtv:0.55, fo:0.8, pt:1.05, res:1.3}, RZ=-4.5;
 const DER={a:0.42, b:0.68}; // derivadors dins del registre secundari
+let TAPTX={};
+function tapText(txt,w,h){ return TAPTX[txt] ||= canvasTex(w,h,(g)=>{ g.clearRect(0,0,w,h); g.fillStyle='#34373B';
+  g.font=`500 ${Math.round(h*0.8)}px Menlo, Consolas, "DejaVu Sans Mono", monospace`; g.textBaseline='middle'; g.fillText(txt,1,h/2+1); }); }
 const DERPORT={}; // extrems dels connectors F: planta, baixant i port
 const RSK={x:1.40, y:1.62};          // regleta de parells dins del registre secundari
 const OFF={a:[-0.03,-0.02], b:[0.03,0.02]};
@@ -1814,6 +1823,9 @@ function buildICT(){
       if(MODELS.deriv?.scene){
         const ms=placeModel('deriv',`deriv_${f}`,DER[c],y+1.55,-4.715);
         for(const m of ms) G.pick.push(m);
+        /* valor de derivació i referència d'aquesta planta, a la posició que tenen a la serigrafia del plànol */
+        for(const [txt,dx,dy,w] of [[`${TAPF[f].db}dB`,-0.0276,-0.0033,0.0072],[`${TAPF[f].ref}/F 4D`,0.0314,-0.0003,0.0186]]){
+          const tm=rPlane(`deriv_${f}`,w,0.0026,V(DER[c]+dx,y+1.55+dy,-4.715+0.0186),V(0,0,1),tapText(txt,Math.round(w*20000),52)); tm.material.alphaTest=0.5; }
         const pg=new THREE.BoxGeometry(0.14,0.12,0.08); pg.translate(DER[c],y+1.55,-4.706);
         addProxy(ms[0],pg);
         if(f===1){
@@ -2622,6 +2634,7 @@ function renderInfo(){
     </dl>
     <div class="ex"><b>Exemple pràctic:</b> ${esc(e.example)}</div>
     <div class="cf"><b>Confusió habitual:</b> ${esc(e.confusion)}</div>
+    ${e.more?`<div class="ex"><b>${esc(e.more[0])}:</b> ${esc(e.more[1])}</div>`:''}
    </details>
    ${S.related.size?`<p class="small muted" style="margin-bottom:0">Elements relacionats ressaltats en blau a l'escena.</p>`:''}
   </div>${inRits(id)||id==='rits'?ritsCardHTML(id):''}`;
@@ -3692,6 +3705,9 @@ function fMale(el,base,dir,cel='cap_conF'){ dir=dir.clone().normalize();
 /* Connector solt: el viu és el del cable, la boca del model no porta un pin propi. */
 function fMaleFree(el,tip,dir){ return coaxPlug(el,tip,dir); }
 function fLoad(el, base, dir, dcBlock){ dir=dir.clone().normalize();
+  if(MODELS.carrega?.scene){                                     // càrrega 75 Ω 4061 (models/carrega.glb): la femella s'enrosca al port
+    const p=base.clone().addScaledVector(dir,0.0025), ms=placeModel('carrega','cap_carregues',p.x,p.y,p.z,{},new THREE.Quaternion().setFromUnitVectors(UP,dir));
+    for(const m of ms) G.pick.push(m); return; }
   rHex(el,0.00625,0.0035,base.clone().addScaledVector(dir,0.00175),dir,NI,'nickel');
   rHex('cap_carregues',0.00675,0.0085,base.clone().addScaledVector(dir,0.00775),dir,NI,'nickel');
   const L = dcBlock?0.021:0.008;

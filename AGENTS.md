@@ -10,7 +10,7 @@ plurifamiliar. Página web estática publicada con GitHub Pages en <https://ddel
 | `index.html` | Toda la aplicación: HTML, CSS, datos de los elementos y código 3D | **Sí** |
 | `vendor/three.min.js` | Three.js r160 (UMD, define el global `THREE`) | **No** |
 | `vendor/OrbitControls.js` | OrbitControls de Three.js adaptado a script clásico | **No** |
-| `models/` | Modelos glTF opcionales (`t12.glb`) y sus fuentes (`src/`: `.blend`, scripts de Blender). Ver `models/README.md` | Sí |
+| `models/` | Modelos glTF de los equipos (`*.glb`) y sus fuentes (`src/`: `.blend`, texturas, scripts de Blender). Ver `models/README.md` | Sí (regenerando con los scripts) |
 | `.github/workflows/static.yml` | Despliegue a GitHub Pages en cada push a `main` (sube toda la carpeta) | Solo si hace falta |
 
 No hay *build*, ni npm, ni módulos ES: los `<script>` son clásicos y comparten el ámbito global.
@@ -27,7 +27,7 @@ Dentro de `index.html` hay dos bloques `<script>`:
 
 ## Cómo se construyen los modelos 3D
 
-Todo es **geometría procedural** de Three.js (no hay glTF/OBJ). Cada pieza se crea con funciones auxiliares que la
+La mayor parte es **geometría procedural** de Three.js; los equipos principales son **modelos glTF** (ver más abajo). Cada pieza se crea con funciones auxiliares que la
 registran con el `id` de un elemento de `EL`; esto es lo que hace funcionar la selección con clic, el resaltado, la
 ficha, las capas y los filtros. **No crees `new THREE.Mesh` sueltos añadidos a la escena**: usa siempre estas
 funciones.
@@ -52,7 +52,7 @@ Primitivas «realistas» (material físico; requieren `ritsMats()`, que se ejecu
 Opciones habituales en `o`: `{pick:true}` (seleccionable), `{pick:false}` (decorativo), `{opacity}`, `{cast:true}`
 (proyecta sombra), `{lidOf:id}` (tapa practicable), `{led:0xRRGGBB}`.
 
-**Modelos glTF:** `loadModels()` carga `models/*.glb` antes de iniciar y `placeModel()` los replica registrando cada malla al elemento; si el archivo falta, se usa el modelo procedural. Los objetos vacíos del modelo (`port_*`, `dc`) marcan puntos de anclaje. El T12 se genera por script desde Blender (`models/README.md`).
+**Modelos glTF:** ver la sección «Modelos glTF de los equipos».
 
 Si un modelo tiene muchas piezas pequeñas, fusiónalas (`mergeParts`, colores por vértice) para no multiplicar
 mallas: el edificio ya tiene unas 4.700.
@@ -67,6 +67,10 @@ mallas: el edificio ya tiene unas 4.700.
 | Repartidores Krone (STDP) | `KR`, `kroneModule()`, `kroneColumn()`, `buildRITIPairs()` |
 | Viviendas y RTR (PAU, roseta, multiplexor) | `buildUnit()`, `buildInterior()`, `MUX`, `rj45()` |
 | RITS (recinto, entrada, cabecera) | `buildRITSRoom()`, `buildRITSEntry()`, `buildCapVariant(v)` (variante `'A'` central programable / `'B'` monocanales T12), `buildMix740710()` |
+| Derivadores de RTV (registros secundarios) | `TAPF` (pérdida por planta, en el bloque de datos), `DER`, `DERPORT`, bucle de registros secundarios en `buildICT()` |
+| Conectores F y cargas | `fFemale()`, `fMale()`, `coaxPlug()` (modelo 417101), `fLoad()` (modelo 4061) |
+| Modelos glTF | `MODELS`, `loadModels()`, `placeModel()`, `modelPoint()` (al final del segundo `<script>`) |
+| Paisaje de fondo | `skyTexture()`, `buildMountains()`, `buildLandscape()`, `landscapeVisibility()` |
 | Antenas | `buildAntennas()` |
 
 ## Escala y coordenadas
@@ -80,6 +84,72 @@ mallas: el edificio ya tiene unas 4.700.
   añadir o mejorar un equipo, busca sus medidas reales y cítalas en un comentario. Fuera del RITS algunos elementos
   pequeños están ampliados para que se vean; está indicado en `SIMPLIFICATIONS`.
 - Los modelos se inspiran en productos reales (sobre todo Televes) **sin logotipos de marca**.
+
+## Modelos glTF de los equipos
+
+| Equipo (Televes, sin logotipo) | Archivo | Dónde se usa |
+|---|---|---|
+| Módulo T12 (35 × 198 × 103 mm) | `t12.glb` | Cabecera B (monocanales) y FI 2 de la cabecera A |
+| Fuente T12 549812 (70 × 198 × 92) | `font_t12.glb` | Fuentes de ambas cabeceras |
+| Central AVANT 12 PRO SAT 532204 (201 × 120 × 42) | `avant.glb` | Cabecera A |
+| Mezclador TER + 2 SAT 740710 (98 × 76 × 27) | `mesclador.glb` | Cabecera B |
+| Multiplexor pasivo RJ45 546501 (142 × 60 × 24) | `multiplexor.glb` | RTR de cada vivienda |
+| Derivador F 4D 519345 (109 × 54 × 18) | `derivador.glb` | Registros secundarios (2 por planta) |
+| Carga 75 Ω 4061 (12 × 29 × 12) | `carrega.glb` | Entradas/salidas libres (`fLoad`) y paso de la 1.ª planta |
+| Conector F macho roscado 417101 | `conector_f.glb` | Conexiones coaxiales (`coaxPlug`) |
+
+Cómo funcionan en la web:
+
+- `MODELS` lista los archivos; `loadModels()` los carga antes de `init()`. Si un archivo falta o la página se abre con
+  `file://`, cada función usa su **modelo procedural de reserva** (mantenlo siempre).
+- `placeModel(k, el, x, y, z, recolor, rot)` copia el modelo, registra cada malla al elemento `el` y devuelve las mallas
+  (añádelas a `G.pick` si deben seleccionarse). `rot`: número (giro en Y), `[x,y,z]` (Euler) o un `THREE.Quaternion`.
+  `recolor` cambia colores por **nombre de material** (p. ej. `{banda: 0x1565C0}` en los T12 de FI).
+- Los **objetos vacíos** del modelo marcan puntos de anclaje y se leen con `modelPoint(k, nombre)`: puertos F
+  (`port_in1`, `in`, `t1`… `out`, `sa`, `ter`…), bocas RJ45 (`j1`… `j8`, `line`, `adsl`), conector de 24 V (`dc`),
+  tomas (`power`, `terra`), tornillos (`forat_e`, `forat_d`). Los cables y conectores se enganchan ahí.
+- Convenios de los modelos: metros; frontal hacia −Y en Blender (+Z en glTF); origen en el centro de la cara posterior
+  (T12 y fuente: centro de la arista inferior posterior). Materiales: zamak `C2C6C9`, níquel `C9CCCF` (metálico 0,5;
+  **nunca 1**, porque la escena no tiene mapa de entorno y el metal puro se ve negro).
+
+### Flujo para un modelo nuevo a partir del DWG del fabricante
+
+1. `brew install libredwg` (ya instalado) y `dwg2dxf -y -o models/src/REF.dxf archivo.dwg`. Los planos de Televes son
+   **vistas frontales 2D en mm** con el origen en el centro; la profundidad sale de la ficha del catálogo.
+2. Sacar cotas del DXF con un script de Python (líneas horizontales/verticales largas, círculos, agrupación de puntos
+   para los conectores). Renderizarlo a SVG ayuda a verlo en el navegador.
+3. Serigrafía: `models/src/scripts/REF_serigrafia.py` (Pillow) rasteriza las líneas del plano a un PNG con alfa,
+   **excluyendo el logotipo** y lo que varíe por unidad (valores, referencias); los textos mal trazados en el plano se
+   reescriben con tipografía (Arial/Menlo).
+4. Modelo: `models/src/scripts/REF_model.py` se ejecuta con
+   `/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup -P script.py`; construye la geometría,
+   une las piezas por material, guarda el `.blend` y exporta el `.glb`. Comprobar con un render EEVEE en segundo plano.
+5. Integrar en `index.html` (`MODELS`, `placeModel`, puntos de anclaje, reserva procedural), actualizar la ficha en
+   `EL`, `models/README.md` y esta tabla.
+6. **Los DWG, DXF y SVG del fabricante no se publican** (`.gitignore`); sí el `.glb`, el `.blend` (sin el plano), la
+   textura y los scripts.
+
+## Criterios de diseño acordados
+
+- **Medidas reales** de catálogo en RITI, RTR, RITS y registros secundarios; cítalas en un comentario.
+- **Sin logotipos de marca** (Televes, LTE ready…). Nombres de producto y referencias sí.
+- Cabecera de monocanales T12: puertos F **centrados** (entradas a 166,5 y 146,5 mm de la base, salidas a 51,5 y
+  31,5 mm); puentes F de 48 mm (ref. 5074) en **Z**: de la boca superior de un módulo a la inferior del de la derecha.
+  TDT 10 → 1 de izquierda a derecha (el filtro LTE va en la entrada superior del TDT 1).
+- Toda entrada o salida F libre lleva una **carga 4061** (`fLoad`).
+- Derivadores: la señal baja desde la cubierta, así que la **pérdida de derivación crece al subir**
+  (`TAPF`: 1.ª 12 dB 519342, 2.ª 16 dB 519343, 3.ª 20 dB 519344, 4.ª 24 dB 519345); la 1.ª cierra el paso con carga.
+- Red de pares: STDP con regletas Krone y manguera de 50 pares (RD 346/2011, factor 1,2); en el RTR, roseta doble RJ45
+  y multiplexor con teléfono solo en las BAT dobles de sala y dormitorio 1.
+- Fondo: cielo con nubes (panorama generado), montañas 3D y niebla lejana; en el modo «Només ICT», fondo liso.
+
+## Ahorrar contexto (tokens)
+
+- **No leas `index.html` entero** (≈ 400 KB): busca con `grep -n` el nombre de la función o del `id` y lee solo ese
+  tramo. No abras `vendor/` ni los `.glb`/`.blend`.
+- Para comprobar en el navegador, prefiere `javascript_tool` (datos) a capturas; usa capturas reducidas
+  (`scale` 0,6) y solo las necesarias. El navegador cachea `index.html`: recarga con `?debug&v=N`.
+- Ediciones de varios bloques: un script de Python con reemplazos exactos (`assert s.count(a)==1`) evita releer.
 
 ## Convenciones
 

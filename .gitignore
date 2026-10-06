@@ -4,3 +4,6 @@ models/src/*.dxf
 models/src/*.svg
 # configuració local de Claude Code
 .claude/
+models/src/t12_plantilla.blend
+models/src/*.blend1
+models/src/tex/*_preview.png

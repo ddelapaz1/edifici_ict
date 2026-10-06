@@ -3982,16 +3982,17 @@ function buildCapVariant(v){
       const ms=placeModel('t12',M,xc,Y0,ZB,{banda:o.band||0xF57C00});
       for(const m of ms) G.pick.push(m);
       halo(ms[0],new THREE.BoxGeometry(0.0352,TH+0.002,0.105).translate(xc,Y0+TH/2,ZB+0.0515),RFN.eq);
+      rPlane(M,0.026,0.034,V(xc,Y0+0.112,ZF+0.0006),Z,textTex(lab,{w:104,h:136,fs:[24,30,20],bold:[true,true],bg:'#F4F4F2',fg:'#1A1A1A',border:'#9E9E9E',bw:3}));
     } else {
       const mb=rBox(M,xc-0.0172,xc+0.0172,Y0,Y1,ZB,ZF,o.col||0x1E1F22,'zamakDark',{pick:true,cast:true}); boxHalo(mb,RFN.eq);
       for(let k=0;k<8;k++) rBox(M,xc-0.0176,xc+0.0176,Y0+0.03+k*0.018,Y0+0.034+k*0.018,ZB+0.01,ZF-0.012,0x2A2B2F,'zamakDark');   // aletes de dissipació
       rBox(M,xc-0.0165,xc+0.0165,Y1-0.014,Y1-0.003,ZF,ZF+0.001,o.band||0xF57C00,'plastic');                                     // franja superior
+      rPlane(M,0.026,0.008,V(xc,Y1-0.0085,ZF+0.0012),Z,textTex(['T12'],{w:104,h:32,size:26,bold:[true],bg:o.bandCss||'#F57C00',fg:'#1E1F22'}));
+      rPlane(M,0.026,0.034,V(xc,Y0+0.112,ZF+0.0006),Z,textTex(lab,{w:104,h:136,fs:[24,30,20],bold:[true,true],bg:'#F4F4F2',fg:'#1A1A1A',border:'#9E9E9E',bw:3}));
+      rCyl(M,0.0015,0.002,V(xc+0.010,Y0+0.135,ZF+0.001),Z,0x43A047,'plastic',{led:0x1B8F2E});
+      rCyl(M,0.0035,0.003,V(xc-0.008,Y0+0.135,ZF+0.0015),Z,0xD0D3D6,'plastic');                                                  // ajust de guany
+      for(const dx of [-0.008,0.008]) rBox(M,xc+dx-0.003,xc+dx+0.003,DCY-0.0025,DCY+0.0025,ZF,ZF+0.004,0x111111,'plastic');   // connectors de 24 V
     }
-    rPlane(M,0.026,0.008,V(xc,Y1-0.0085,ZF+0.0012),Z,textTex(['T12'],{w:104,h:32,size:26,bold:[true],bg:o.bandCss||'#F57C00',fg:'#1E1F22'}));
-    rPlane(M,0.026,0.034,V(xc,Y0+0.112,ZF+0.0006),Z,textTex(lab,{w:104,h:136,fs:[24,30,20],bold:[true,true],bg:'#F4F4F2',fg:'#1A1A1A',border:'#9E9E9E',bw:3}));
-    rCyl(M,0.0015,0.002,V(xc+0.010,Y0+0.135,ZF+0.001),Z,0x43A047,'plastic',{led:0x1B8F2E});
-    rCyl(M,0.0035,0.003,V(xc-0.008,Y0+0.135,ZF+0.0015),Z,0xD0D3D6,'plastic');                                                  // ajust de guany
-    for(const dx of [-0.008,0.008]) rBox(M,xc+dx-0.003,xc+dx+0.003,DCY-0.0025,DCY+0.0025,ZF,ZF+0.004,0x111111,'plastic');   // connectors de 24 V
     /* ports: si el model porta objectes buits port_in1, port_in2, port_out1 i port_out2, s'agafen d'allà */
     const ports={}; for(const [k,[dx,dy]] of Object.entries(PP)){ const mp=modelPoint('t12','port_'+k); ports[k]=mp ? V(xc+mp.x,Y0+mp.y,ZB+mp.z) : V(xc+dx,Y0+dy,ZF); }
     return {xc,ports,M};
@@ -4003,14 +4004,15 @@ function buildCapVariant(v){
     rPlane(FN,0.026,0.008,V(x0+0.035,Y1-0.0085,ZFF+0.0012),Z,textTex(['T12'],{w:104,h:32,size:26,bold:[true],bg:'#F57C00',fg:'#1E1F22'}));
     rPlane(FN,0.058,0.072,V(x0+0.035,Y0+0.135,ZFF+0.0006),Z,textTex([tag,'549812','24 V c.c. · 2,5 A','230 V ~ · 60 W','Classe II ▣'],{w:232,h:288,fs:[36,30,24,24,24],bold:[true,true],bg:'#2A2C2F',fg:'#ECEFF1'}));
     rCyl(FN,0.0015,0.002,V(x0+0.035,Y0+0.185,ZFF+0.001),Z,0x43A047,'plastic',{led:0x1B8F2E});
-    const sx = left ? x0+0.012 : x0+0.058;
-    rBox(FN,sx-0.006,sx+0.006,DCY-0.0025,DCY+0.0025,ZFF,ZFF+0.004,0x111111,'plastic');                                         // sortida de 24 V
-    return V(sx,DCY,ZFF+0.004); };
+    const sx = left ? x0+0.012 : x0+0.058, sy = DCM ? Y0+DCM.y : DCY;                                                           // a l'alçada dels mòduls
+    rBox(FN,sx-0.006,sx+0.006,sy-0.0025,sy+0.0025,ZFF,ZFF+0.004,0x111111,'plastic');                                           // sortida de 24 V
+    return V(sx,sy,ZFF+0.004); };
   const fontCord=(x,plugX,y)=>{ const pl=euroPlug('rits_cordo',plugX,16.06); cord('rits_cordo',[[x,Y0,ZB+0.04],[x,y,ZB+0.04],[x,y,-4.706],[plugX,y,-4.706],[plugX,y+0.02,-4.672],pl]); };
   /* latiguillos de 24 V entre mòduls veïns (bucle cap endavant, com a la instal·lació real) */
-  const dcp=m=>V(m.xc,DCY,ZF+0.004);
+  const DCM=modelPoint('t12','dc'), DCO=DCM?0.0025:0.008;                     // connector d'alimentació del model glTF, si n'hi ha
+  const dcp=m=>DCM ? V(m.xc+DCM.x,Y0+DCM.y,ZB+DCM.z) : V(m.xc,DCY,ZF+0.004);
   const dcChain=(pts)=>{ for(let i=0;i<pts.length-1;i++){ const a=pts[i], b=pts[i+1], sg=Math.sign(b.x-a.x)||1;
-      const A=a.clone().add(V(i===0?0:0.008*sg,0,0)), B=b.clone().add(V(-0.008*sg,0,0));
+      const A=a.clone().add(V(i===0?0:DCO*sg,0,0)), B=b.clone().add(V(-DCO*sg,0,0));
       for(const [dy,col] of [[0.0016,0xC62828],[-0.0016,0x212121]]) polyR('cap_dc',[A.clone().add(V(0,dy,0)),A.clone().add(V(0.002*sg,dy,0.012)),B.clone().add(V(-0.002*sg,dy,0.012)),B.clone().add(V(0,dy,0))],0.0011,col,'pvc',{cr:0.005,hc:RFN.dc,pick:false});
       rBox('cap_dc',Math.min(A.x,B.x),Math.max(A.x,B.x),DCY-0.008,DCY+0.008,A.z,A.z+0.014,0x000000,{roughness:1,metalness:0},{opacity:0.0,pick:true}); } };
   /* suport de paret: dos perfils galvanitzats darrere dels equips */
@@ -4534,7 +4536,7 @@ function placeModel(k, el, x, y, z, recolor={}){
   tpl.traverse(n=>{ if(!n.isMesh) return; const mt=n.material, nm=mt.name||'';
     const g=n.geometry.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(T,n.matrixWorld));
     const col = recolor[nm] ?? mt.color.getHex();
-    out.push(ictMesh(g,col,el,{std:{roughness:mt.roughness??0.6, metalness:mt.metalness??0, side:mt.side}, cast:true})); });
+    out.push(ictMesh(g,col,el,{std:{roughness:mt.roughness??0.6, metalness:mt.metalness??0, side:mt.side, map:mt.map||null, alphaTest:mt.alphaTest||0}, cast:!mt.alphaTest})); });
   return out;
 }
 /* posició d'un objecte buit del model (p. ex. 'port_in1') respecte de l'origen del model, o null */

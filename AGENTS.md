@@ -10,6 +10,7 @@ plurifamiliar. Página web estática publicada con GitHub Pages en <https://ddel
 | `index.html` | Toda la aplicación: HTML, CSS, datos de los elementos y código 3D | **Sí** |
 | `vendor/three.min.js` | Three.js r160 (UMD, define el global `THREE`) | **No** |
 | `vendor/OrbitControls.js` | OrbitControls de Three.js adaptado a script clásico | **No** |
+| `models/` | Modelos glTF opcionales (`t12.glb`) y sus fuentes (`src/`: `.blend`, scripts de Blender). Ver `models/README.md` | Sí |
 | `.github/workflows/static.yml` | Despliegue a GitHub Pages en cada push a `main` (sube toda la carpeta) | Solo si hace falta |
 
 No hay *build*, ni npm, ni módulos ES: los `<script>` son clásicos y comparten el ámbito global.
@@ -50,6 +51,8 @@ Primitivas «realistas» (material físico; requieren `ritsMats()`, que se ejecu
 
 Opciones habituales en `o`: `{pick:true}` (seleccionable), `{pick:false}` (decorativo), `{opacity}`, `{cast:true}`
 (proyecta sombra), `{lidOf:id}` (tapa practicable), `{led:0xRRGGBB}`.
+
+**Modelos glTF:** `loadModels()` carga `models/*.glb` antes de iniciar y `placeModel()` los replica registrando cada malla al elemento; si el archivo falta, se usa el modelo procedural. Los objetos vacíos del modelo (`port_*`, `dc`) marcan puntos de anclaje. El T12 se genera por script desde Blender (`models/README.md`).
 
 Si un modelo tiene muchas piezas pequeñas, fusiónalas (`mergeParts`, colores por vértice) para no multiplicar
 mallas: el edificio ya tiene unas 4.700.

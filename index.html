@@ -754,9 +754,9 @@ for (const u of UNITS) {
   def({id:`rtr_${U}`, fam:'recinte', layer:'registres', svc:'all', floor:f, unit:U, zone:'privada (frontera)', container:true, lid:true, main: ex,
    name:`Registre de terminació de xarxa — ${N}`, sigla:'RTR',
    what:'És la caixa encastada dins de l\'habitatge, a prop de l\'entrada, on acaben les xarxes de dispersió i comença la xarxa interior.',
-   purpose:'Allotja els PAU de cada servei (el de RTV amb el repartidor integrat), el distribuïdor coaxial de TBA i els extrems RJ45 de la xarxa interior. Té a prop una presa de corrent i el registre de presa configurable.',
+   purpose:'Allotja els PAU de cada servei (el de RTV i el de TBA coaxial amb el repartidor integrat) i els extrems RJ45 de la xarxa interior. Té a prop una presa de corrent i el registre de presa configurable.',
    where:`Rebedor del ${N}, paret del fons.`,
-   connects:'Allotja el PAU + repartidor de RTV, la caixa de terminació òptica (PAU de fibra), les dues rosetes RJ45 amb el multiplexor passiu (PAU de parells) i el distribuïdor coaxial de TBA. D\'aquí surten en estrella tots els tubs interiors.',
+   connects:'Allotja el PAU + repartidor de RTV, la caixa de terminació òptica (PAU de fibra), les dues rosetes RJ45 amb el multiplexor passiu (PAU de parells) i el PAU + repartidor 2D de TBA coaxial. D\'aquí surten en estrella tots els tubs interiors.',
    example:`Si obres la tapa del registre del ${N} veus un punt d\'accés diferent per a cada tecnologia.`,
    confusion:'El registre és la caixa; el PAU és el punt de connexió que hi ha a dins. Es pot canviar la tapa del registre sense tocar el PAU.',
    nets:[`xs_rtv_${U}`,`xs_fo_${U}`,`xs_pt_${U}`,`xi_rtv_${U}`,`xi_dat_${U}`,`xi_tba_${U}`,`xi_fo_${U}`], canals:[`cs_${U}`,`ci_${U}`], links:[`rconf_${U}`]});
@@ -828,13 +828,13 @@ for (const u of UNITS) {
    confusion:'La xarxa comuna és de cables de parells (telefonia), però la xarxa interior és sempre de parells trenats: el PAU fa la transició.',
    nets:[`xs_pt_${U}`,`xi_dat_${U}`], links:[`rtr_${U}`]});
   def({id:`div_tba_${U}`, fam:'punt', layer:'punts', svc:'tba', floor:f, unit:U, zone:'privada', parent:`rtr_${U}`,
-   name:`Distribuïdor coaxial de TBA — ${N}`, sigla:'',
-   what:'És un distribuïdor (divisor) coaxial on es connecten els extrems dels dos cables coaxials interiors de TBA.',
-   purpose:'Deixa preparada la xarxa coaxial de telecomunicacions de banda ampla per a un operador de cable.',
-   where:`Dins del registre de terminació de xarxa del ${N}.`,
-   connects:'Entrada lliure (per a una futura acometida coaxial) → dos cables interiors cap a la sala d\'estar i el dormitori 1.',
-   example:'Si arriba un operador de cable, només ha d\'instal·lar l\'acometida pel tub de reserva i connectar-la a l\'entrada del distribuïdor.',
-   confusion:'Aquest coaxial és de TBA (operadors de cable), no de RTV: té tubs, cables i preses propis, independents dels de televisió.',
+   name:`PAU + repartidor de TBA coaxial (1 entrada, 2 sortides F; exemple: Televes ref. 519602) — ${N}`, sigla:'PAU',
+   what:"És un repartidor passiu de 2 sortides de zamac (74 × 54 × 18 mm), per a la banda de 5 a 1.220 MHz (també el canal de retorn de l'operador), amb tres connectors F roscats cap avall: l'entrada (fletxa amunt) i dues sortides (fletxa avall). Cada sortida rep el senyal amb una pèrdua de 4 dB.",
+   purpose:"És el punt d'accés a l'usuari de la xarxa coaxial de TBA (telecomunicacions de banda ampla): separa la xarxa de l'operador de cable de la xarxa interior de l'habitatge i en reparteix el senyal a les dues preses.",
+   where:`Dins del registre de terminació de xarxa del ${N}, cargolat a la paret del fons, sota el PAU de RTV.`,
+   connects:"Entrada: lliure, tancada amb una càrrega de 75 Ω (no hi ha operador de cable; hi arribaria la seva acometida coaxial pel tub de TBA de la canalització secundària). Sortides → cables interiors cap a la BAT de TBA de la sala d'estar i del dormitori 1.",
+   example:"Si es contracta un operador de cable, l'instal·lador treu la càrrega i hi enrosca el connector F de l'acometida: totes dues preses queden en servei sense tocar la xarxa interior.",
+   confusion:"No és el PAU de RTV: aquest coaxial és de TBA (operadors de cable) i té tubs, cables, PAU i preses propis. Tampoc no és un derivador: reparteix el senyal a parts iguals entre les dues sortides.",
    nets:[`xi_tba_${U}`], links:[`rtr_${U}`]});
   def({id:`rconf_${U}`, fam:'recinte', layer:'registres', svc:'all', floor:f, unit:U, zone:'privada', container:true,
    name:`Registre de presa configurable — ${N}`, sigla:'',
@@ -876,10 +876,10 @@ for (const u of UNITS) {
    canals:[`ci_${U}`], links:[`pau_pt_${U}`,`router_${U}`]});
   def({id:`xi_tba_${U}`, fam:'xarxa', layer:'xarxes', svc:'tba', tram:'int', tech:'coax', floor:f, unit:U, zone:'privada',
    name:`Xarxa interior coaxial de TBA — ${N}`, sigla:'',
-   what:'Són dos cables coaxials que van del distribuïdor de TBA del registre de terminació de xarxa fins a dues preses coaxials de TBA.',
+   what:'Són dos cables coaxials que van del PAU + repartidor de TBA del registre de terminació de xarxa fins a dues preses coaxials de TBA.',
    purpose:'Permeten rebre serveis d\'un operador de cable (TBA: telecomunicacions de banda ampla).',
    where:`Canalització interior del ${N}: un tub cap a la sala d\'estar i un cap al dormitori 1.`,
-   connects:'Distribuïdor coaxial de TBA → BAT coaxial de TBA de la sala d\'estar i del dormitori 1 (les dues estàncies principals).',
+   connects:'Sortides del PAU + repartidor de TBA → BAT coaxial de TBA de la sala d\'estar i del dormitori 1 (les dues estàncies principals).',
    example:'Un descodificador d\'un operador de cable es connectaria a la presa de TBA de la sala.',
    confusion:'No es barreja amb la RTV: són cables, tubs i preses diferents encara que tots dos siguin coaxials.',
    canals:[`ci_${U}`], links:[`div_tba_${U}`]});
@@ -910,7 +910,7 @@ for (const u of UNITS) {
      what:`És la caixa encastada a la paret que allotja la ${T.bat[0].toLowerCase()+T.bat.slice(1)}${dblTxt}.`,
      purpose:`Protegeix l\'extrem del cable interior i fixa la BAT a la paret. ${why}`,
      where:`${cap(R.name)} del ${N}, a prop del terra.`,
-     connects:`${p.dbl?'Hi arriben dos cables':'Hi arriba un cable'} ${p.t==='rtv'?'coaxial des d\'una sortida del PAU + repartidor':p.t==='tba'?'coaxial des del distribuïdor de TBA':p.t==='fo'?'de fibra des de la roseta òptica del PAU':'de parells trenats des del registre de terminació de xarxa'}. Allotja la BAT.`,
+     connects:`${p.dbl?'Hi arriben dos cables':'Hi arriba un cable'} ${p.t==='rtv'?'coaxial des d\'una sortida del PAU + repartidor':p.t==='tba'?'coaxial des d\'una sortida del PAU + repartidor de TBA':p.t==='fo'?'de fibra des de la roseta òptica del PAU':'de parells trenats des del registre de terminació de xarxa'}. Allotja la BAT.`,
      example: p.t==='fo' ? 'Darrere de l\'ONT de la sala hi ha aquest registre amb la roseta òptica.' : p.k==='rtv_sala' ? 'Darrere del televisor de la sala hi ha aquest registre.' : `${cap(R.a)}, la caixa queda darrere de la placa frontal de la presa.`,
      confusion:'El registre de presa és la caixa; la BAT és el connector frontal on l\'usuari endolla el cable. A menys de 50 cm hi ha d\'haver una presa de corrent.',
      nets:[`${T.net}_${U}`], canals:[`ci_${U}`], links:[`bat_${pid}`]});
@@ -1517,7 +1517,7 @@ const SIMPLIFICATIONS = [
  'Les preses s\'han situat de manera orientativa. En un projecte real la posició depèn del mobiliari previst i de les distàncies que fixa la normativa.',
  'La xarxa de distribució de fibra es mostra com un sol cable multifibra. Configuració escollida: empalmament a la caixa de segregació de cada planta i fibres en pas per a les altres plantes.',
  'La xarxa comuna de parells segueix l\'opció de cables de parells del RD 346/2011 (mànega multiparell i regletes), la més habitual en edificis existents; la xarxa interior és de parells trenats.',
- 'No es representa la xarxa de distribució i dispersió coaxial de TBA (es considera que no hi ha operador de cable: el tub de la canalització secundària queda amb fil guia). Sí que es representa la xarxa interior coaxial de TBA fins al distribuïdor del registre de terminació de xarxa. No es representa la xarxa d\'accés sense fils (SAI). La presa de terra i l\'alimentació elèctrica només es detallen al RITS.',
+ 'No es representa la xarxa de distribució i dispersió coaxial de TBA (es considera que no hi ha operador de cable: el tub de la canalització secundària queda amb fil guia). Sí que es representa la xarxa interior coaxial de TBA fins al PAU + repartidor 2D del registre de terminació de xarxa, amb l\'entrada tancada amb una càrrega de 75 Ω. No es representa la xarxa d\'accés sense fils (SAI). La presa de terra i l\'alimentació elèctrica només es detallen al RITS.',
  'Els envans interiors es mostren a mitja alçada per veure l\'interior. El RITI es representa tancat amb dues portes abatibles, com un armari. El RITS és un recinte d\'obra amb porta metàl·lica; el sostre i la paret frontal es poden retirar des del panell «Configuració del RITS».',
  'RITS: el recinte, els equips, els connectors i els cables de dins són a escala real (mides dels catàlegs del fabricant). Els equips són exemples comercials documentats (Televes), no una recomanació; les formes dels connectors i les posicions dels ports són aproximades.',
  'RITS: els colors dels cables i tubs són els d\'una instal·lació real habitual (exterior PE negre, interior PVC blanc, corrugat negre, tub elèctric gris); és una tria de representació, no una obligació. Fora del RITS els cables tornen al codi de colors didàctic de la llegenda.',
@@ -2172,6 +2172,16 @@ function pauRtvPos(u){
   const PO=new THREE.Vector3(mx(u,-3.48),yb(u.f)+1.60,mz(u,-4.722));
   return {PO, rot, at:n=>PO.clone().add(pt(n))};
 }
+/* PAU de TBA coaxial: repartidor 2D de 5–1220 MHz (Televes 519602, sense logotip), 74 × 54 × 18 mm, cargolat a la paret
+   del fons del RTR, sota el PAU de RTV, amb els tres connectors F cap avall: entrada (x −25,6 mm) i 2 sortides (8,4 i 25,4).
+   Com el de RTV, no es reflecteix: a les vivendes C i D està girat 180°. at(n): boca del port n. */
+const PTD={in:-0.0256, o1:0.0084, o2:0.0254};
+function pauTbaPos(u){
+  const sz=SZ(u), rot=sz<0?Math.PI:0, q=new THREE.Quaternion().setFromAxisAngle(UP,rot);
+  const pt=n=>(modelPoint('pauTba',n)||new THREE.Vector3(PTD[n],-0.0267,0.009)).applyQuaternion(q);
+  const PO=new THREE.Vector3(mx(u,-3.30),yb(u.f)+1.38,mz(u,-4.722));
+  return {PO, rot, at:n=>PO.clone().add(pt(n))};
+}
 /* tub d'accés: del fons del registre de pas, per dins de la paret, fins al lateral del RTR */
 function csPath(u, y, h1){
   const h2=y+CS_H2(h1), H1=y+h1, R=XS(u)===1 ? -1 : 1, zA=mz(u,RPS.zA), zr=mz(u,-4.58);
@@ -2341,7 +2351,19 @@ function buildInterior(u){
   const sc1=pfAt('sc1'), sc2=pfAt('sc2');
   const PF_TAIL=scPlug(`xi_fo_${U}`,scAdapter(PF,sc1,UP,PSIDE,true),V(0,-1,0),PSIDE);      // sortida 1 → fibra interior cap a la sala
   scAdapter(PF,sc2,UP,PSIDE,false);                                                            // sortida 2: en reserva, amb la tapa tancada
-  iBox(`div_tba_${U}`,0.2,0.1,0.05,X(-3.30),y+1.36,Z(-4.67),0xC9CED4); iBox(`div_tba_${U}`,0.04,0.03,0.02,X(-3.34),y+1.36,Z(-4.64),0xC2185B,{pick:false});   // sota el PAU de RTV, deixa pas a la fibra
+  /* PAU de TBA coaxial (repartidor 2D Televes 519602): entrada lliure amb càrrega 4061 (no hi ha operador de cable);
+     les 2 sortides, d'esquerra a dreta (coordenades lògiques), cap a la sala i el dormitori 1 */
+  const PT0=`div_tba_${U}`, PT=pauTbaPos(u);
+  if(MODELS.pauTba.scene){
+    const ms=placeModel('pauTba',PT0,PT.PO.x,PT.PO.y,PT.PO.z,{},PT.rot);
+    addProxy(ms[0],new THREE.BoxGeometry(0.10,0.09,0.05).translate(PT.PO.x,PT.PO.y-0.01,PT.PO.z+sz*0.02));                  // zona de selecció
+  } else {
+    iBox(PT0,0.0615,0.0241,0.018,PT.PO.x,PT.PO.y-0.0002,PT.PO.z+sz*0.009,0xC2C6C9);                                         // reserva: cos de 74 × 54 × 18 mm
+    for(const n of Object.keys(PTD)){ const b=PT.at(n).add(V(0,0.0145,0)); fFemale(PT0,b,V(0,-1,0)); }
+  }
+  fLoad(PT0,PT.at('in').add(V(0,0.0025,0)),V(0,-1,0));
+  const tOuts=['o1','o2'].map(n=>[n,X(PT.at(n).x)]).sort((a,b)=>a[1]-b[1]), TBAOUT={}, TBATAIL={};
+  ['tba_sala','tba_d1'].forEach((k,i)=>{ TBAOUT[k]=tOuts[i][1]; TBATAIL[k]=coaxPlug(`xi_tba_${U}`,PT.at(tOuts[i][0]).add(V(0,0.004,0)),V(0,-1,0)); });
   let PAU_PATCH, FO_BAT;
   /* PAU de parells: roseta doble RJ45 de superfície (línia 1 i línia 2) a la paret del fons del RTR, amb les boques cap avall */
   {
@@ -2392,7 +2414,7 @@ function buildInterior(u){
   const N=EXIT_ORDER.length, LAY={}, used=[];
   { const iv=[]; EXIT_ORDER.forEach((k,i)=>{ if(k==='conf') return; const p=PRESES.find(o=>o.k===k), xe=-3.66+i*(0.92/(N-1));
       for(const [ab,dx] of (p.dbl?[['a',-DXI],['b',DXI]]:[['',0]])){ const key=ab?`${k}_${ab}`:k;
-        const sx = p.t==='rtv'?RTVOUT[k] : p.t==='tba'?(k==='tba_sala'?-3.33:-3.27) : p.t==='fo'?-3.16 : MUXOUT[key]?-2.86 : (PATCHED[key]??FREEEND[key]);
+        const sx = p.t==='rtv'?RTVOUT[k] : p.t==='tba'?TBAOUT[k] : p.t==='fo'?-3.16 : MUXOUT[key]?-2.86 : (PATCHED[key]??FREEEND[key]);
         iv.push([key,Math.min(sx,xe+dx)-0.03,Math.max(sx,xe+dx)+0.03]); } });
     iv.sort((a,b)=>a[1]-b[1]);
     for(const [key,lo,hi] of iv){ let l=0; while(used[l]!==undefined && used[l]>lo) l++; used[l]=hi; LAY[key]=l; } }
@@ -2415,7 +2437,7 @@ function buildInterior(u){
        baixada davant del tub i entrada per terra. Capes diferents per als recorreguts que se solapen: cap creuament. */
     let src, from;
     if(p.t==='rtv'){ const t=RTVTAIL[k]; src=[t,[t.x,y+1.44,t.z]]; from=`pau_rtv_${U}`; }
-    else if(p.t==='tba'){ const tx=X(k==='tba_sala'?-3.33:-3.27); src=[[tx,y+1.31,Z(-4.67)],[tx,y+1.275,Z(-4.67)]]; from=`div_tba_${U}`; }   // dues sortides del distribuïdor
+    else if(p.t==='tba'){ const t=TBATAIL[k]; src=[t,[t.x,y+1.30,t.z]]; from=`div_tba_${U}`; }   // dues sortides del PAU de TBA
     else if(p.t==='fo'){ src=[PF_TAIL,[PF_TAIL[0],PF_TAIL[1]-0.035,PF_TAIL[2]]]; from=`pau_fo_${U}`; }
     else from=`pau_pt_${U}`;
     const offs = p.dbl ? [['a',-DXI],['b',DXI]] : [['',0]];
@@ -5004,7 +5026,7 @@ function init(){
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */
-const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}, deriv:{url:'models/derivador.glb', scene:null}, carrega:{url:'models/carrega.glb', scene:null}, conF:{url:'models/conector_f.glb', scene:null}, pauFo:{url:'models/pau_fo.glb', scene:null}, pauRtv:{url:'models/pau_rtv.glb', scene:null}, adSC:{url:'models/adaptador_sc.glb', scene:null}, scApc:{url:'models/sc_apc.glb', scene:null}};
+const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}, deriv:{url:'models/derivador.glb', scene:null}, carrega:{url:'models/carrega.glb', scene:null}, conF:{url:'models/conector_f.glb', scene:null}, pauFo:{url:'models/pau_fo.glb', scene:null}, pauRtv:{url:'models/pau_rtv.glb', scene:null}, pauTba:{url:'models/pau_tba.glb', scene:null}, adSC:{url:'models/adaptador_sc.glb', scene:null}, scApc:{url:'models/sc_apc.glb', scene:null}};
 function loadModels(){
   if(!THREE.GLTFLoader || location.protocol==='file:') return Promise.resolve();
   const loader=new THREE.GLTFLoader();

@@ -74,6 +74,7 @@ mallas: el edificio ya tiene unas 4.700.
 | Mánega de 50 pares y sangrado | `PT50`, `buildPairRiser()`, `pairWindow()`, `PAIRC` |
 | Conectores F y cargas | `fFemale()`, `fMale()`, `coaxPlug()` (modelo 417101), `fLoad()` (modelo 4061) |
 | PAU de RTV en la vivienda (519534) | `PRD`, `pauRtvPos()`; cables de dispersión en `buildUnit()` (bucle en U por debajo) |
+| PAU de TBA coaxial en la vivienda (519602, `div_tba_*`) | `PTD`, `pauTbaPos()`; salidas `TBAOUT`/`TBATAIL` en `buildInterior()` |
 | Fibra en la vivienda (PAU 231502, SC/APC) | `pauFoPos()`, `scQuat()`, `scAdapter()`, `scPlug()`; presa óptica en el bucle de `PRESES` de `buildInterior()` |
 | Modelos glTF | `MODELS`, `loadModels()`, `placeModel()`, `modelPoint()` (al final del segundo `<script>`) |
 | Paisaje de fondo | `skyTexture()`, `buildMountains()`, `buildLandscape()`, `landscapeVisibility()` |
@@ -118,6 +119,7 @@ mallas: el edificio ya tiene unas 4.700.
 | Multiplexor pasivo RJ45 546501 (142 × 60 × 24) | `multiplexor.glb` | RTR de cada vivienda |
 | Derivador F 4D 519345 (109 × 54 × 18) | `derivador.glb` | Registros secundarios (2 por planta) |
 | PAU repartidor 4D 519534 (109 × 54 × 18), entrada carregada | `pau_rtv.glb` | RTR de cada vivienda (`pauRtvPos(u)`) |
+| PAU de TBA coaxial: repartidor 2D 5–1220 MHz 519602 (74 × 54 × 18), entrada cargada con 4061 | `pau_tba.glb` | RTR de cada vivienda (`pauTbaPos(u)`) |
 | Carga 75 Ω 4061 (12 × 29 × 12) | `carrega.glb` | Entradas/salidas libres (`fLoad`) y paso de la 1.ª planta |
 | Conector F macho roscado 417101 | `conector_f.glb` | Conexiones coaxiales (`coaxPlug`) |
 | PAU de fibra óptica 231502 (119 × 94 × 33) | `pau_fo.glb` | RTR de cada vivienda (`pauFoPos(u)`) |
@@ -165,6 +167,8 @@ Cómo funcionan en la web:
   31,5 mm); puentes F de 48 mm (ref. 5074) en **Z**: de la boca superior de un módulo a la inferior del de la derecha.
   TDT 10 → 1 de izquierda a derecha (el filtro LTE va en la entrada superior del TDT 1).
 - Toda entrada o salida F libre lleva una **carga 4061** (`fLoad`).
+- PAU de TBA coaxial: repartidor 2D 519602 bajo el PAU de RTV; entrada libre con carga 4061 (no hay operador de cable), salidas
+  de izquierda a derecha (lógica) a sala y dorm. 1.
 - PAU de RTV (519534): cable blanco a la entrada, cable negro (reserva) a la **entrada cargada** (75 Ω interna, sin carga
   externa); los dos entran por debajo con una U de 33 mm. Salidas asignadas de izquierda a derecha (lógica) a cocina, sala, dorm. 2 y 1.
 - Derivadores: la señal baja desde la cubierta, así que la **pérdida de derivación crece al subir**

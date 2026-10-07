@@ -1,7 +1,7 @@
 # Models 3D (glTF)
 
 La web carrega els models d'aquesta carpeta si existeixen (`loadModels()` a `index.html`); si no, fa servir el model
-procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor, la central AVANT, el mesclador, el derivador i el PAU de RTV, al centre de la cara posterior; la càrrega, al centre de la femella); frontal cap a +Z en glTF
+procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara posterior (el multiplexor, la central AVANT, el mesclador, el derivador i els PAU de RTV i de TBA, al centre de la cara posterior; la càrrega, al centre de la femella); frontal cap a +Z en glTF
 (−Y a Blender). Els objectes buits `port_*`, `in`, `out`, `t1`–`t4` i `dc` marquen on s'enganxen ponts i cables.
 
 | Model | Fitxer | Font |
@@ -13,6 +13,7 @@ procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara p
 | Mesclador TER + 2 SAT, ref. 740710 (98 × 76 × 27 mm) | `mesclador.glb` | `src/mesclador.blend` |
 | Derivador F 4D, ref. 519345 (109 × 54 × 18 mm) | `derivador.glb` | `src/derivador.blend` |
 | PAU repartidor 4D amb entrada carregada, ref. 519534 (109 × 54 × 18 mm) | `pau_rtv.glb` | `src/pau_rtv.blend` |
+| PAU de TBA coaxial: repartidor 2D de 5–1220 MHz, ref. 519602 (74 × 54 × 18 mm) | `pau_tba.glb` | `src/pau_tba.blend` |
 | Càrrega terminal 75 Ω tipus F amb bloqueig CC, ref. 4061 (12 × 29 × 12 mm) | `carrega.glb` | `src/carrega.blend` |
 | Connector F mascle roscat, ref. 417101 (L 21,106 mm, cos Ø8,824 mm, hexàgon 10,912 mm entre cares) | `conector_f.glb` | `src/conector_f.blend` |
 | PAU de fibra òptica, ref. 231502 (119 × 94 × 33 mm; 97 mm amb els adaptadors) | `pau_fo.glb` | `src/pau_fo.blend` |
@@ -97,6 +98,18 @@ interna) i `o1`… `o4` (sortides), a 17 mm entre si, a més de `terra`.
 dwg2dxf -y -o models/src/519534.dxf 519534_CAD02230216.dwg
 python3 models/src/scripts/pau_rtv_serigrafia.py
 /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup -P models/src/scripts/pau_rtv_model.py
+```
+
+## Regenerar el PAU de TBA coaxial (repartidor 2D)
+
+Plànol del fabricant `519602_CAD10230027.dwg` convertit a `src/519602.dxf`; profunditat de la fitxa del producte (18 mm).
+Mateixa família que el 519534; la serigrafia no porta el logotip ni la data de fabricació (MM/AA). Ports `in` (entrada) i
+`o1`, `o2` (sortides), a més de `terra`.
+
+```bash
+dwg2dxf -y -o models/src/519602.dxf 519602_CAD10230027.dwg
+python3 models/src/scripts/pau_tba_serigrafia.py
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup -P models/src/scripts/pau_tba_model.py
 ```
 
 ## Regenerar la càrrega terminal 75 Ω

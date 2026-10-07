@@ -1727,12 +1727,29 @@ const REAL={white:0xF4F3EF, black:0x1C1D1F, fo:0xF2C200, pt:0x9EA4AA, pt50:0xD6D
 function realColorFor(key,tech){ if(tech==='fo') return REAL.fo; if(tech==='pt') return /^xd_pt/.test(key) ? REAL.pt50 : REAL.pt; return /^(xd|xs)_rtv_b_/.test(key) ? REAL.black : REAL.white; }
 function cableColor(tram,tech,real){ if(S.colorBy==='real') return real ?? (tech==='fo'?REAL.fo:tech==='pt'?REAL.pt:REAL.white); return new THREE.Color(S.colorBy==='tech' ? TECHS[tech].color : TRAMS[tram].color).getHex(); }
 
-/* tub de canalització (contenidor físic) */
+/* tub de canalització (contenidor físic). o.mouth: boques que queden dins d'un registre o recinte (0: inici, 1: final,
+   2: totes dues); s'hi dibuixa un collar més opac perquè es vegi on acaba el tub i per on en surt el cable */
 function tube(elId, pts, r, o={}){
   pts=P(pts);
   const m=ictMesh(tubeGeo(pts,r,12,o.cr,o.R), o.color||0x9AA3AD, elId, Object.assign({canal:true, opacity:0.32, svc:o.svc||'all'}, o));
   m.renderOrder=2; G.pick.push(m);
+  (G.tubes ||= []).push({el:elId, pts, r, cr:o.cr, R:o.R});
+  for(const e of (o.mouth===2?[0,1]:o.mouth===undefined?[]:[o.mouth])){
+    const p=pts[e?pts.length-1:0], t=p.clone().sub(pts[e?pts.length-2:1]).normalize().multiplyScalar(e?1:-1);
+    const g=new THREE.CylinderGeometry(r*1.04,r*1.04,0.008,16,1,true); g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(UP,t));
+    g.translate(p.x-t.x*0.004,p.y-t.y*0.004,p.z-t.z*0.004);
+    const key=[elId,o.svc,o.tubeSvc,o.color].join('|');
+    ((MOUTHS[key] ||= {elId, o, g:[]}).g).push([g,new THREE.Matrix4()]);
+  }
   return m;
+}
+/* collars de les boques: una sola malla per element i servei (es fusionen en acabar buildICT) */
+const MOUTHS={};
+function flushMouths(){
+  for(const [k,{elId,o,g}] of Object.entries(MOUTHS)){
+    const c=ictMesh(mergeParts(g), o.color||0x9AA3AD, elId, Object.assign({canal:true, svc:o.svc||'all'}, o, {opacity:0.75, mouth:undefined}));
+    c.material.side=THREE.DoubleSide; c.renderOrder=2; delete MOUTHS[k];
+  }
 }
 function iCyl(elId, r, h, x,y,z, color, axis='y', o={}){
   const g=new THREE.CylinderGeometry(r,r,h,14); if(axis==='x') g.rotateZ(Math.PI/2); if(axis==='z') g.rotateX(Math.PI/2);
@@ -2003,6 +2020,7 @@ const RISE={a:[RX.rtv-0.008,RZ], b:[RX.rtv+0.008,RZ], fo:[RX.fo,RZ]};   // posic
 const CSEG={x:0.95, y:1.5, z:-4.685, gz:-4.66, xf:0.86, gx:{A:0.91, D:0.94, C:1.00, B:1.03}};   // caixa de segregació (a la placa) i premsaestopes
 const RCS=0.10;   // radi de corba dels tubs de la canalització secundària (i dels cables que hi van a dins)
 const RCI=0.035;  // radi de corba dels tubs de la xarxa interior (≥ radi mínim del RG-6, 33 mm)
+const DINS=0.025; // tram de tub que entra dins d'un registre o recinte (en surt el cable), per veure per on arriba
 const RIT=0.010;  // xarxa interior d'usuari: un tub de Ø20 mm (mínim RD 346/2011) del RTR a cada registre de presa
 const DXI=0.0045; // presa doble: dos cables al mateix tub de Ø20, desplaçats ±DXI (vegeu inTube) sense tocar-se ni sortir-ne
 const OFF={a:[-0.03,-0.02], b:[0.03,0.02]};
@@ -2023,9 +2041,10 @@ function buildICT(){
   const RAL=0.25, ALX={fo2:-0.105, fo:-0.035, pt:0.035, res:0.105}, alInf=dx=>[[ax+dx,-0.5,5.0],[ax+dx,-0.5,4.62,RAL]];
   const alUp=dx=>[[ax+dx,2.55,4.62,RAL],[ax+dx,2.55,-3.48+dx,RAL]];
   for(const dx of Object.values(ALX)){
-    tube('canal_ext',[[ax+dx,-0.5,6.54],[ax+dx,-0.5,5.0]],0.0315);
-    tube('canal_enllac_inf',[...alInf(dx),[ax+dx,0.37,4.62]],0.0315,{R:RAL});
-    tube('canal_enllac_inf',[[ax+dx,0.87,4.62],...alUp(dx),[3.3,2.55,-3.48+dx]],0.0315,{R:RAL});
+    /* les boques entren uns 2,5 cm dins de l'arqueta, del registre d'enllaç i del RITI (DINS) */
+    tube('canal_ext',[[ax+dx,-0.5,6.58+DINS],[ax+dx,-0.5,5.0]],0.0315,{mouth:0});
+    tube('canal_enllac_inf',[...alInf(dx),[ax+dx,0.395+DINS,4.62]],0.0315,{R:RAL, mouth:1});
+    tube('canal_enllac_inf',[[ax+dx,0.845-DINS,4.62],...alUp(dx),[3.3,2.55,-3.48+dx]],0.0315,{R:RAL, mouth:2});
   }
   /* PEG: pas a través del fonament */
   iCyl('peg',0.17,0.42,ax,-0.5,4.9,0xD08A3A,'z');
@@ -2047,9 +2066,10 @@ function buildICT(){
   regBox('rp_pt',0.6,1.0,0.3,2.95,1.45,-4.6,C.reg,C.regLid);
   buildEnclosures(); buildRITS(); buildRITIFibre(); buildRITIPairs();
   /* --- Canalització principal: 6 tubs de Ø50 mm, interromputs pels registres secundaris --- */
-  const breaks=[[2.2,3.95],[5.65,6.95],[8.65,9.95],[11.65,12.95],[14.65,14.96]];
+  /* cada tram entra DINS dins dels registres secundaris (parets de 25 mm a y+0,95 i y+2,65) */
+  const breaks=[[2.2,3.975+DINS],[5.625-DINS,6.975+DINS],[8.625-DINS,9.975+DINS],[11.625-DINS,12.975+DINS],[14.625-DINS,14.96]];
   for(const [k,x] of Object.entries(RX)) for(const [y0,y1] of breaks)
-    tube('canal_principal',[[x,y0,RZ],[x,y1,RZ]],RPR,{tubeSvc:k.replace(/\d/,'')});
+    tube('canal_principal',[[x,y0,RZ],[x,y1,RZ]],RPR,{tubeSvc:k.replace(/\d/,''), mouth:2});
   /* --- Registres secundaris --- */
   for(const f of [1,2,3,4]){
     const y=yb(f);
@@ -2123,6 +2143,7 @@ function buildICT(){
 
   /* --- Per habitatge --- */
   for(const u of UNITS) buildUnit(u, C);
+  flushMouths();
 }
 
 /* canalització secundària (RD 346/2011), a cada costat del distribuïdor (esquerra: A i D; dreta: B i C):
@@ -2132,10 +2153,11 @@ function buildICT(){
    - accés: 3 tubs de Ø25 mm per habitatge (RTV; parells i fibra; TBA) des del fons del registre de pas, per dins de la
      paret, fins al RTR. h1: alçada d'arribada al RTR (1.26, 1.52, 1.78); al registre de pas, 2.20–2.52. */
 const CS_H2 = h1 => 2.2 + (h1-1.26)/0.26*0.16;
-const CSR=0.0125;   // tubs de Ø25 mm
+const CSR=0.0125;
+const RPD=0.012;  // el registre de pas és poc fondo (12 cm): els tubs només hi entren 12 mm   // tubs de Ø25 mm
 const CSC={rtv:{h:2.52,z:-4.55}, fo:{h:2.40,z:-4.45}, pt:{h:2.32,z:-4.62}, tba:{h:2.20,z:-4.55}};   // tram comunitari (alçada i z)
 const RPS={x:1.94, y:2.36, z:-5.0, zf:-4.82, w:0.36, d:0.12, zA:-4.90};   // registre de pas (|x| del centre); zA: z dels tubs d'accés de A/B
-const cscPath = (R,y,k) => { const c=CSC[k]; return [[R<0?0.3:1.6,y+c.h,c.z],[R*RPS.x,y+c.h,c.z],[R*RPS.x,y+c.h,RPS.zf]]; };
+const cscPath = (R,y,k) => { const c=CSC[k]; return [[R<0?0.335:1.565,y+c.h,c.z],[R*RPS.x,y+c.h,c.z],[R*RPS.x,y+c.h,RPS.zf-0.02-RPD]]; };
 /* desplaçament d'un cable dins del tram comunitari (s: mig pas). x: cap al fons del registre de pas el de l'habitatge que
    gira primer (A, B), cap enfora el que passa per davant seu (D, C); y: més alt el que passa per sobre de les columnes dels
    altres dins del registre secundari; z: perpendicular a la corba del sostre (x → −z) respecte del cable de l'altre habitatge.
@@ -2145,7 +2167,7 @@ const cscW = (u,up) => { const a=up?0.004:-0.004; return [0, a, ZM(u)?-a:a]; };
 function buildSecTrunk(f, C){
   const y=yb(f);
   for(const [R,k] of [[-1,'e'],[1,'d']]){
-    for(const t of Object.keys(CSC)) tube(`csc_${f}${k}`,cscPath(R,y,t),CSR,{tubeSvc:t, R:RCS});
+    for(const t of Object.keys(CSC)) tube(`csc_${f}${k}`,cscPath(R,y,t),CSR,{tubeSvc:t, R:RCS, mouth:2});
     /* registre de pas: caixa amb tapa cap al distribuïdor (−x a la dreta, +x a l'esquerra) */
     const el=`rps_${f}${k}`, yc=y+RPS.y, h=RPS.w, w=RPS.w, d=RPS.d, t=0.02, xc=R*RPS.x;
     iBox(el,t,h,w,R*(2.0-t/2),yc,RPS.z,C.reg);
@@ -2185,11 +2207,11 @@ function pauTbaPos(u){
 /* tub d'accés: del fons del registre de pas, per dins de la paret, fins al lateral del RTR */
 function csPath(u, y, h1){
   const h2=y+CS_H2(h1), H1=y+h1, R=XS(u)===1 ? -1 : 1, zA=mz(u,RPS.zA), zr=mz(u,-4.58);
-  return [[R*(2.0-0.005),h2,zA],[R*2.45,h2,zA],[R*2.45,H1,zr],[R*2.7,H1,zr]];
+  return [[R*(1.98-RPD),h2,zA],[R*2.45,h2,zA],[R*2.45,H1,zr],[R*(2.725+DINS),H1,zr]];
 }
 function buildUnit(u, C){
   const y=yb(u.f), id=u.id, X=x=>mx(u,x), Z=z=>mz(u,z), sz=SZ(u);
-  for(const [yy,svc] of [[1.78,'rtv'],[1.52,'all'],[1.26,'tba']]) tube(`cs_${id}`,csPath(u,y,yy),CSR,{tubeSvc:svc, R:RCS});
+  for(const [yy,svc] of [[1.78,'rtv'],[1.52,'all'],[1.26,'tba']]) tube(`cs_${id}`,csPath(u,y,yy),CSR,{tubeSvc:svc, R:RCS, mouth:2});
   /* registre de terminació de xarxa (C i D: tapa cap a -z) */
   regBox(`rtr_${id}`,1.0,0.8,0.3,X(-3.2),y+1.5,Z(-4.6),0xE9E6DF,0xF4F2EE,SZ(u));
   /* dispersió: dins del registre secundari, recorreguts ordenats (vegeu RSW); dins dels tubs, el camí del tub traslladat
@@ -2198,7 +2220,9 @@ function buildUnit(u, C){
      fins a la z del seu tub d'accés i gira cap al fons. */
   const R=XS(u)===1?-1:1, zA=mz(u,RPS.zA);
   const accIn=(ap,w)=>[...inTube(ap.slice(0,-1),w,RCS), ap[ap.length-1].map((q,i)=>q+w[i])];
-  const viaRPS=(k,v,ap,w)=>[...inTube(cscPath(R,y,k).slice(1),v,RCS), [R*RPS.x+v[0],ap[0][1]+w[1],zA+w[2]], ...accIn(ap,w)];
+  /* surt recte per la boca i gira fora del tub; si el tub d'accés és pràcticament a la mateixa alçada, sense vèrtex a la boca */
+  const viaRPS=(k,v,ap,w)=>{ const c=inTube(cscPath(R,y,k).slice(1),v,RCS), m=[R*RPS.x+v[0],ap[0][1]+w[1],zA+w[2]];
+    return [c[0], ...(Math.abs(c[1][1]-m[1])<0.01?[]:[c[1].slice(0,3)]), m, ...accIn(ap,w).slice(1)]; };
   const port={A:'t1',D:'t2',C:'t3',B:'t4'}[u.s];
   for(const c of ['a','b']){
     const up=(R<0)===(c==='a'), w=cscW(u,up), v=cscV(u,0.0037,up), tp=csPath(u,y,1.78), t=TAPR[c][port];
@@ -2404,10 +2428,10 @@ function buildInterior(u){
   cable(`patch_pau_${U}`,`pau_pt_${U}`,[PAU_PATCH,[PAU_PATCH[0],PAU_PATCH[1]-0.012,PAU_PATCH[2]],[PAU_PATCH[0],MY+0.06,Z(-4.69)],[lineIn[0],MY+0.045,Z(mzf+0.045)],[lineIn[0],lineIn[1]+0.006,lineIn[2]+sz*0.014],lineIn],{tram:'usr',tech:'pt',svc:'pt'});
   /* latiguillo al RTR: uneix el cable de retorn de la sala amb el de l'estància de destinació */
   /* cada extrem del latiguillo s'endolla a un empalmament femella-femella; per sota hi entra el cable interior */
-  const CPY=y+1.33, CPZ=Z(-4.62);
+  const CPY=y+1.365, CPZ=Z(-4.62);   // prou amunt perquè els cables interiors baixin rectes fins al pla de 1,234 m
   for(const px of Object.values(PATCHED)) rj45Coupler(`pau_pt_${U}`,X(px),CPY,CPZ);
   const pa=rj45(`pau_pt_${U}`,V(X(PATCHED.dat_sala_b),CPY+0.002,CPZ),V(0,-1,0),SZV.clone()), pb=rj45(`pau_pt_${U}`,V(X(PATCHED.dat_d1_b),CPY+0.002,CPZ),V(0,-1,0),SZV.clone());
-  cable(`patch_rtr_${U}`,`pau_pt_${U}`,[pa,[pa[0],pa[1]+0.03,pa[2]],[X(-2.86),y+1.45,Z(-4.585)],[pb[0],pb[1]+0.03,pb[2]],pb],{tram:'usr',tech:'pt',svc:'pt'});
+  cable(`patch_rtr_${U}`,`pau_pt_${U}`,[pa,[pa[0],pa[1]+0.03,pa[2]],[X(-2.86),y+1.48,Z(-4.585)],[pb[0],pb[1]+0.03,pb[2]],pb],{tram:'usr',tech:'pt',svc:'pt'});
   /* registre de pas al camí de la paret del televisor */
   iBox(`rpas_${U}`,0.3,0.36,0.46,X(-4.24),y+0.19,Z(-1.5),0x8D9AA8,{opacity:0.55});
   /* tubs i cables en estrella */
@@ -2424,17 +2448,19 @@ function buildInterior(u){
     const lane = qz + dir*(0.12+0.05*gi);
     const AX = q.ax==='x', dw = AX ? (XS(u)===1?q.dir:-q.dir) : dir;
     /* el tub arriba per terra fins a sota del registre de presa i hi entra per baix (radi de corba RCI) */
-    const pts = AX ? dedupe([[xe,y+1.1,Z(-4.64)],[xe,y+yl,Z(-4.64)],[xe,y+yl,qz],[xt,y+yl,qz],[xt,y+0.21,qz]])
-                   : dedupe([[xe,y+1.1,Z(-4.64)],[xe,y+yl,Z(-4.64)],[xe,y+yl,lane],[xt,y+yl,lane],[xt,y+yl,qz],[xt,y+0.21,qz]]);
+    /* les boques entren 18 mm dins del RTR (terra a y+1,10–1,125) i del registre de presa (terra a y+0,20–0,225) */
+    const yr=y+1.143, yp=y+0.225+DINS;
+    const pts = AX ? dedupe([[xe,yr,Z(-4.64)],[xe,y+yl,Z(-4.64)],[xe,y+yl,qz],[xt,y+yl,qz],[xt,yp,qz]])
+                   : dedupe([[xe,yr,Z(-4.64)],[xe,y+yl,Z(-4.64)],[xe,y+yl,lane],[xt,y+yl,lane],[xt,y+yl,qz],[xt,yp,qz]]);
     if(k==='conf'){
-      tube(`ci_${U}`,dedupe([[xe,y+1.1,Z(-4.64)],[xe,y+0.6,Z(-4.64)],[xt,y+0.6,Z(-4.66)],[xt,y+0.5,Z(-4.68)]]),RIT);
+      tube(`ci_${U}`,dedupe([[xe,yr,Z(-4.64)],[xe,y+0.6,Z(-4.64)],[xt,y+0.6,Z(-4.66)],[xt,y+0.475-DINS,Z(-4.68)]]),RIT,{mouth:2});
       regBox(`rconf_${U}`,0.3,0.3,0.08,xt,y+0.35,Z(-4.71),0x8D9AA8,0xB7C1CC,sz);
       return;
     }
     const p=PRESES.find(o=>o.k===k), T=PTYPE[p.t], pid=`${k}_${U}`;
-    tube(`ci_${U}`,pts,RIT,{svc:T.svc, R:RCI});
-    /* RTR → tub: sortida recta del connector, descens fins a la capa pròpia (LAY), tram horitzontal a 1,20 m,
-       baixada davant del tub i entrada per terra. Capes diferents per als recorreguts que se solapen: cap creuament. */
+    tube(`ci_${U}`,pts,RIT,{svc:T.svc, R:RCI, mouth:2});
+    /* RTR → tub: sortida recta del connector, descens fins a la capa pròpia (LAY), tram horitzontal a 1,234 m,
+       baixada davant del tub i entrada per la boca (a 1,15 m). Capes diferents per als recorreguts que se solapen: cap creuament. */
     let src, from;
     if(p.t==='rtv'){ const t=RTVTAIL[k]; src=[t,[t.x,y+1.44,t.z]]; from=`pau_rtv_${U}`; }
     else if(p.t==='tba'){ const t=TBATAIL[k]; src=[t,[t.x,y+1.30,t.z]]; from=`div_tba_${U}`; }   // dues sortides del PAU de TBA
@@ -2447,12 +2473,13 @@ function buildInterior(u){
       if(p.t==='dat'){ const el2=`${T.net}_${U}`;
         /* sortida recta de 3,5–4,5 cm alineada amb el connector abans de corbar (radi del Cat 6: 25 mm) */
         if(MUXOUT[key]){ const pl=muxPlug(el2,MUXOUT[key]); src=[pl,[pl[0],pl[1],pl[2]+sz*0.045]]; }
-        else { const pl=rj45(el2,V(X(PATCHED[key]??FREEEND[key]),y+1.328,Z(-4.62)),V(0,1,0),SZV.clone());   // a l'empalmament del latiguillo o connector lliure
+        else { const pl=rj45(el2,V(X(PATCHED[key]??FREEEND[key]),CPY-0.002,Z(-4.62)),V(0,1,0),SZV.clone());   // a l'empalmament del latiguillo o connector lliure
           src=[pl,[pl[0],pl[1]-0.035,pl[2]]]; } }
       /* avança fins a la capa a l'alçada del connector (per sobre de 1,24 m: no talla cap tram horitzontal) i hi baixa vertical */
-      const S0=src[src.length-1], zi=Z(-4.64)+sz*(0.075+0.0105*LAY[key]), xd=xe+v[0], fl=[[xd,y+1.13,zi],[xd,y+1.13,Z(-4.64)+v[2]]];
-      const run = Math.abs(S0[0]-xd)<0.07 ? [[S0[0],S0[1],zi],...fl] : [[S0[0],S0[1],zi],[S0[0],y+1.20,zi],[xd,y+1.20,zi],...fl];
-      cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...src,...run,...sh.slice(1)],
+      const S0=src[src.length-1], zi=Z(-4.64)+sz*(0.075+0.0105*LAY[key]), xd=xe+v[0], fl=[[xd,y+1.168,zi],[xd,y+1.168,Z(-4.64)+v[2]]];
+      const run = Math.abs(S0[0]-xd)<0.07 ? [[S0[0],S0[1],zi],...fl] : [[S0[0],S0[1],zi],[S0[0],y+1.234,zi],[xd,y+1.234,zi],...fl];
+      const se=sh[sh.length-1], sp=sh[sh.length-2], sl=Math.hypot(se[0]-sp[0],se[1]-sp[1],se[2]-sp[2]), end=se.slice(0,3).map((q,i)=>q+(q-sp[i])/sl*0.03);   // surt 3 cm per la boca dins del registre de presa
+      cable(`xi_${k}${ab}_${U}`, `${T.net}_${U}`, [...src,...run,...sh.slice(1),end],
         {tram:'int',tech:T.tech,svc:T.svc, from, to:`bat_${pid}`, via:`ci_${U}`});
     }
     /* registre de presa (caixa) i BAT (placa frontal) */

@@ -37,6 +37,9 @@ Primitivas básicas (material Lambert, para elementos esquemáticos):
 - `ictMesh(geo, color, elId, o)` — malla genérica registrada al elemento.
 - `iBox(elId, w, h, d, x, y, z, color, o)` — caja centrada en (x, y, z).
 - `iCyl(elId, r, h, x, y, z, color, axis, o)`, `regBox(...)` (registro con tapa), `tube(...)` (canalización).
+  Los tubos entran un pequeño tramo dentro de cada registro o recinto (`DINS` = 2,5 cm; 1–1,8 cm donde el registro es
+  poco profundo o los cables giran cerca) y `o.mouth` (0, 1 o 2) dibuja un collar en esas bocas (se fusionan en
+  `flushMouths()`). El cable debe salir **recto** por la boca y girar ya fuera del tubo.
 - `cable(key, elId, pts, o)` — cable con datos de conexión (`from`, `to`, `via`); el color depende del modo. El diámetro y
   el radio mínimo de curvatura salen de `CBL` según la clave (`CBL_KEY`); no pases `r` salvo casos especiales.
   Los puntos pueden ser `[x,y,z,R]` (radio propio de esa esquina). `inTube(pts, v, R)` da el camino de un tubo

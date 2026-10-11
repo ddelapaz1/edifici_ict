@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ca" data-model="cases">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICT · Explora les cases adossades</title>
+<link rel="stylesheet" href="css/ict.css">
+</head>
+<body>
+<div class="app">
+<header>
+ <h1>ICT · Explora les cases adossades<small>Infraestructura comuna de telecomunicacions · Instal·lacions de Telecomunicacions (grau mitjà)</small></h1>
+ <nav class="seg model" aria-label="Model">
+  <a href="index.html" title="Edifici plurifamiliar: RITI a la planta baixa i RITS a la coberta">Edifici</a>
+  <a href="cases.html" aria-current="page" title="Conjunt de cases adossades amb un recinte únic (RITU)">Cases adossades</a>
+ </nav>
+ <div class="seg" role="group" aria-label="Mode d'aprenentatge">
+  <button data-learn="free" aria-pressed="true">Exploració lliure</button>
+  <button data-learn="quiz" aria-pressed="false">Comprova què has après</button>
+ </div>
+ <div class="hgroup" role="group" aria-label="Panells">
+  <button id="btnLeft" aria-controls="left" aria-expanded="false">Elements</button>
+  <button id="btnRight" aria-controls="right" aria-expanded="false">Fitxa</button>
+ </div>
+ <div class="hgroup">
+  <button id="btnConcepts">Conceptes</button>
+  <button id="btnAbout">Sobre el model</button>
+  <button id="btnResetAll" title="Restableix la vista, les capes i l'estat inicial">Reiniciar</button>
+ </div>
+ <a class="link2d" href="../edifici_ict_2d/index.html" title="Obre la versió 2D (esquema de l'edifici plurifamiliar)">Versió 2D ↗</a>
+</header>
+
+<div id="main">
+ <section id="view3d" aria-label="Escena 3D">
+  <div id="labels"></div>
+  <div id="tip"></div>
+  <div id="tl" class="ov">
+   <div class="tlrow">
+    <button id="btnEye" class="ibtn sq" aria-label="Què es veu: capes, servei i opcions" aria-controls="eyePanel" aria-expanded="false" title="Què es veu (capes, servei i opcions)"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg></button>
+    <button id="vBack" class="ibtn sq" aria-label="Tornar a la vista anterior" title="Torna a la vista anterior (tecla Retrocés)" disabled><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M10 5l-7 7 7 7M3.5 12H21" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="backN" aria-hidden="true"></span></button>
+    <button id="btnViews" class="ibtn" aria-controls="viewMenu" aria-expanded="false" title="Vistes i plantes">Vistes <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <button id="btnHelp" class="ibtn sq" aria-label="Ajuda de navegació" title="Ajuda de navegació">?</button>
+   </div>
+   <div class="statusChip" id="statusChip" aria-live="polite"></div>
+  </div>
+
+  <div id="eyePanel" class="pop hidden" role="region" aria-label="Què es veu">
+   <div class="pophead"><h2>Què es veu</h2><button class="panelClose" data-panel="eye" aria-label="Tanca el panell «Què es veu»">×</button></div>
+   <fieldset><legend>Elements de l'escena</legend><div class="layers" id="layerBox"></div></fieldset>
+   <fieldset><legend>Servei</legend><div id="svcBox"></div></fieldset>
+   <fieldset><legend>Visualització</legend>
+    <div class="frow"><label>Mode <select id="selMode" aria-label="Mode de visualització">
+     <option value="oberta">Conjunt sencer</option><option value="transp">Transparència</option><option value="ict">Només ICT</option><option value="planta">Planta aïllada</option><option value="habitatge">Casa detallada</option>
+    </select></label></div>
+    <div class="frow"><label>Planta <select id="selFloor" aria-label="Planta"><option value="-1">Soterrani</option><option value="0" selected>PB</option><option value="1">Golfes</option></select></label>
+     <label>Casa <select id="selUnit" aria-label="Casa"><option value="A" selected>1</option><option value="D">2</option><option value="C">3</option><option value="B">4</option></select></label></div>
+    <label id="transpWrap" class="slider hidden">Opacitat <input type="range" id="transp" min="0.05" max="0.8" step="0.05" value="0.25" aria-label="Opacitat de l'arquitectura"></label>
+   </fieldset>
+   <fieldset><legend>Color dels cables</legend>
+    <label class="opt"><input type="radio" name="colorBy" value="real" checked> Aspecte real (coaxial blanc i negre, fibra groga)</label>
+    <label class="opt"><input type="radio" name="colorBy" value="tram"> Per tram de xarxa (codi didàctic)</label>
+    <label class="opt"><input type="radio" name="colorBy" value="tech"> Per tecnologia (codi didàctic)</label>
+    <div class="legend" id="legend" aria-label="Llegenda"></div>
+   </fieldset>
+   <fieldset><legend>Opcions</legend>
+    <label class="opt"><input type="checkbox" id="optNav"> Navegació interactiva (un clic apropa la càmera)</label>
+    <label class="opt"><input type="checkbox" id="optAllLabels"> Mostrar totes les etiquetes</label>
+    <label class="opt"><input type="checkbox" id="optTubes" checked> Tubs translúcids (veure els cables)</label>
+    <label class="opt"><input type="checkbox" id="optOpenRec"> Obrir tots els recintes</label>
+    <label class="opt"><input type="checkbox" id="optOpenReg"> Obrir totes les tapes dels registres</label>
+    <label class="opt"><input type="checkbox" id="optSat"> Recepció per satèl·lit (parabòlica i LNB)</label>
+    <label class="opt"><input type="checkbox" id="optCut" checked> Tall transversal del terreny (veure el soterrani)</label>
+    <label class="opt"><input type="checkbox" id="optReduced"> Reduir les animacions</label>
+    <label class="opt"><input type="checkbox" id="optLowQ"> Qualitat reduïda (ordinadors lents)</label>
+    <button id="btnCloseAll" style="margin-top:6px;width:100%">Tancar totes les portes i tapes</button>
+   </fieldset>
+  </div>
+
+  <div id="viewMenu" class="pop hidden" role="region" aria-label="Vistes">
+   <div class="pophead"><h2>Vistes</h2><button class="panelClose" data-panel="views" aria-label="Tanca el menú de vistes">×</button></div>
+   <div class="vgrid">
+    <button data-view="complet">Conjunt complet</button>
+    <button data-view="oberta">Façanes obertes</button>
+    <button data-view="tall">Tall transversal</button>
+    <button data-view="basement">Soterrani (aparcament)</button>
+    <button data-view="ground">Planta baixa</button>
+    <button data-view="f1">Golfes</button>
+    <button data-view="roof">RITU i antenes</button>
+    <button data-view="ritsIn">Interior del RITU</button>
+    <button data-view="entry" class="full">Entrada: arqueta, PEG i enllaç</button>
+   </div>
+   <h3>Casa</h3>
+   <div class="frow"><select id="homeFloor" aria-label="Planta de la casa" hidden><option value="0" selected>PB</option></select>
+    <label>Casa <select id="homeUnit" aria-label="Casa"><option value="A">1</option><option value="D">2</option><option value="C">3</option><option value="B">4</option></select></label>
+    <button id="homeGo" class="primary">Veure la casa</button></div>
+   <p class="small muted" style="margin:6px 0 0">Cada canvi de vista es desa: el botó ◀ hi torna.</p>
+  </div>
+
+  <div id="navbtns" class="ov">
+   <button id="zIn" class="ibtn sq" aria-label="Apropar" title="Apropar">+</button>
+   <button id="zOut" class="ibtn sq" aria-label="Allunyar" title="Allunyar">−</button>
+   <button id="vReset" class="ibtn sq" aria-label="Restablir la vista inicial" title="Restablir la vista inicial">⌂</button>
+   <button id="vCenter" class="ibtn sq" aria-label="Centrar l'element seleccionat" title="Centrar l'element seleccionat" disabled>◎</button>
+  </div>
+  <div id="leafChip" class="ov hidden" role="status"></div>
+  <span id="statusNav" class="sr-only" aria-live="polite"></span>
+  <div class="note ov">Model didàctic simplificat: no és un projecte d'arquitectura ni de telecomunicacions. Alguns elements estan fora d'escala.</div>
+
+  <div id="help" class="ov" role="dialog" aria-labelledby="helpT">
+   <h2 id="helpT">Com es navega</h2>
+   <ul>
+    <li><b>Clic</b> en un element: se selecciona i la càmera s'hi apropa. <b>◀</b> (o Retrocés) torna a la vista anterior.</li>
+    <li><b>Doble clic</b> en una porta, armari o tapa: s'obre; un altre doble clic la tanca.</li>
+    <li><b>Arrossegar</b>: girar · <b>roda o pinça</b>: zoom · <b>botó dret o dos dits</b>: desplaçar.</li>
+    <li><b>Ull</b>: què es veu i llegenda de colors · <b>Vistes</b>: plantes, cases, tall del soterrani i interior del RITU.</li>
+   </ul>
+   <button id="helpOk" class="on">D'acord</button>
+  </div>
+  <div id="nogl" role="alert"><div><h2>No es pot mostrar l'escena 3D</h2><p>Aquest navegador o ordinador no admet WebGL, o està desactivat. Pots continuar consultant totes les fitxes d'explicació des del panell «Elements» i fer les activitats conceptuals.</p></div></div>
+ </section>
+
+ <aside id="left" class="drawer" aria-label="Elements de la ICT">
+  <div class="dhead"><h2>Elements de la ICT</h2><button class="drawerClose" data-close="left" aria-label="Tanca el panell d'elements">×</button></div>
+  <input id="search" type="search" placeholder="Cerca un element (p. ex. PAU, RITI…)" aria-label="Cerca un element">
+  <div class="filters">
+   <select id="fltFloor" aria-label="Filtra la llista per ubicació">
+    <option value="any">Totes les ubicacions</option><option value="-1">Soterrani</option><option value="0">Planta baixa i exterior</option><option value="none">Fitxes sense model 3D</option>
+   </select>
+  </div>
+  <div id="list"></div>
+ </aside>
+
+ <aside id="right" class="drawer" aria-label="Fitxa i activitats">
+  <div class="dhead"><h2>Fitxa</h2><button class="drawerClose" data-close="right" aria-label="Tanca la fitxa">×</button></div>
+  <div id="modePanel"></div>
+  <div id="infoPanel"></div>
+ </aside>
+
+</div>
+</div>
+
+<dialog id="dlgConcepts" aria-labelledby="dcT"><h2 id="dcT">Conceptes clau</h2><div id="conceptsBody"></div><p><button class="closeDlg">Tancar</button></p></dialog>
+<dialog id="dlgAbout" aria-labelledby="daT"><h2 id="daT">Sobre el model</h2><div id="aboutBody"></div><p><button class="closeDlg">Tancar</button></p></dialog>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="js/dades.js"></script>
+<script src="js/dades-cases.js"></script>
+<script src="js/app.js"></script>
+<script src="js/cases.js"></script>
+<script>loadModels().finally(init);</script>
+</body>
+</html>

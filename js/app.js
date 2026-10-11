@@ -12,7 +12,7 @@ const S0 = () => ({learn:'free', mode:'oberta', floor:CFG.floor0, unitSide:CFG.s
   svc:'all', colorBy:'real', allLabels:false, tubesSee:true, openRec:false, openReg:false, sat:true, transp:0.25,
   reduced: window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, lowq:false,
   selected:null, hover:null, related:new Set(), openOv:new Map(), leaf:new Map(), openCanal:new Set(),
-  cap:'A', ritsLook:'real', ritsLight:false, ritsRoof:false, ritsFront:false, ritsCut:false, ritsXray:false, ritsHl:null});
+  cut:true, cap:'A', ritsLook:'real', ritsLight:false, ritsRoof:false, ritsFront:false, ritsCut:false, ritsXray:false, ritsHl:null});
 let S = S0();
 function curUnit(){ return CFG.unitFloors.includes(S.floor) ? `${S.floor}${S.unitSide}` : null; }
 
@@ -363,10 +363,13 @@ function kroneColumn(el, xc, yTop, n, label){
   return ys;
 }
 function wire(el, pts, color, r=CBL.pair.d/2){ return ictMesh(tubeGeo(P(pts),r,6,0,CBL.pair.rb,undefined,true), color, el, {std:RM.pvc, fixedColor:true}); }   // pont de parell (2 × Ø0,9 mm)
+/* regletes d'entrada i de sortida, rètols i ponts [regleta d'entrada, parell, regleta de sortida, parell] (el model de cases ho canvia) */
+const KRP={nin:8, nout:5, lin:['OPERADOR','entrada · 80 parells'], lout:['EDIFICI','sortida · 50 parells'],
+  J:[[0,2,0,1],[1,5,0,4],[2,1,1,3],[3,7,2,2],[4,3,3,6],[5,8,1,8],[6,4,2,7]]};
 function buildRITIPairs(){
   const el='pi_pt', zf=KRI.zb+KR.d;
-  const yl=kroneColumn(el,KRI.xl,KRI.yTop,8,['OPERADOR','entrada · 80 parells']);
-  const yr=kroneColumn(el,KRI.xr,KRI.yTop,5,['EDIFICI','sortida · 50 parells']);
+  const yl=kroneColumn(el,KRI.xl,KRI.yTop,KRP.nin,KRP.lin);
+  const yr=kroneColumn(el,KRI.xr,KRI.yTop,KRP.nout,KRP.lout);
   /* anelles guia per als ponts */
   const rings=[1.74,1.62,1.50];
   for(const yy of rings){
@@ -374,8 +377,7 @@ function buildRITIPairs(){
     rBox(el,KRI.xm-0.002,KRI.xm+0.002,yy-0.014,yy-0.010,-4.725,-4.672,0x2A2D31,'plastic');
   }
   /* ponts (línies d'alta): parell de la regleta d'entrada de l'operador → parell de la regleta de sortida de l'habitatge */
-  const J=[[0,2,0,1],[1,5,0,4],[2,1,1,3],[3,7,2,2],[4,3,3,6],[5,8,1,8],[6,4,2,7]];
-  J.forEach(([mi,p,mo,q],i)=>{
+  KRP.J.forEach(([mi,p,mo,q],i)=>{
     const x1=krX(KRI.xl,p), y1=yl[mi]-0.005, x2=krX(KRI.xr,q), y2=yr[mo]-0.005;
     const ry=rings.find(r=>r<Math.min(y1,y2)-0.015) ?? rings[rings.length-1];
     wire(el,[[x1,y1,zf+0.001],[x1,y1-0.012,zf+0.012],[KRI.xm,ry,-4.672],[x2,y2-0.012,zf+0.012],[x2,y2,zf+0.001]], i%2?0x1565C0:0xC62828);
@@ -1115,6 +1117,7 @@ function meshVisible(m){
 function archVisible(d){
   const m=S.mode;
   if(m==='ict') return false;
+  if(d.cut!==undefined && d.cut!==S.cut) return false;   // peces amb tall transversal o sense (model de cases)
   if(d.facade){ if(!S.layers.facana || m==='planta' || m==='habitatge') return false; }
   else if(!S.layers.estructura) return false;
   if(d.ground) return m==='oberta'||m==='transp'||(m==='planta'&&S.floor===0);
@@ -1574,12 +1577,12 @@ function syncControls(){
   const sv=$(`input[name=svc][value=${S.svc}]`); if(sv) sv.checked=true;
   $(`input[name=colorBy][value=${S.colorBy}]`).checked=true;
   $('#optAllLabels').checked=S.allLabels; $('#optTubes').checked=S.tubesSee; $('#optOpenRec').checked=S.openRec; $('#optOpenReg').checked=S.openReg;
-  $('#optSat').checked=S.sat; $('#optReduced').checked=S.reduced; $('#optLowQ').checked=S.lowq; $('#transp').value=S.transp; $('#optNav').checked=NAV.on;
+  $('#optSat').checked=S.sat; if($('#optCut')) $('#optCut').checked=S.cut; $('#optReduced').checked=S.reduced; $('#optLowQ').checked=S.lowq; $('#transp').value=S.transp; $('#optNav').checked=NAV.on;
   $('#homeFloor').value=String(curUnit()?S.floor:CFG.floor0); $('#homeUnit').value=S.unitSide;
   renderLegend();
 }
 function updateStatus(){
-  const names={oberta:S.layers.facana?CFG.whole:'Façana oberta',transp:'Transparència',ict:'Només ICT',planta:'Planta aïllada',habitatge:'Habitatge detallat'};
+  const names={oberta:S.layers.facana?CFG.whole:'Façana oberta',transp:'Transparència',ict:'Només ICT',planta:'Planta aïllada',habitatge:CFG.homeMode||'Habitatge detallat'};
   let t=`<b>${names[S.mode]}</b>`;
   if(S.mode==='planta') t+=` · ${FLOORNAME(S.floor)}`;
   if(S.mode==='habitatge') t+=` · ${unitTitle(UNIT(curUnit()))}`;
@@ -1802,6 +1805,7 @@ function bindEvents(){
   $('#optOpenRec').onchange=e=>{ S.openRec=e.target.checked; for(const k of [...S.openOv.keys()]) if(EL[k].layer==='recintes') S.openOv.delete(k); applyVisibility(); renderInfo(); };
   $('#optOpenReg').onchange=e=>{ S.openReg=e.target.checked; for(const k of [...S.openOv.keys()]) if(EL[k].layer!=='recintes') S.openOv.delete(k); applyVisibility(); renderInfo(); };
   $('#optSat').onchange=e=>{ S.sat=e.target.checked; applyVisibility(); };
+  if($('#optCut')) $('#optCut').onchange=e=>{ S.cut=e.target.checked; applyVisibility(); };
   $('#optReduced').onchange=e=>{ S.reduced=e.target.checked; };
   $('#optLowQ').onchange=e=>{ S.lowq=e.target.checked; if(renderer){ renderer.setPixelRatio(S.lowq?1:Math.min(devicePixelRatio,2)); onResize(); shadowRefresh(); } };
   $('#selMode').onchange=e=>setMode(e.target.value);
@@ -2725,7 +2729,7 @@ function symSprite(el, pos, text, color, sc=0.26){
 /* =====================================================================
    RECINTE: parets, terra, sostre, porta, safata, terra, electricitat
    ===================================================================== */
-const RITS_EXIT={};
+const RITS_EXIT={}, RITS_OPEN=[];
 function polyR(el, pts, r, color, mat, o={}){ pts=P(pts); const m=rMesh(el, rTubeGeo(pts,r,o.radial||10,o.cr??0.04,undefined,undefined,true), color, mat, Object.assign({cast:true},o)); if(o.pick!==false) addProxy(m, rTubeGeo(pts,Math.max(r*2,0.02),5,o.cr??0.04)); if(o.hc!==undefined) halo(m, rTubeGeo(pts,r+0.005,8,o.cr??0.04), o.hc); return m; }
 function buildRITSRoom(){
   const W=0xE3E6E8, pk={cast:true, pick:true};
@@ -2957,13 +2961,13 @@ function buildRITSEntry(){
   /* tub corrugat de sortida cap a la canalització principal */
   const cout=[[2.30,15.45,RZ],[2.30,15.30,RZ],[RX.rtv,15.30,RZ],[RX.rtv,14.95,RZ]];   // continua el tub de RTV de la principal (Ø50)
   RFT.cout=corrTube('rits_corr_out',cout,RPR,{cut:[0.55,1.15],cutDir:V(0,0.3,1),cr:0.08,mouth1:false});
-  for(const x of [1.85,1.0]) clampAt('rits_corr_out',V(x,15.30,RZ),V(1,0,0),V(0,0,1),RPR,{stand:0.17});
+  for(const x of [1.85,Math.max(1.0,RX.rtv+0.15)]) clampAt('rits_corr_out',V(x,15.30,RZ),V(1,0,0),V(0,0,1),RPR,{stand:0.17});
   clampAt('rits_corr_out',V(2.30,15.40,RZ),V(0,1,0),V(0,0,1),RPR,{stand:0.17});
   symSprite('rits_corr_out',V(1.45,15.45,-4.50),'〰 RF distribució','#1E4FAE');
-  /* tubs de la canalització principal sense ús al RITS (TBA, fibra, parells, reserva): tapats */
+  /* tubs de la canalització principal sense ús al RITS (TBA, fibra, parells, reserva): tapats (al RITU, els de RITS_OPEN porten cables) */
   for(const k of ['tba1','fo','tba2','pt','res']){ const x=RX[k];
     corrTube('canal_principal',[[x,14.95,RZ],[x,15.30,RZ]],RPR,{mouth1:false,mouth0:false});
-    rCyl('canal_principal',RPR+0.006,0.03,V(x,15.31,RZ),UP,0x2B2B2B,'rubber'); }
+    if(!RITS_OPEN.includes(k)) rCyl('canal_principal',RPR+0.006,0.03,V(x,15.31,RZ),UP,0x2B2B2B,'rubber'); }
   /* sortida dels dos cables de distribució al final del tub (els cables es fan amb cada capçalera) */
   for(const [c,dn] of [['a',-0.012],['b',0.012]]){ const inP=insidePath(RFT.cout.ft,0,RFT.cout.L,dn,0); RITS_EXIT[c]=inP[inP.length-1].clone(); }
 }

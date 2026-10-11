@@ -22,7 +22,7 @@ const CFG = {
   clamp:{x:[-16,16], y:[-4,22], z:[-24,16]},    // límits del punt de mira de la càmera
   sceneLabel:"Escena 3D de l'edifici",
   welcome:null, about:null,                     // HTML de benvinguda i «Sobre el model» (null: els de l'edifici)
-  keepFacade:null, backOf:null                  // funcions opcionals per a ensureVisible() i frameEl()
+  keepFacade:null, backOf:null, viewOf:null     // funcions opcionals per a ensureVisible(), frameEl() i bestView()
 };
 
 const FAMILIES = {

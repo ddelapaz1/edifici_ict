@@ -1616,6 +1616,7 @@ const NAV = {on:true, stack:[]};
 const _rc = new THREE.Raycaster();
 function pathPoint(pts,u){ let d=u*polyLen(pts); for(let i=1;i<pts.length;i++){ const L=pts[i].distanceTo(pts[i-1]); if(d<=L) return pts[i-1].clone().lerp(pts[i], L>0?d/L:0); d-=L; } return pts[pts.length-1].clone(); }
 function bestView(id){
+  const fixed=CFG.viewOf?.(id); if(fixed) return fixed;   // vista fixa que dona el model (p. ex. dins d'un registre)
   const b=elBox(id)||elBox(id,false); if(!b) return null;
   let c=b.getCenter(new THREE.Vector3()); const sz=b.getSize(new THREE.Vector3());
   let r=Math.max(sz.length()/2,0.22);

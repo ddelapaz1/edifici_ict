@@ -578,6 +578,13 @@ function buildRefs(){
 }
 
 /* ---------- vistes ---------- */
+/* elements dels registres secundaris: vista fixa davant del registre obert (la tapa gira cap a un costat) */
+CFG.viewOf = id => {
+  const m=/^(rs|deriv|cseg|bucle)_(\d)$/.exec(id); if(!m || !RSG[m[2]]) return null;
+  const i=m[2], T={rs:[[0,0,0.07],[0.35,-0.25,2.6]], deriv:[[-0.02,0.02,0.05],[0.12,0.12,0.75]], cseg:[[0.12,-0.2,0.06],[0.22,-0.08,0.7]], bucle:[[0,0.33,0.04],[0.12,0.4,0.6]]}[m[1]];
+  return {t:rsW(i,...T[0]), p:rsW(i,...T[1])};
+};
+
 Object.assign(VIEWS, {
   start:   ()=>(camera&&camera.aspect<1 ? {p:V(44,14,40), t:V(6,-0.5,-6)} : {p:V(45,8.5,19), t:V(5,-0.8,-7)}),
   building:()=>({p:V(36,22,36), t:V(2,0,-5)}),

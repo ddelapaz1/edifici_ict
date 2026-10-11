@@ -1231,7 +1231,7 @@ RE({id:'rits_bases_srv', name:'Bases de corrent de servei',
  confusion:'El reglament demana com a mínim dues bases de servei a més de les de la capçalera.',
  links:['rits_quadre','rits_tub_elec']});
 RE({id:'rits_quadre', lid:true, name:'Quadre de protecció elèctrica del RITS',
- what:'Caixa amb tapa i carril DIN amb l\'interruptor general, el diferencial i els magnetotèrmics dels circuits del recinte, i un borne de terra.',
+ what:'Caixa amb tapa i carril DIN amb l\'interruptor general automàtic (IGA), el diferencial de 30 mA i els magnetotèrmics dels circuits del recinte, tots monofàsics de 2 mòduls (fase + neutre), i un borne de terra.',
  purpose:'Protegeix les persones i els circuits del recinte (enllumenat, bases de servei i capçalera) i permet tallar-los per separat.',
  where:'Paret dreta, a prop de la porta.',
  connects:'Arriba l\'alimentació elèctrica de l\'edifici per un tub des del terra. Surten els circuits d\'enllumenat, bases de servei i bases de la capçalera, cadascun pel seu tub. Té el borne de terra unit a l\'anell.',
@@ -3969,6 +3969,44 @@ function ritsMats(){
     corr:{roughness:0.58, metalness:0, side:THREE.DoubleSide}, gy:{roughness:0.5, metalness:0, map:gy}, concrete:{roughness:0.9, metalness:0, map:floorN}
   });
 }
+/* ---------- aparellatge modular de carril DIN (quadres elèctrics) ----------
+   Magnetotèrmic 1P+N i diferencial 2P de 2 mòduls (36 mm), 85 mm d'alt, perfil esglaonat: cos de 44 mm des del carril
+   amb els borns a dalt i a baix, i frontal elevat fins a 70 mm amb la maneta. Muntat a la paret dreta del RITS
+   (carril a x = 3,31, frontal cap a −x). Cada aparell és una sola malla amb colors per vèrtex + la serigrafia. */
+const DINW=0.036;
+function dinDevice(el,kind,zc,yc,o={}){
+  const Mw=new THREE.Matrix4().makeBasis(V(0,0,1),V(0,1,0),V(-1,0,0)).setPosition(3.31,yc,zc);   // local: x dreta, y amunt, z enfora
+  const parts=[], T=(x,y,z)=>Mw.clone().multiply(new THREE.Matrix4().makeTranslation(x,y,z)), RX=new THREE.Matrix4().makeRotationX(Math.PI/2);
+  const box=(w,h,d,x,y,z,c)=>parts.push([new THREE.BoxGeometry(w,h,d),T(x,y,z),c]);
+  const rr=(w,h,d,r,b,x,y,z,c)=>parts.push([rrectGeo(w,h,d,r,b),T(x,y,z),c]);
+  const cyl=(r,h,x,y,z,c,seg=20)=>parts.push([new THREE.CylinderGeometry(r,r,h,seg),T(x,y,z).multiply(RX),c]);
+  const W=DINW-0.0008, BODY=0xF1F1EE, FRONT=0xF7F7F5, DARK=0x33363A, MET=0xB8BCC0, HAND=0x2A2C2F, SLOT=0xC4C8CC, LEV=0xFBFBF9;
+  rr(W,0.085,0.044,0.002,0.0006,0,0,0.022,BODY);                                                // cos
+  const ty = kind==='rcd' ? 0.0345 : 0.0335;
+  for(const px of [-0.0088,0.0088]) for(const py of [ty,-ty]){                                  // borns: obertura, cargol i ranura en creu
+    cyl(0.0052,0.001,px,py,0.0441,DARK); cyl(0.0038,0.0012,px,py,0.0446,MET);
+    box(0.0056,0.0009,0.0004,px,py,0.0454,0x55595D); box(0.0009,0.0056,0.0004,px,py,0.0454,0x55595D); }
+  let lbl;
+  if(kind==='rcd'){                                                                              // diferencial: frontal més alt
+    rr(W,0.054,0.026,0.003,0.0012,0,-0.001,0.057,FRONT);
+    box(0.007,0.0055,0.002,-0.0085,-0.0035,0.0705,0xD5D8DB);                                     // polsador de prova «T»
+    box(0.007,0.0018,0.0006,0.0075,-0.0035,0.0703,0xC62828);                                     // finestreta indicadora
+    box(0.018,0.016,0.0006,0,-0.018,0.0703,SLOT);                                                 // allotjament de la maneta
+    box(0.012,0.010,0.006,0,-0.0145,0.0730,LEV); box(0.013,0.003,0.0068,0,-0.0105,0.0738,HAND);   // maneta (ON, amunt) amb el capçal negre
+    lbl={w:W-0.004,h:0.016,y:0.012,t:['ID 40 A','30 mA · AC'],fs:[44,36]};
+  } else {                                                                                       // magnetotèrmic
+    rr(W,0.046,0.026,0.003,0.0012,0,0,0.057,FRONT);
+    box(W-0.006,0.020,0.0006,0,-0.009,0.0703,SLOT);                                              // allotjament de les palanques
+    for(const px of [-0.0082,0.0082]) box(0.0105,0.010,0.006,px,-0.0055,0.0730,LEV);            // palanques (ON, amunt)
+    box(W-0.007,0.003,0.0068,0,-0.0010,0.0738,HAND);                                              // barra d'unió negra
+    lbl={w:W-0.004,h:0.0135,y:0.0135,t:[o.curve||'C16','1P+N  230 V'],fs:[48,30]};
+  }
+  const m=rMesh(el,mergeParts(parts),0xFFFFFF,{roughness:0.5,metalness:0,vertexColors:true},{cast:true}); G.pick.push(m);
+  const at=(x,y,z)=>V(x,y,z).applyMatrix4(Mw), N=V(-1,0,0);
+  rPlane(el,lbl.w,lbl.h,at(0,lbl.y,0.07005),N,textTex(lbl.t,{w:256,h:Math.round(256*lbl.h/lbl.w),fs:lbl.fs,bold:[true,false],bg:'#F7F7F5',fg:'#263238'}));
+  rPlane(el,lbl.w,0.0012,at(0,lbl.y-lbl.h/2-0.0012,0.07005),N,textTex([''],{w:16,h:4,bg:'#3DCD58'}));   // franja verda
+  for(const py of [ty,-ty]) rPlane(el,0.0035,0.0045,at(-0.0158,py,0.04405),N,textTex(['N'],{w:32,h:40,size:34,bold:[true],bg:'#F1F1EE',fg:'#1565C0'}));   // marca de neutre
+}
 /* ---------- primitives ---------- */
 function rMesh(el, geo, color, mat, o={}){ return ictMesh(geo, color, el, Object.assign({std:RM[mat]||mat, rits:true}, o)); }
 function rBox(el,x0,x1,y0,y1,z0,z1,color,mat,o={}){
@@ -4176,11 +4214,23 @@ function fLoad(el, base, dir, dcBlock){ dir=dir.clone().normalize();
   if(dcBlock) rCyl('cap_carregues',0.0061,0.002,base.clone().addScaledVector(dir,0.012+L*0.75),dir,0xC62828,'plastic');
 }
 /* etiqueta d'identificació de cable (brida + bandera amb text) */
-function cableTag(el, p, side, text, axis){
+/* p és la posició aproximada: la brida s'enganxa al punt més proper del cable (key, o els cables de l'element el)
+   i s'orienta segons el cable en aquell punt; la bandera surt cap a side, perpendicular al cable */
+function cableTag(el, p, side, text, axis, key){
+  const cs = key ? [G.cables[key]] : Object.values(G.cables).filter(c=>c.el===el);
+  let best=Infinity, q=null, t=null;
+  for(const c of cs) if(c?.sm) for(let i=1;i<c.sm.P.length;i++){
+    const a=c.sm.P[i-1], d=c.sm.P[i].clone().sub(a), L2=d.lengthSq(); if(L2<1e-12) continue;
+    const k=THREE.MathUtils.clamp(p.clone().sub(a).dot(d)/L2,0,1), x=a.clone().addScaledVector(d,k), e=x.distanceTo(p);
+    if(e<best){ best=e; q=x; t=d.normalize(); } }
+  if(q){ p=q; axis=t; side=side.clone().addScaledVector(t,-side.dot(t));
+    if(side.lengthSq()<1e-4) side=new THREE.Vector3().crossVectors(t,Math.abs(t.z)<0.9?V(0,0,1):V(0,1,0));
+    side.normalize(); }
   rCyl(el,0.0045,0.006,p,axis||V(0,1,0),0xF5F5F0,'plastic',{seg:14});
-  const tx=textTex([text],{w:256,h:72,size:30,border:'#888',bw:3});
-  const pos=p.clone().addScaledVector(side,0.024);
-  const m=rPlane(el,0.04,0.0112,pos,V(0,0,1),tx,{double:true});
+  const w=Math.max(0.04,text.length*0.0027);                      // bandera prou ampla per al text (4 cm com a mínim)
+  const tx=textTex([text],{w:Math.round(256*w/0.04),h:72,size:30,border:'#888',bw:3});
+  const pos=p.clone().addScaledVector(side,0.004+w/2).add(V(0,0,0.005));   // 5 mm endavant: passa per davant dels cables veïns
+  const m=rPlane(el,w,0.0112,pos,V(0,0,1),tx,{double:true});
   m.lookAt(pos.clone().add(V(0,0,1)));
   return m;
 }
@@ -4297,13 +4347,17 @@ function buildRITSElectrical(){
   rBox(Q,3.33,3.34,16.25,16.65,-3.03,-2.67,QC,'plastic',{cast:true,pick:true});
   rBox(Q,3.232,3.33,16.64,16.65,-3.03,-2.67,QC,'plastic',{cast:true,pick:true}); rBox(Q,3.232,3.33,16.25,16.26,-3.03,-2.67,QC,'plastic',{cast:true,pick:true});
   rBox(Q,3.232,3.33,16.26,16.64,-3.03,-3.02,QC,'plastic',{cast:true}); rBox(Q,3.232,3.33,16.26,16.64,-2.68,-2.67,QC,'plastic',{cast:true});
-  for(const [y,lab] of [[16.545,['IGA 25 A','ID 30 mA','','']],[16.385,['Enllumenat 10 A','Bases 16 A','Capçalera RTV 16 A','Reserva']]]){
-    rBox(Q,3.31,3.33,y-0.0045,y+0.0045,-3.01,-2.68,0xA9AFB4,'steel');
-    for(let i=0;i<4;i++){ const z0=-2.99+i*0.07; if(!lab[i] || lab[i]==='Reserva'){ rBox(Q,3.262,3.31,y-0.04,y+0.04,z0+0.002,z0+0.068,0xDADDDF,'plastic'); continue; }
-      rBox(Q,3.255,3.31,y-0.045,y+0.045,z0+0.004,z0+0.066,0xF5F5F3,'plastic',{cast:true});
-      rBox(Q,3.243,3.255,y-0.004,y+0.012,z0+0.02,z0+0.05,i===1&&y>16.5?0x1565C0:0x263238,'plastic');
-      if(i===1&&y>16.5) rBox(Q,3.25,3.2552,y-0.03,y-0.018,z0+0.045,z0+0.058,0xF9A825,'plastic'); }
-    rPlane(Q,0.28,0.022,V(3.2545,y+0.06,-2.85),V(-1,0,0),textTex([lab.map(x=>x||'—').join('  │  ')],{w:1024,h:80,size:30,bg:'#FFFFFF',fg:'#263238'}));
+  /* aparellatge modular a mida real (2 mòduls = 36 mm): files del carril DIN de dalt (IGA + diferencial) i de baix
+     (magnetotèrmics dels circuits), juxtaposats des de l'esquerra; la resta del carril queda tapada amb una tapa cega */
+  const ROWS=[[16.545,[['mcb','IGA','25 A','C25'],['rcd','ID','30 mA']]],
+              [16.385,[['mcb','Enllumenat','10 A','C10'],['mcb','Bases','16 A','C16'],['mcb','Capçalera RTV','16 A','C16']]]];
+  for(const [y,devs] of ROWS){
+    rBox(Q,3.31,3.33,y-0.0045,y+0.0045,-3.01,-2.68,0xA9AFB4,'steel');                         // carril DIN
+    devs.forEach(([k,t1,t2,curve],i)=>{ const zc=-2.99+DINW*(i+0.5);
+      dinDevice(Q,k,zc,y,k==='mcb'?{curve}:{});
+      rPlane(Q,DINW-0.002,0.013,V(3.2545,y+0.056,zc),V(-1,0,0),textTex([t1,t2],{w:192,h:72,fs:[22,24],bold:[false,true],bg:'#FFFFFF',fg:'#263238',border:'#B0B6BB',bw:2})); });
+    const z1=-2.99+DINW*devs.length;                                                           // tapa cega fins al final del carril
+    rBox(Q,3.266,3.31,y-0.0225,y+0.0225,z1+0.001,-2.69,0xE4E6E7,'plastic');
   }
   rBox(Q,3.27,3.33,16.27,16.29,-2.99,-2.90,0x2E9B3F,'plastic'); rBox(Q,3.27,3.33,16.27,16.29,-2.90,-2.86,0xE8C71A,'plastic');
   rPlane(Q,0.30,0.04,V(3.3385,16.69,-2.85),V(-1,0,0),textTex(['Quadre de protecció del RITS · exemple didàctic'],{w:1024,h:120,size:46,bg:'#FFFFFF',fg:'#B71C1C'}));
@@ -4689,9 +4743,9 @@ function buildCapVariant(v){
     const mx=mixer(2.258,0.065,[['terr',2.28],['sat',2.32]],[['out',2.30]],['745210','TERR        SAT','MATV + FI','OUT']);
     const mT=fMale('cap_mix',mx.I.terr,UP), mS=fMale('cap_mix',mx.I.sat,UP), mO=fMale('cap_mix',mx.O.out,DN);
     jump('cap_jump',[tvEnd,[tvEnd.x,16.17,zc],[1.55,16.05,-4.68],[2.20,15.86,-4.68],[mT.x,15.80,mT.z],mT],'cap_avant','cap_mix');
-    cableTag('cap_jump',V(1.90,15.955,-4.68),V(0,-1,0),'TV → TERR',V(1,0,0));
+    cableTag('cap_jump',V(1.90,15.955,-4.68),V(0,-1,0),'TV → TERR',V(1,0,0),'cap_jump');
     jump('cap_jump_fi',[fiOut,[fiOut.x,fiOut.y,fiOut.z+0.04],[fiOut.x,16.04,-4.57],[2.30,15.92,-4.62],[mS.x,15.80,mS.z],mS],'cap_fi_2','cap_mix');
-    cableTag('cap_jump',V(2.12,15.95,-4.60),V(0,-1,0),'FI 2 → SAT',V(1,0,-0.3).normalize());
+    cableTag('cap_jump',V(2.12,15.95,-4.60),V(0,-1,0),'FI 2 → SAT',V(1,0,-0.3).normalize(),'cap_jump_fi');
     /* cables de distribució: 1 directe de la centraleta (TV+SAT), 2 del mesclador */
     bajant('a',tsEnd,[[tsEnd.x,16.15,zc],[1.66,15.60,-4.66],[2.20,15.56,-4.66],[2.27,15.55,-4.64]],'cap_avant');
     bajant('b',mO,[[mO.x,mO.y-0.03,mO.z],[2.312,15.555,-4.645]],'cap_mix');
@@ -4744,8 +4798,8 @@ function buildCapVariant(v){
     fLoad('cap_t12_dab',M[12].ports.in2,Z,true); fLoad('cap_t12_fm',M[13].ports.in2,Z,true);
     rCable('dab_in','cab_dab_int',[...IN.dab,[1.50,16.55,-4.60],...arrive(dEnd,16.43)],WH,'pvc',{from:'rits_ff',to:'cap_t12_dab',via:'rits_corr_in',cr:0.02});
     rCable('fm_in','cab_fm_int',[...IN.fm,[1.52,16.535,-4.60],...arrive(mEnd,16.41)],WH,'pvc',{from:'rits_ff',to:'cap_t12_fm',via:'rits_corr_in',cr:0.02});
-    cableTag('cab_dab_int',V(dEnd.x,16.42,dEnd.z+0.03),V(-1,0,0),'DAB',V(0,1,0));
-    cableTag('cab_fm_int',V(mEnd.x,16.40,mEnd.z+0.03),V(1,0,0),'FM',V(0,1,0));
+    cableTag('cab_dab_int',V(dEnd.x,16.36,dEnd.z+0.03),V(-1,0,0),'DAB',V(0,1,0));
+    cableTag('cab_fm_int',V(mEnd.x,16.36,mEnd.z+0.03),V(1,0,0),'FM',V(0,1,0));
     /* amplificadors de FI: entrada des de l'LNB (si hi ha parabòlica) */
     const aIn=satPort('cap_fi_1','cab_sat_int',M[0].ports.in1,Z), bIn=satPort('cap_fi_2','cab_sat2_int',M[1].ports.in1,Z);
     rCable('sat_in','cab_sat_int',[...IN.sat,[1.30,16.585,-4.60],...arrive(aIn,16.42)],WH,'pvc',{from:'rits_ff',to:'cap_fi_1',via:'rits_corr_in',cr:0.02});
@@ -4759,10 +4813,10 @@ function buildCapVariant(v){
     const mT=mp(mx.I.ter,UP), mA=mp(mx.I.sa,UP), mB=mp(mx.I.sb,UP);
     const oA=mp(mx.O.a,DN), oB=mp(mx.O.b,DN);
     jump('cap_jump',[gOut,[gOut.x,gOut.y,gOut.z+0.04],[gOut.x,16.06,-4.58],[2.20,15.92,-4.64],[mT.x,15.80,mT.z],mT],'cap_t12_fm','cap_mix');
-    cableTag('cap_jump',V(2.13,15.94,-4.63),V(0,-1,0),'MATV → TER',V(1,0,-0.3).normalize());
+    cableTag('cap_jump',V(2.13,15.94,-4.63),V(0,-1,0),'MATV → TER',V(1,0,-0.3).normalize(),'cap_jump');
     jump('cap_jump_fia',[aOut,[aOut.x,aOut.y,aOut.z+0.04],[aOut.x,16.07,-4.575],[1.60,16.04,-4.60],[2.20,15.95,-4.64],[mA.x,15.80,mA.z],mA],'cap_fi_1','cap_mix');
     jump('cap_jump_fib',[bOut,[bOut.x,bOut.y,bOut.z+0.04],[bOut.x,16.055,-4.585],[1.62,16.025,-4.62],[2.25,15.935,-4.66],[mB.x,15.80,mB.z],mB],'cap_fi_2','cap_mix');
-    cableTag('cap_jump',V(1.56,16.045,-4.60),V(0,-1,0),'FI 1 → SAT/A',V(1,0,0));
+    cableTag('cap_jump',V(1.56,16.045,-4.60),V(0,-1,0),'FI 1 → SAT/A',V(1,0,0),'cap_jump_fia');
     /* cables de distribució: SAT/A + TER → cable 1 (blanc), SAT/B + TER → cable 2 (negre) */
     bajant('a',oA,[[oA.x,oA.y-0.025,oA.z],[2.288,15.55,-4.66]],'cap_mix');
     bajant('b',oB,[[oB.x,oB.y-0.025,oB.z],[2.312,15.55,-4.66]],'cap_mix');

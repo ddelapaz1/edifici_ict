@@ -1118,7 +1118,7 @@ function archVisible(d){
   const m=S.mode;
   if(m==='ict') return false;
   if(d.cut!==undefined && d.cut!==S.cut) return false;   // peces amb tall transversal o sense (model de cases)
-  if(d.facade){ if(!S.layers.facana || m==='planta' || m==='habitatge') return false; }
+  if(d.facade){ if(!S.layers.facana || ((m==='planta' || m==='habitatge') && !d.inPlanta)) return false; }   // inPlanta: es veu a la planta aïllada
   else if(!S.layers.estructura) return false;
   if(d.ground) return m==='oberta'||m==='transp'||(m==='planta'&&S.floor===0);
   if(m==='oberta'||m==='transp') return true;

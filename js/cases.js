@@ -177,7 +177,7 @@ function carModel(x, y, z, dir, mat, o){
 function buildHouse(u){
   const [hx0,hx1]=houseX(u), id=u.id, o={floor:0, unit:id}, o1={floor:1, unit:id}, H=KC.H, n=u.n, R=AM.rend[n-1];
   const F={floor:0, unit:id, facade:true, fside:'front'}, Fb={floor:0, unit:id, facade:true, fside:'back'};
-  const F1={floor:1, unit:id, facade:true, fside:'front'}, Fr={floor:1, unit:id, facade:true, fside:'roof'};
+  const F1={floor:1, unit:id, facade:true, fside:'front', inPlanta:true}, Fr={floor:1, unit:id, facade:true, fside:'roof', inPlanta:true};
   const op=(z0,z1,b0,b1,k)=>{ const a=XZ(u,z0), b=XZ(u,z1); return [Math.min(a,b),Math.max(a,b),b0,b1,...(k?[k]:[])]; };
   const door=op(-3.4,-2.5,0,2.15,'door'), w2=op(-1.0,0.4,0.9,2.15), w1=op(2.5,3.7,0.9,2.15);
   const wc=op(-3.8,-2.6,1.0,2.15), ws=op(-0.7,0.9,0,2.2), wb=op(3.55,4.35,1.5,2.1);
@@ -211,9 +211,14 @@ function buildHouse(u){
   aBoxB(door[0]-0.36,door[0]-0.24,1.95,2.12,0,0.08,AM.lamp,F);
   /* golfes: forjat, murs fins al ràfec i testeres o mitgeres triangulars */
   aBoxB(hx0,hx1,H,3.0,-6,0,AM.slab,Fr);
-  aBoxB(hx0,hx1,H,KC.yK,-0.2,0,R,F1); aBoxB(hx0,hx1,H,KC.yK,-6,-5.75,R,{floor:1, unit:id, facade:true, fside:'back'});
+  aBoxB(hx0,hx1,H,KC.yK,-0.2,0,R,F1); aBoxB(hx0,hx1,H,KC.yK,-6,-5.75,R,{floor:1, unit:id, facade:true, fside:'back', inPlanta:true});
   aBoxB(hx0,hx1,H,H+0.12,0,0.05,AM.facade2,F1); aBoxB(hx0,hx1,H,H+0.12,-6.05,-6,AM.facade2,{floor:1, unit:id, facade:true, fside:'back'});
-  for(const [a,b,end] of [[hx0,hx0+0.25,hx0===-20],[hx1-0.25,hx1,hx1===20]]) gable(a,b,end?R:AM.wall,end?{floor:1, unit:id, facade:true, fside:'side'}:o1);
+  for(const [a,b,end] of [[hx0,hx0+0.25,hx0===-20],[hx1-0.25,hx1,hx1===20]]) gable(a,b,end?R:AM.wall,end?{floor:1, unit:id, facade:true, fside:'side', inPlanta:true}:o1);
+  /* golfes (traster, sense preses): trapa amb escala escamotejable sobre el rebedor, caixes i un bagul */
+  const g1={floor:1, unit:id};
+  UB(u,-3.9,-3.0,3.0,3.03,-4.4,-3.7,AM.frame,g1); UB(u,-3.85,-3.05,3.03,3.035,-4.35,-3.75,AM.door,g1);
+  for(const [x0,z0,w,d,h,m] of [[-7.4,-4.4,0.6,0.5,0.45,AM.shelf],[-7.35,-4.3,0.45,0.4,0.3,AM.furn],[-7.4,-3.6,0.5,0.5,0.35,AM.shelf],[-7.5,3.4,1.2,0.6,0.5,AM.wood],[-5.2,4.0,0.7,0.5,0.4,AM.shelf]]){
+    const y0 = m===AM.furn ? 3.45 : 3.0; UB(u,x0,x0+w,y0,y0+h,z0,z0+d,m,g1); }
   buildRoof(u,hx0,hx1);
 }
 /* mitgera o testera de les golfes: pentàgon (de la cota 2,8 fins al vessant) extruït en x */

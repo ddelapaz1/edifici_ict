@@ -7,7 +7,10 @@ plurifamiliar. Página web estática publicada con GitHub Pages en <https://ddel
 
 | Archivo | Contenido | ¿Se edita? |
 |---|---|---|
-| `index.html` | Toda la aplicación: HTML, CSS, datos de los elementos y código 3D | **Sí** |
+| `index.html` | Página del edificio: marcado de la interfaz y carga de los scripts | **Sí** |
+| `css/ict.css` | Estilos de la interfaz (compartidos) | **Sí** |
+| `js/dades.js` | Datos: `UNITS`, `SERVICES`, `TRAMS`, `TECHS`, registro `EL`, `CONCEPTS`, `QUIZ`, `SIMPLIFICATIONS` | **Sí** |
+| `js/app.js` | Aplicación: geometría, interfaz, visibilidad, selección, etiquetas y arranque (`init()`) | **Sí** |
 | `vendor/three.min.js` | Three.js r160 (UMD, define el global `THREE`) | **No** |
 | `vendor/OrbitControls.js` | OrbitControls de Three.js adaptado a script clásico | **No** |
 | `models/` | Modelos glTF de los equipos (`*.glb`) y sus fuentes (`src/`: `.blend`, texturas, scripts de Blender). Ver `models/README.md` | Sí (regenerando con los scripts) |
@@ -17,13 +20,14 @@ No hay *build*, ni npm, ni módulos ES: los `<script>` son clásicos y comparten
 Cualquier archivo nuevo que necesite la web debe ir dentro del repositorio y referenciarse con **ruta relativa**
 (nada de CDN), para que funcione igual en local y en GitHub Pages.
 
-Dentro de `index.html` hay dos bloques `<script>`:
+Los scripts se cargan en este orden: `vendor/*`, `js/dades.js`, `js/app.js` y, al final, `loadModels().finally(init)`
+(inline en la página):
 
-1. **Datos**: `UNITS`, `SERVICES`, `TRAMS`, `TECHS` y el registro `EL` de elementos, creados con
+1. **Datos** (`js/dades.js`): `UNITS`, `SERVICES`, `TRAMS`, `TECHS` y el registro `EL` de elementos, creados con
    `def({...})`, `RD(...)` (elementos del RITS) y `RE(...)`. Cada elemento tiene `id`, `fam`, `layer`, `svc`, `floor`,
    `parent` y los textos de la ficha (`name`, `what`, `purpose`, `where`, `connects`, `example`, `confusion`), además
    de `nets`, `canals` y `links`. También `CONCEPTS`, `QUIZ` (modo «Comprova què has après») y `SIMPLIFICATIONS`.
-2. **Aplicación**: geometría, interfaz, visibilidad, selección, etiquetas y arranque (`init()`).
+2. **Aplicación** (`js/app.js`): geometría, interfaz, visibilidad, selección, etiquetas y arranque (`init()`).
 
 ## Cómo se construyen los modelos 3D
 
@@ -157,7 +161,7 @@ Cómo funcionan en la web:
 4. Modelo: `models/src/scripts/REF_model.py` se ejecuta con
    `/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup -P script.py`; construye la geometría,
    une las piezas por material, guarda el `.blend` y exporta el `.glb`. Comprobar con un render EEVEE en segundo plano.
-5. Integrar en `index.html` (`MODELS`, `placeModel`, puntos de anclaje, reserva procedural), actualizar la ficha en
+5. Integrar en `js/app.js` (`MODELS`, `placeModel`, puntos de anclaje, reserva procedural), actualizar la ficha en
    `EL`, `models/README.md` y esta tabla.
 6. **Los DWG, DXF y SVG del fabricante no se publican** (`.gitignore`); sí el `.glb`, el `.blend` (sin el plano), la
    textura y los scripts.
@@ -184,10 +188,11 @@ Cómo funcionan en la web:
 
 ## Ahorrar contexto (tokens)
 
-- **No leas `index.html` entero** (≈ 400 KB): busca con `grep -n` el nombre de la función o del `id` y lee solo ese
-  tramo. No abras `vendor/` ni los `.glb`/`.blend`.
+- **No leas `js/app.js` ni `js/dades.js` enteros** (≈ 470 KB entre los dos): busca con `grep -n` el nombre de la función o
+  del `id` y lee solo ese tramo. No abras `vendor/` ni los `.glb`/`.blend`.
 - Para comprobar en el navegador, prefiere `javascript_tool` (datos) a capturas; usa capturas reducidas
-  (`scale` 0,6) y solo las necesarias. El navegador cachea `index.html`: recarga con `?debug&v=N`.
+  (`scale` 0,6) y solo las necesarias. El navegador cachea la página y los scripts: recarga con `?debug&v=N` y, si un cambio en `js/` no aparece,
+  fuerza la recarga (`location.reload()` tras vaciar la caché).
 - Ediciones de varios bloques: un script de Python con reemplazos exactos (`assert s.count(a)==1`) evita releer.
 
 ## Convenciones
@@ -210,14 +215,14 @@ Cómo funcionan en la web:
    - `__ICT.G.meshes.length` — número de mallas; `__ICT.EL` — registro de elementos.
 3. Comprueba que la consola no muestra errores y que el elemento modificado se ve bien desde varios ángulos y, si
    está en las viviendas, en una vivienda A y en una C (reflejada).
-4. Comprobación rápida de sintaxis de los scripts de `index.html`:
+4. Comprobación rápida de sintaxis de los scripts:
    ```bash
-   node -e "const s=require('fs').readFileSync('index.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((x,i)=>{try{new Function(x[1])}catch(e){console.log('ERR',i,e.message)}});console.log('ok')"
+   for f in js/*.js; do node --check "$f" || echo "ERR $f"; done
    ```
 
 ## Git
 
 - Un commit por mejora, con mensaje en catalán que explique qué cambia y por qué.
-- Antes de empezar, `git pull`: el proyecto lo pueden editar varias personas o agentes y todo está en `index.html`,
-  así que dos cambios simultáneos chocan fácilmente.
+- Antes de empezar, `git pull`: el proyecto lo pueden editar varias personas o agentes y casi todo está en `js/app.js`,
+  así que dos cambios simultáneos chocan fácilmente (sobre todo en `js/app.js`).
 - El push a `main` publica la web automáticamente.

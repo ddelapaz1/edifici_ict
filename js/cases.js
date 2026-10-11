@@ -301,6 +301,11 @@ function buildRITUSite(){
   for(let z=KC.zGard+0.5; z<-6.05; z+=0.12) aBoxB(19.98,20.02,KC.yLawn,1.5,z,z+0.1,AM.wood,g);
   aBoxB(19.97,20.03,1.3,1.38,KC.zGard+0.5,-6.05,AM.wood,g);
   aBoxB(RITU.x+2.25,RITU.x+5.1,-0.32,0,RITU.z-0.59,RITU.z+3.56,AM.concrete,{floor:0});           // llosa de fonamentació del RITU
+  /* sòcol de pedra al voltant del RITU (menys a la porta) i vorera de formigó */
+  const rx0=RITU.x+2.355, rx1=RITU.x+5.0, rz0=RITU.z-0.475, rz1=RITU.z+3.475, so={floor:0};
+  aBoxB(rx1,rx1+0.015,0,0.4,rz0,rz1,AM.stone,so); aBoxB(rx0-0.015,rx1+0.015,0,0.4,rz0-0.015,rz0,AM.stone,so); aBoxB(rx0-0.015,rx1+0.015,0,0.4,rz1,rz1+0.015,AM.stone,so);
+  aBoxB(rx0-0.015,rx0,0,0.4,rz0,RITU.z+2.13,AM.stone,so); aBoxB(rx0-0.015,rx0,0,0.4,RITU.z+3.13,rz1,AM.stone,so);
+  aBoxB(rx0-0.9,rx0,KC.yLawn,-0.02,RITU.z+1.9,RITU.z+3.4,AM.pave,g);
 }
 /* =====================================================================
    ICT DEL CONJUNT
@@ -381,7 +386,7 @@ function buildEntryC(){
   const K=CTO_FO, g0=K.ops[0].gland, g1=K.ops[1].gland;
   const tails={fo:[[1.445,0.70,-4.69],[1.445,g0[1],-4.69],[g0[0]-0.002,g0[1],g0[2]]],
                fo2:[[1.515,0.70,-4.69],[1.515,g1[1],-4.66],[g1[0]-0.002,g1[1],g1[2]]],
-               pt:[[1.585,0.62,-4.69],[1.585,0.80,-4.70],[2.688,0.80,-4.705],[2.688,1.50,-4.705]]};
+               pt:[[1.585,0.80,-4.70],[2.688,0.80,-4.705],[2.688,1.50,-4.705]]};
   ENL.forEach((t,k)=>{ if(!tails[t.k]) return;
     const el=t.k==='pt'?'xal_pt':'xal_fo', x=ax+(k-1.5)*0.03, tl=tails[t.k].map(p=>A3(ritiW(...p)));
     cable(`xal_${t.k}_1`,el,[[x,-0.8,13.4],[x,-0.8,az+0.75],[ax,-0.8,az+0.42],[ax,t.y,az+0.2],[ax,t.y,az-0.2]],{from:'operador', to:'arqueta'});
@@ -448,14 +453,15 @@ function buildMainC(){
     tube('canal_principal',mainPath2(k),RPR,{tubeSvc:k, mouth:2});
   }
   /* RTV: dos coaxials (1 blanc, 2 negre). Dins dels tubs, desplaçats w; dins del registre, carrils propis (z local a: 0,083; b: 0,067) */
-  const W={a:[0,0.005,-0.008], b:[0,-0.005,0.008]};
+  const z0=RITU.z+RX.rtv, W={};
+  for(const c of ['a','b']){ const ex=RITS_EXIT[c].clone().applyMatrix4(RITSM); W[c]=[ex.x-XDROP(), c==='a'?0.005:-0.005, ex.z-z0]; }
   const rsIn = (i,c) => { const P=RSP[i][c].in, w=W[c], oy=w[1], oz=-w[2], zc=0.075+oz, x=P.x;
     return [[-RSD.w/2+DINS,ML.rtv+oy,zc],[x,ML.rtv+oy,zc],[x,-0.075,zc],[x,P.y-0.02,0.034],[x,P.y,P.z]].map(p=>A3(rsW(i,...p))); };
   const rsOut = i => c => { const P=RSP[i][c].out, w=W[c], oy=w[1], oz=-w[2], zc=0.075+oz, x=P.x;
     return [[x,P.y,P.z],[x,P.y-0.02,0.034],[x,-0.075,zc],[x,ML.rtv+oy,zc],[RSD.w/2-DINS,ML.rtv+oy,zc]].map(p=>A3(rsW(i,...p))); };
   for(const c of ['a','b']){
-    const w=W[c], ex=RITS_EXIT[c].clone().applyMatrix4(RITSM), tp=inTube(mainPath('rtv'),w,RM);
-    cable(`xd_rtv_${c}_2`,'xd_rtv',[A3(ex),...tp.slice(0,-1),...rsIn(2,c)],{from:'cap_mix', to:'deriv_2', via:'canal_principal', R:CBL.rg6.rb});
+    const w=W[c], tp=inTube(mainPath('rtv'),w,RM);
+    cable(`xd_rtv_${c}_2`,'xd_rtv',[...tp.slice(0,-1),...rsIn(2,c)],{from:'cap_mix', to:'deriv_2', via:'canal_principal', R:CBL.rg6.rb});
     cable(`xd_rtv_${c}_1`,'xd_rtv',[...rsOut(2)(c),...rsIn(1,c)],{from:'deriv_2', to:'deriv_1', via:'canal_principal'});
   }
   /* fibra: de la CTO de sortida (al RITU) puja a la safata, baixa per la cantonada, va arran de terra fins al tub de fibra i
@@ -530,7 +536,7 @@ function buildHouseICT(u){
   for(const c of ['a','b']){
     const tn=(c==='a')===(sd>0)?'t2':'t1', P=RSP[i][c][tn], ln=LANE[c][tn], zp = ln.col>0 ? 0.034 : 0.055, w=Wc[c], wl=[-w[0],w[1],-w[2]];
     const tx=sd*TOPX.rtv+wl[0], top=RSD.h/2-DINS;
-    const rs=[[P.x,P.y,P.z],...(zp>0.04?[[P.x,P.y-0.03,zp]]:[]),[P.x,ln.y,zp],[ln.col,ln.y,zp],[ln.col,0.40,zp],[tx,0.44,0.075+wl[2]],[tx,top,0.075+wl[2]]].map(p=>A3(rsW(i,...p)));
+    const rs=[[P.x,P.y,P.z],[P.x,ln.y,zp],[ln.col,ln.y,zp],[ln.col,0.40,zp],[tx,0.44,0.075+wl[2]],[tx,top,0.075+wl[2]]].map(p=>A3(rsW(i,...p)));
     const tp=inTubeR(csPathC(u,'rtv'),w,RCS);
     const PR=pauRtvPos(u), E=PR.at(c==='a'?'in':'inc').add(V(0,0.004-FC_LENGTH,0)), yu=E.y-0.06;
     const far=Math.abs(PR.at(c==='a'?'in':'inc').x-X(-2.76)) > Math.abs(PR.at(c==='a'?'inc':'in').x-X(-2.76)), zf=E.z+sz*(far?0.084:0.068);
@@ -544,13 +550,13 @@ function buildHouseICT(u){
     const tp=inTubeR(csPathC(u,'all'),w,RCS);
     const pf=pauFoPos(u), ed=pf.at('entrada_d'), ee=pf.at('entrada_e'), en=Math.abs(ed.x-X(-2.96))<Math.abs(ee.x-X(-2.96))?ed:ee, out=Math.sign(X(-2.96)-en.x);
     withRoot(PG[pairOf(u)],()=>rCyl(`pau_fo_${id}`,0.0036,0.003,V(en.x+out*0.001,en.y,en.z),V(1,0,0),0x2A2D31,'rubber',{r2:0.0036}));
-    const tail=[V(X(-2.76),HRTR.all+w[1],en.z),V(X(-2.96),HRTR.all+w[1],en.z),V(X(-2.96),en.y,en.z),V(en.x-out*0.008,en.y,en.z)].map(L);
+    const h=HRTR.all+w[1], tail=[V(X(-2.76),h,Z(-4.67)),V(X(-2.96),h,Z(-4.67)),V(X(-2.96),en.y,Z(-4.67)),V(X(-2.96),en.y,en.z),V(en.x-out*0.008,en.y,en.z)].map(L);
     cable(`xs_fo_${id}`,`xs_fo_${id}`,[...rs,...tp.slice(1),...tail],{tram:'disp',tech:'fo',svc:'fo',from:`cseg_${i}`, to:`pau_fo_${id}`, via:`cs_${id}`}); }
   /* parells: escomesa de 2 parells des de la regleta (parells 1–2 cap a l'esquerra, 3–4 cap a la dreta) fins a la roseta */
   { const w=[0.004,0.004,0.004], wl=[-0.004,0.004,-0.004], kx=krX(0,sd>0?3.5:1.5), tx=sd*TOPX.all+wl[0], top=RSD.h/2-DINS;
     const rs=[[kx,0.33+0.014,0.06],[kx,0.39,0.065],[tx,0.43,0.075+wl[2]],[tx,top,0.075+wl[2]]].map(p=>A3(rsW(i,...p)));
     const tp=inTubeR(csPathC(u,'all'),w,RCS), pp=X(-2.86);
-    const tail=[V(X(-2.76),HRTR.all+w[1],Z(-4.69)),V(pp,HRTR.all+w[1],Z(-4.70)),V(pp,1.69,Z(-4.712))].map(L);
+    const h=HRTR.all+w[1], tail=[V(X(-2.76),h,Z(-4.675)),V(pp,h,Z(-4.675)),V(pp,1.64,Z(-4.70)),V(pp,1.69,Z(-4.701))].map(L);
     cable(`xs_pt_${id}`,`xs_pt_${id}`,[...rs,...tp.slice(1),...tail],{tram:'disp',tech:'pt',svc:'pt',from:`bucle_${i}`, to:`pau_pt_${id}`, via:`cs_${id}`}); }
   withRoot(PG[pairOf(u)],()=>buildInterior(u));
 }
@@ -578,7 +584,7 @@ Object.assign(VIEWS, {
   tall:    ()=>({p:V(40,1.5,-6.5), t:V(10,-1.6,-7.5)}),
   entry:   ()=>({p:V(29.5,3.2,8.0), t:V(22.4,-0.4,-0.6)}),
   roof:    ()=>({p:V(36,10,10), t:V(22,3,-5)}),
-  basement:()=>({p:V(12,15,16), t:V(3,-3,-8)}),
+  basement:()=>({p:V(6,17,-33), t:V(4,-2.4,-5)}),
   floor:   ()=>S.floor===-1 ? VIEWS.basement() : S.floor===1 ? {p:V(2,26,22), t:V(1,3,-5)} : {p:V(2,24,21), t:V(1,0,-5)},
   home:    ()=>{ const u=UNIT(curUnit()||'0A'), c=UW(u,-5,0,0); return {p:V(c.x+1.5,10.5,c.z+9.5), t:V(c.x,0.2,c.z-0.3)}; }
 });

@@ -161,7 +161,7 @@ dialog h2{margin-top:0}
  #left.open,#right.open{transform:none}
  header{flex-wrap:wrap;row-gap:4px}
  header .seg{flex:1 1 100%} header .seg button{flex:1 1 0;min-width:0}
- header .seg.model{flex:1 1 100%} header .seg.model a{flex:1 1 0;justify-content:center;min-height:34px}
+ header .seg.model{flex:1 1 auto;order:1} header .seg.model a{flex:1 1 0;justify-content:center;min-height:34px} header .link2d{order:2} header .seg:not(.model){order:3} header .hgroup{order:4}
  header .hgroup{flex:1 1 auto} header .hgroup button{flex:1 1 auto;padding:4px 5px}
  .app.leftOpen #tl,.app.leftOpen .pop{left:10px}
  .app.rightOpen #navbtns{right:10px}

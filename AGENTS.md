@@ -1,16 +1,25 @@
 # Guía para agentes de IA — ICT · Explora l'edifici
 
-Simulador 3D didáctico de la **ICT** (infraestructura común de telecomunicaciones, RD 346/2011) de un edificio
-plurifamiliar. Página web estática publicada con GitHub Pages en <https://ddelapaz1.github.io/edifici_ict/>.
+Simulador 3D didáctico de la **ICT** (infraestructura común de telecomunicaciones, RD 346/2011). Tiene dos modelos con
+la misma interfaz, que se eligen con el selector «Edifici / Cases adossades» de la cabecera:
+
+- **Edificio** plurifamiliar (`index.html`): RITI en planta baja y RITS en la cubierta.
+- **Casas adosadas** (`cases.html`): cuatro casas con aparcamiento subterráneo comunitario y un **RITU** (ver
+  «Modelo de casas adosadas»).
+
+Página web estática publicada con GitHub Pages en <https://ddelapaz1.github.io/edifici_ict/>.
 
 ## Estructura
 
 | Archivo | Contenido | ¿Se edita? |
 |---|---|---|
 | `index.html` | Página del edificio: marcado de la interfaz y carga de los scripts | **Sí** |
+| `cases.html` | Página de las casas adosadas (mismo marcado, con `data-model="cases"` y sus vistas) | **Sí** |
 | `css/ict.css` | Estilos de la interfaz (compartidos) | **Sí** |
 | `js/dades.js` | Datos: `UNITS`, `SERVICES`, `TRAMS`, `TECHS`, registro `EL`, `CONCEPTS`, `QUIZ`, `SIMPLIFICATIONS` | **Sí** |
 | `js/app.js` | Aplicación: geometría, interfaz, visibilidad, selección, etiquetas y arranque (`init()`) | **Sí** |
+| `js/dades-cases.js` | Datos del modelo de casas (solo `cases.html`): casas, registros secundarios, textos del RITU | **Sí** |
+| `js/cases.js` | Construcción del modelo de casas (solo `cases.html`): sustituye `buildArchitecture`, `buildICT`… | **Sí** |
 | `vendor/three.min.js` | Three.js r160 (UMD, define el global `THREE`) | **No** |
 | `vendor/OrbitControls.js` | OrbitControls de Three.js adaptado a script clásico | **No** |
 | `models/` | Modelos glTF de los equipos (`*.glb`) y sus fuentes (`src/`: `.blend`, texturas, scripts de Blender). Ver `models/README.md` | Sí (regenerando con los scripts) |
@@ -20,8 +29,9 @@ No hay *build*, ni npm, ni módulos ES: los `<script>` son clásicos y comparten
 Cualquier archivo nuevo que necesite la web debe ir dentro del repositorio y referenciarse con **ruta relativa**
 (nada de CDN), para que funcione igual en local y en GitHub Pages.
 
-Los scripts se cargan en este orden: `vendor/*`, `js/dades.js`, `js/app.js` y, al final, `loadModels().finally(init)`
-(inline en la página):
+Los scripts se cargan en este orden: `vendor/*`, `js/dades.js`, (`js/dades-cases.js`), `js/app.js`, (`js/cases.js`) y, al
+final, `loadModels().finally(init)` (inline en la página). Los cambios en `js/app.js` y `js/dades.js` afectan a los dos
+modelos: compruébalos en las dos páginas.
 
 1. **Datos** (`js/dades.js`): `UNITS`, `SERVICES`, `TRAMS`, `TECHS` y el registro `EL` de elementos, creados con
    `def({...})`, `RD(...)` (elementos del RITS) y `RE(...)`. Cada elemento tiene `id`, `fam`, `layer`, `svc`, `floor`,
@@ -102,6 +112,31 @@ mallas: el edificio ya tiene unas 4.700.
   Mánega de 50 pares: `buildPairRiser()` y `pairWindow()` (sangrado). RTR: capas `LAY` en `buildInterior()`.
 - Tras tocar recorridos, comprueba `__ICT.BEND` y que no haya interpenetraciones (muestras en `G.cables[k].sm`, radio
   en `G.cables[k].r`).
+
+## Modelo de casas adosadas (`cases.html`)
+
+Reutiliza todo el código del edificio. `js/dades.js` lee `MODEL` (atributo `data-model` de `<html>`) y, si no es
+`'edifici'`, no crea las plantas ni las viviendas; `js/dades-cases.js` crea las casas (`defUnit(u)`), los registros
+secundarios y cambia los textos (`CFG` guarda los parámetros de la interfaz que dependen del modelo). `js/cases.js` se carga
+después de `js/app.js` y **redefine funciones** (`buildArchitecture`, `buildLandscape`, `buildICT`, `buildRefs`, `setView`,
+`UB`) y amplía `VIEWS`.
+
+- **Disposición** (`KC`): casas entre x = −20 y 20 (casa 1 a 4 de izquierda a derecha), fachadas en z = 0, calle hacia +z.
+  Sótano entre x = −20 y el **tall transversal** (`KC.xc` = 26,5); rampa a la izquierda; RITU y torre a la derecha. El
+  tall es la opción `S.cut` (las piezas con `cut:true/false` se muestran según el estado).
+- **Grupos girados** (`ROOT`/`withRoot()` de `app.js`): cada pareja de casas es un grupo `PG[i]` girado ±90° y, dentro,
+  las coordenadas son las de las viviendas A y D (o B y C) del edificio: `buildInterior(u)` funciona sin cambios.
+  `UW(u,x,y,z)` convierte coordenadas de la disposición A a la escena; `UB` (redefinida) hace lo mismo con las cajas de
+  tabiques y muebles.
+- **RITU**: es el RITS del edificio construido dentro del grupo `RITS_ROOT` (girado −90° y bajado 15 m); `RITSM` guarda su
+  matriz para que las vistas y el encuadre del RITS (`ritsW()`, `frameEl`) funcionen. Los registros principales del RITI
+  (`buildRITIFibre`, `buildRITIPairs`) se construyen en el grupo `RITI_ROOT`, en la pared de la puerta.
+- **Canalización principal**: 5 tubos Ø50 que bajan del RITU y van por el techo del sótano junto al muro de delante
+  (`mainPath`, `ML`), hasta los registros secundarios `rs_2` (x = 10, casas 3 y 4) y `rs_1` (x = −10, casas 1 y 2).
+  Cada registro secundario es un grupo girado 180° (`RSG[i]`, `rsW()`); dentro: dos derivadores (`DRV`), caja de
+  segregación y regleta. La canalización secundaria (`csPathC`) sube por la medianera hasta el RTR.
+- `RX` (posición de los tubos en el suelo del RITS), `KRP` (regletas del STDP) y `RITS_OPEN` se cambian en `buildICT()` de
+  `cases.js`; en el edificio conservan sus valores.
 
 ## Escala y coordenadas
 
@@ -206,7 +241,7 @@ Cómo funcionan en la web:
 
 ## Cómo probar
 
-1. Sirve la carpeta: `python3 -m http.server 8765` y abre <http://localhost:8765/index.html?debug>.
+1. Sirve la carpeta: `python3 -m http.server 8765` y abre <http://localhost:8765/index.html?debug> (o `cases.html?debug`).
 2. Con `?debug` existe `window.__ICT` para inspeccionar desde la consola:
    - `__ICT.look([x,y,z],[tx,ty,tz])` — coloca la cámara y su objetivo.
    - `__ICT.setOpen('riti', true); __ICT.applyVisibility()` — abre puertas y tapas (`rp_fo`, `rp_pt`, `rs_1`, `rtr_1A`…).

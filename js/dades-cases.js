@@ -28,7 +28,7 @@ Object.assign(CFG, {
    <li>Entrada: operador → arqueta a la vorera → canalització externa (4 × Ø63) → punt d'entrada general al mur del soterrani → canalització d'enllaç inferior pel sostre del soterrani → registre d'enllaç, dins del RITU → registres principals.</li>
    <li>RTV: torre de 6 m amb antenes TDT, DAB i FM i parabòlica amb LNB doble → enllaç superior (2 × Ø40) → capçalera al RITU (centraleta programable o amplificadors monocanal) → dos coaxials de distribució.</li>
    <li>Canalització principal: 5 tubs de Ø50 (RTV, fibra, parells, TBA i reserva) que baixen del RITU al soterrani i van pel sostre, arran del mur de davant, fins als dos registres secundaris (550 × 1000 × 150 mm), un sota cada mitgera de parella.</li>
-   <li>Registre secundari de cada parella: dos derivadors F 4D (un per cable de distribució; pèrdua de derivació de 16 dB al primer i 12 dB a l'últim, que tanca la línia amb càrregues), caixa de segregació de fibra i regleta de 10 parells (sangrat de la mànega de 25 parells).</li>
+   <li>Registre secundari de cada parella: dos derivadors F 2D (un per cable de distribució, una derivació per casa; pèrdua de derivació de 16 dB al primer i 12 dB a l'últim, que tanca la línia amb càrregues), caixa de segregació de fibra i regleta de 10 parells (sangrat de la mànega de 25 parells).</li>
    <li>Canalització secundària: 3 tubs de Ø25 per casa (RTV; parells i fibra; TBA), del registre secundari al registre de terminació de xarxa (RTR), per dins de la mitgera.</li>
    <li>Dins de cada casa, la mateixa dotació i el mateix RTR que els habitatges de l'edifici: PAU de RTV, PAU de fibra, rosetes RJ45 amb multiplexor, PAU de TBA i preses a totes les estàncies.</li></ul>
    <h3>Les cases del model</h3><p class="small">Quatre cases de planta baixa i golfes sota coberta de teula a dues aigües, de 10 × 6 m, amb jardí davanter i posterior. Les parelles 1–2 i 3–4 són simètriques. A sota hi ha un aparcament comunitari amb rampa a l'extrem esquerre. La distribució interior és la dels habitatges de l'edifici (sala d'estar, cuina, dos dormitoris, bany i rebedor) i les golfes són traster.</p>
@@ -134,7 +134,7 @@ Object.assign(EL.xd_pt, {floor:-1, vertical:false, name:'Xarxa de distribució d
   confusion:"El sangrat no talla la mànega: només se n'extreuen els parells d'aquell registre i la resta continua. La reserva del 20 % és per a avaries i ampliacions."});
 
 /* ---------------- registres secundaris (soterrani) ---------------- */
-const TAPCASES = {2:{db:16, ref:'519343'}, 1:{db:12, ref:'519342'}};
+const TAPCASES = {2:{db:16, ref:'519323'}, 1:{db:12, ref:'519322'}};   // derivadors F 2D 5–2400 MHz
 for (const i of [1,2]) {
   const cs=RSCASES[i], first=i===2, d=TAPCASES[i], us=UNITS.filter(u=>RSOF(u)===i);
   def({id:`rs_${i}`, fam:'recinte', layer:'registres', svc:'all', floor:-1, zone:'comuna', rs:true, rsTag:`cases ${cs}`, container:true, lid:true, main:i===1,
@@ -147,11 +147,11 @@ for (const i of [1,2]) {
    confusion:"La mida mínima per a conjunts de cases és de 450 × 450 × 150 mm; aquí és més gran (mida de catàleg) perquè hi caben els dos derivadors, la caixa de segregació i la regleta amb els cables a les corbes mínimes.",
    canals:['canal_principal',...us.map(u=>`cs_${u.id}`)], links:[`deriv_${i}`,`cseg_${i}`,`bucle_${i}`]});
   def({id:`deriv_${i}`, fam:'punt', layer:'punts', svc:'rtv', floor:-1, zone:'comuna', rs:true, parent:`rs_${i}`,
-   name:`Derivadors F 4D de ${d.db} dB (2; exemple: Televes ref. ${d.ref}) — cases ${cs}`, sigla:'',
-   what:`Dos derivadors passius de 4 sortides (109 × 54 × 18 mm), un per a cada cable de distribució. Tenen els connectors F cap avall: entrada a l'esquerra, quatre derivacions i sortida a la dreta. Pèrdua de derivació nominal: ${d.db} dB.`,
+   name:`Derivadors F 2D de ${d.db} dB (2; exemple: Televes ref. ${d.ref}) — cases ${cs}`, sigla:'',
+   what:`Dos derivadors passius de 2 sortides (74 × 54 × 18 mm), un per a cada cable de distribució: cada registre només dona servei a dues cases, així que no calen més derivacions. Tenen els connectors F cap avall: entrada a l'esquerra, dues derivacions i sortida a la dreta. Pèrdua de derivació nominal: ${d.db} dB.`,
    purpose:"Treuen una part del senyal de cada cable de distribució cap a les cases i deixen passar la resta cap al registre següent.",
    where:`Registre secundari ${i}, a sobre de la línia del tub de RTV.`,
-   connects:`Entrada ← cable de distribució. Derivacions 1 i 2 → cables de dispersió de les cases ${cs} (cada casa rep el cable blanc del primer derivador i el negre del segon). Derivacions 3 i 4: càrregues de 75 Ω. Sortida → ${first?'cable cap al registre 1':'càrrega de 75 Ω (final de línia)'}.`,
+   connects:`Entrada ← cable de distribució. Derivacions 1 i 2 → cables de dispersió de les cases ${cs} (cada casa rep el cable blanc del primer derivador i el negre del segon). Sortida → ${first?'cable cap al registre 1':'càrrega de 75 Ω (final de línia)'}.`,
    example:first?"Com que és el primer registre que troba el senyal, porta derivadors de 16 dB: n'hi arriba més que al registre 1 i, així, les quatre cases reben un nivell semblant.":"És el darrer derivador de cada cable: per això porta menys pèrdua de derivació (12 dB) i la sortida tancada amb una càrrega.",
    confusion:"El derivador és a la zona comuna i alimenta cases; el PAU + repartidor és dins de cada casa i alimenta preses. Tota sortida o derivació lliure es tanca amb una càrrega per no desadaptar la línia.",
    nets:['xd_rtv',...us.map(u=>`xs_rtv_${u.id}`)]});

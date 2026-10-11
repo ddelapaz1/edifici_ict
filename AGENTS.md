@@ -133,7 +133,7 @@ después de `js/app.js` y **redefine funciones** (`buildArchitecture`, `buildLan
   (`buildRITIFibre`, `buildRITIPairs`) se construyen en el grupo `RITI_ROOT`, en la pared de la puerta.
 - **Canalización principal**: 5 tubos Ø50 que bajan del RITU y van por el techo del sótano junto al muro de delante
   (`mainPath`, `ML`), hasta los registros secundarios `rs_2` (x = 10, casas 3 y 4) y `rs_1` (x = −10, casas 1 y 2).
-  Cada registro secundario es un grupo girado 180° (`RSG[i]`, `rsW()`); dentro: dos derivadores (`DRV`), caja de
+  Cada registro secundario es un grupo girado 180° (`RSG[i]`, `rsW()`); dentro: dos derivadores F 2D (`DRV`; cada registro solo sirve a dos casas), caja de
   segregación y regleta. La canalización secundaria (`csPathC`) sube por la medianera hasta el RTR.
 - `RX` (posición de los tubos en el suelo del RITS), `KRP` (regletas del STDP) y `RITS_OPEN` se cambian en `buildICT()` de
   `cases.js`; en el edificio conservan sus valores.
@@ -160,6 +160,7 @@ después de `js/app.js` y **redefine funciones** (`buildArchitecture`, `buildLan
 | Mezclador TER + 2 SAT 740710 (98 × 76 × 27) | `mesclador.glb` | Cabecera B |
 | Multiplexor pasivo RJ45 546501 (142 × 60 × 24) | `multiplexor.glb` | RTR de cada vivienda |
 | Derivador F 4D 519345 (109 × 54 × 18) | `derivador.glb` | Registros secundarios (2 por planta) |
+| Derivador F 2D 519322/519323 (74 × 54 × 18) | `derivador_2d.glb` | Registros secundarios de las casas (2 por registro; `MODELS.deriv2` en `cases.js`) |
 | PAU repartidor 4D 519534 (109 × 54 × 18), entrada carregada | `pau_rtv.glb` | RTR de cada vivienda (`pauRtvPos(u)`) |
 | PAU de TBA coaxial: repartidor 2D 5–1220 MHz 519602 (74 × 54 × 18), entrada cargada con 4061 | `pau_tba.glb` | RTR de cada vivienda (`pauTbaPos(u)`) |
 | Carga 75 Ω 4061 (12 × 29 × 12) | `carrega.glb` | Entradas/salidas libres (`fLoad`) y paso de la 1.ª planta |

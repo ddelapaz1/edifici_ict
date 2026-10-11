@@ -12,6 +12,7 @@ procedural. Convenis: metres; origen al centre de l'aresta inferior de la cara p
 | Central programable AVANT 12 PRO SAT, ref. 532204 (201 × 120 × 42 mm) | `avant.glb` | `src/avant.blend` |
 | Mesclador TER + 2 SAT, ref. 740710 (98 × 76 × 27 mm) | `mesclador.glb` | `src/mesclador.blend` |
 | Derivador F 4D, ref. 519345 (109 × 54 × 18 mm) | `derivador.glb` | `src/derivador.blend` |
+| Derivador F 2D, ref. 519322/519323 (74 × 54 × 18 mm, cos del 519602), registres de les cases | `derivador_2d.glb` | `src/derivador_2d.blend` |
 | PAU repartidor 4D amb entrada carregada, ref. 519534 (109 × 54 × 18 mm) | `pau_rtv.glb` | `src/pau_rtv.blend` |
 | PAU de TBA coaxial: repartidor 2D de 5–1220 MHz, ref. 519602 (74 × 54 × 18 mm) | `pau_tba.glb` | `src/pau_tba.blend` |
 | Càrrega terminal 75 Ω tipus F amb bloqueig CC, ref. 4061 (12 × 29 × 12 mm) | `carrega.glb` | `src/carrega.blend` |
@@ -86,6 +87,16 @@ Plànol del fabricant `519345.dwg` convertit a `src/519345.dxf`:
 dwg2dxf -y -o models/src/519345.dxf 519345.dwg
 python3 models/src/scripts/derivador_serigrafia.py
 /Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/derivador_model.py
+```
+
+## Regenerar el derivador 2D (cases adossades)
+
+Sense plànol propi: cos del repartidor 2D 519602 i ports F amb el pas de 17 mm del 4D. La serigrafia es compon a partir de
+la del 4D (cal generar-la abans) amb els textos reescrits:
+
+```bash
+python3 models/src/scripts/derivador_2d_serigrafia.py
+/Applications/Blender.app/Contents/MacOS/Blender -b -P models/src/scripts/derivador_2d_model.py
 ```
 
 ## Regenerar el PAU repartidor de RTV

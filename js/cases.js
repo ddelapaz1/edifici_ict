@@ -402,9 +402,12 @@ function buildEntryC(){
 
 /* ---------- registre secundari (500 × 1000 mm de catàleg 550 × 1000 × 150) al mur de davant, sota la mitgera ----------
    Grup girat 180°: x local cap a −x de l'escena, z local cap al soterrani. A dins (de dalt a baix): regleta de 10 parells
-   (punt de distribució de parells), dos derivadors F 4D (ports cap avall: entrada a l'esquerra, sortida a la dreta) i, sobre la
+   (punt de distribució de parells), dos derivadors F 2D (ports cap avall: entrada a l'esquerra, sortida a la dreta) i, sobre la
    línia del tub de fibra, la caixa de segregació. Els cables de dispersió surten per dalt cap a les dues cases. */
 const DRV={a:-0.10, b:0.06, y:0.05};
+/* derivador F 2D (Televes 519322/519323, 74 × 54 × 18 mm): cada registre només alimenta dues cases. Ports F (reserva sense glTF) */
+const DPX2={in:-0.0256, t1:-0.0086, t2:0.0084, out:0.0254};
+MODELS.deriv2={url:'models/derivador_2d.glb', scene:null};
 function buildRSC(i, C){
   const g=new THREE.Group(); g.position.set(RSX[i],RSD.y,-0.2); g.rotation.y=Math.PI; scene.add(g); g.updateMatrixWorld(true); RSG[i]=g;
   const ports=RSP[i]={};
@@ -413,15 +416,15 @@ function buildRSC(i, C){
     const el=`deriv_${i}`;
     for(const c of ['a','b']){
       const xc=DRV[c], yd=DRV.y, P=ports[c]={};
-      if(MODELS.deriv?.scene){
-        const ms=placeModel('deriv',el,xc,yd,0.025); for(const m of ms) G.pick.push(m);
-        for(const [txt,dx,dy,w] of [[`${TAPC[i].db}dB`,-0.0276,-0.0033,0.0072],[`${TAPC[i].ref}/F 4D`,0.0314,-0.0003,0.0186]]){
+      if(MODELS.deriv2?.scene){
+        const ms=placeModel('deriv2',el,xc,yd,0.025); for(const m of ms) G.pick.push(m);
+        for(const [txt,dx,dy,w] of [[`${TAPC[i].db}dB`,0,-0.0033,0.0072],[`${TAPC[i].ref}/F 2D`,0.017,-0.0003,0.0186]]){
           const tm=rPlane(el,w,0.0026,V(xc+dx,yd+dy,0.025+0.0186),V(0,0,1),tapText(txt,Math.round(w*20000),52)); tm.material.alphaTest=0.5; }
-        addProxy(ms[0],new THREE.BoxGeometry(0.14,0.12,0.08).translate(xc,yd,0.034));
-      } else iBox(el,0.109,0.054,0.018,xc,yd,0.034,0xD7DCE2);
-      for(const name of ['in','t1','t2','t3','t4','out']){
-        const mp=modelPoint('deriv',name), q=mp||{x:DPX[name], y:-0.0267, z:0.009}, port=V(xc+q.x,yd+q.y,0.025+q.z);
-        if(name==='t3'||name==='t4'||(name==='out'&&i===1)){                       // ports lliures: càrrega de 75 Ω
+        addProxy(ms[0],new THREE.BoxGeometry(0.10,0.12,0.08).translate(xc,yd,0.034));
+      } else iBox(el,0.074,0.054,0.018,xc,yd,0.034,0xD7DCE2);
+      for(const name of ['in','t1','t2','out']){
+        const mp=modelPoint('deriv2',name), q=mp||{x:DPX2[name], y:-0.0267, z:0.009}, port=V(xc+q.x,yd+q.y,0.025+q.z);
+        if(name==='out'&&i===1){                                                   // final de línia: càrrega de 75 Ω
           if(MODELS.carrega?.scene){ for(const m of placeModel('carrega',el,port.x,port.y,port.z,{},[Math.PI,0,0])) G.pick.push(m); }
           else iCyl(el,0.006,0.02,port.x,port.y-0.013,port.z,0x222222,'y',{pick:false});
           continue; }

@@ -2513,9 +2513,12 @@ function textTex(lines,o={}){
     g.fillStyle=o.fg||'#1A1A1A'; g.textAlign='center'; g.textBaseline='middle';
     const n=lines.length; lines.forEach((t,i)=>{ const fs=(o.fs&&o.fs[i])||o.size||Math.floor(h/(n+0.6)); g.font=`${(o.bold&&o.bold[i])?'700':'500'} ${fs}px Arial, sans-serif`; g.fillText(t,w/2,h*(i+0.5)/n+(o.dy||0)); }); });
 }
+/* lookAt en coordenades del pare: Object3D.lookAt pren l'objectiu en coordenades del món i falla dins dels grups girats (RITU) */
+const _LKM=new THREE.Matrix4();
+function lookL(m,t){ _LKM.lookAt(t,m.position,m.up); m.quaternion.setFromRotationMatrix(_LKM); }
 function rPlane(el,w,h,pos,normal,tex,o={}){
   const m=ictMesh(new THREE.PlaneGeometry(w,h),0xFFFFFF,el,Object.assign({std:{roughness:0.6,metalness:0,map:tex,side:o.double?THREE.DoubleSide:THREE.FrontSide}, rits:true},o));
-  m.position.copy(pos); m.lookAt(pos.clone().add(normal)); if(o.rotZ) m.rotateZ(o.rotZ); return m;
+  m.position.copy(pos); lookL(m,pos.clone().add(normal)); if(o.rotZ) m.rotateZ(o.rotZ); return m;
 }
 /* geometria de tub del RITS (mateix escombrat; R: radi de corba físic de les cantonades) */
 function rTubeGeo(pts,r,radial=10,cr=0.03,R,tag,cap){ return sweepGeo(pathSamples(polyCurve(pts,cr,R,tag)),r,radial,0,Math.PI*2,null,cap); }
@@ -2629,8 +2632,8 @@ function clampAt(el, p, t, n, r, o={}){
   rCyl(el,0.0045,0.004,foot.clone().addScaledVector(n,0.008),n,0x6E7378,'steel');
 }
 /* clip no aixafador per a cable coaxial */
-function cableClip(el,p,n){ const m=rMesh(el,new THREE.TorusGeometry(0.0095,0.0022,6,14,Math.PI*1.2),0xEDEDED,'plastic'); m.position.copy(p); m.lookAt(p.clone().add(V(1,0,0))); m.rotateZ(Math.PI*-0.1);
-  const b=rMesh(el,new THREE.BoxGeometry(0.012,0.012,0.006),0xEDEDED,'plastic'); b.position.copy(p.clone().addScaledVector(n,-0.012)); b.lookAt(p.clone().add(n)); }
+function cableClip(el,p,n){ const m=rMesh(el,new THREE.TorusGeometry(0.0095,0.0022,6,14,Math.PI*1.2),0xEDEDED,'plastic'); m.position.copy(p); lookL(m,p.clone().add(V(1,0,0))); m.rotateZ(Math.PI*-0.1);
+  const b=rMesh(el,new THREE.BoxGeometry(0.012,0.012,0.006),0xEDEDED,'plastic'); b.position.copy(p.clone().addScaledVector(n,-0.012)); lookL(b,p.clone().add(n)); }
 
 /* ---------- connectors F (mida real: femella hexagonal d'11 mm, rosca de 3/8") ---------- */
 const NI=0xC9CCCF;
@@ -2716,7 +2719,7 @@ function cableTag(el, p, side, text, axis, key){
   const vert=Math.abs(side.y)>Math.abs(side.x), off=vert ? V(0,Math.sign(side.y)*(0.004+0.0056),0) : V(Math.sign(side.x||1)*(0.004+w/2),0,0);
   const pos=p.clone().add(off).add(V(0,0,0.005));   // 5 mm endavant: passa per davant dels cables veïns
   const m=rPlane(el,w,0.0112,pos,V(0,0,1),tx,{double:true});
-  m.lookAt(pos.clone().add(V(0,0,1)));
+  lookL(m,pos.clone().add(V(0,0,1)));
   return m;
 }
 /* sprite de símbol (mode d'identificació didàctica) */
@@ -2857,10 +2860,10 @@ function buildRITSElectrical(){
   const schuko=(el,cx,cy,cz,nrm)=>{ // nrm: 'z' (paret del fons) o '-x' (paret dreta)
     const pos=(dx,dy,dn)=> nrm==='z' ? V(cx+dx,cy+dy,cz+dn) : V(cx-dn,cy+dy,cz+dx);
     const N = nrm==='z' ? V(0,0,1) : V(-1,0,0);
-    const plate=rMesh(el,new THREE.BoxGeometry(0.078,0.078,0.010),0xF7F7F4,'plastic',{cast:true}); plate.position.copy(pos(0,0,0.005)); plate.lookAt(plate.position.clone().add(N));
+    const plate=rMesh(el,new THREE.BoxGeometry(0.078,0.078,0.010),0xF7F7F4,'plastic',{cast:true}); plate.position.copy(pos(0,0,0.005)); lookL(plate,plate.position.clone().add(N));
     const rec=rCyl(el,0.0205,0.006,pos(0,0,0.009),N,0xE6E6E2,'plastic',{seg:24});
     for(const dx of [-0.0095,0.0095]) rCyl(el,0.0026,0.004,pos(dx,0,0.0122),N,0x222222,'plastic',{seg:10});
-    for(const dy of [-0.016,0.016]){ const c=rMesh(el,new THREE.BoxGeometry(0.010,0.004,0.004),0xC0C3C6,'nickel'); c.position.copy(pos(0,dy,0.0125)); c.lookAt(c.position.clone().add(N)); }
+    for(const dy of [-0.016,0.016]){ const c=rMesh(el,new THREE.BoxGeometry(0.010,0.004,0.004),0xC0C3C6,'nickel'); c.position.copy(pos(0,dy,0.0125)); lookL(c,c.position.clone().add(N)); }
   };
   rBox('rits_bases_cap',0.52,0.76,16.00,16.12,RI.z0,-4.69,0xEEEEEA,'plastic',{cast:true,pick:true});
   schuko('rits_bases_cap',0.58,16.06,-4.69,'z'); schuko('rits_bases_cap',0.70,16.06,-4.69,'z');

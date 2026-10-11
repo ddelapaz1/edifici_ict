@@ -4,12 +4,26 @@
    habitatge, zona, textos i relacions. La geometria hi fa referència per id.
    ===================================================================== */
 'use strict';
+/* model que es mostra: 'edifici' (index.html) o 'cases' (cases.html, dades a js/dades-cases.js) */
+const MODEL = document.documentElement.dataset.model || 'edifici';
 const ORD = {1:'1r',2:'2n',3:'3r',4:'4t'};
-const FLOORNAME = f => f===-1 ? 'Soterrani' : f===0 ? 'Planta baixa' : f===5 ? 'Coberta' : `${f}a planta`;
+let FLOORNAME = f => f===-1 ? 'Soterrani' : f===0 ? 'Planta baixa' : f===5 ? 'Coberta' : `${f}a planta`;
 const SIDES = ['A','B','C','D'];
 const UNITS = [];
-for (const f of [1,2,3,4]) for (const s of SIDES) UNITS.push({id:`${f}${s}`, f, s, name:`${ORD[f]} ${s}`});
+if (MODEL==='edifici') for (const f of [1,2,3,4]) for (const s of SIDES) UNITS.push({id:`${f}${s}`, f, s, name:`${ORD[f]} ${s}`});
 const UNIT = id => UNITS.find(u => u.id === id);
+const unitTitle = u => u.title || `Habitatge ${u.name}`;
+/* paràmetres de la interfície que depenen del model (js/dades-cases.js els canvia per al model de cases) */
+const CFG = {
+  floor0:2, side0:'A',                          // planta i habitatge inicials (mode «Habitatge detallat»)
+  unitFloors:[1,2,3,4],                         // plantes amb habitatges
+  whole:'Edifici complet',                      // nom de la vista sencera
+  rits:'RITS',                                  // nom del recinte de la capçalera
+  clamp:{x:[-16,16], y:[-4,22], z:[-24,16]},    // límits del punt de mira de la càmera
+  sceneLabel:"Escena 3D de l'edifici",
+  welcome:null, about:null,                     // HTML de benvinguda i «Sobre el model» (null: els de l'edifici)
+  keepFacade:null, backOf:null                  // funcions opcionals per a ensureVisible() i frameEl()
+};
 
 const FAMILIES = {
   xarxa:  {name:'A. Xarxes', short:'Xarxa', desc:'Cables i elements que transporten el senyal (el «contingut»).'},
@@ -339,7 +353,7 @@ def({id:'lnb', fam:'punt', layer:'equips', svc:'rtv', floor:5, zone:'comuna (cob
  nets:['cab_sat'], links:['parabola','cab_sat']});
 
 /* ---------------- Elements per planta ---------------- */
-for (const f of [1,2,3,4]) {
+if (MODEL==='edifici') for (const f of [1,2,3,4]) {
   const P = FLOORNAME(f), A = `${ORD[f]} A`, B = `${ORD[f]} B`, ALL = floorUnitsTxt(f);
   def({id:`rs_${f}`, fam:'recinte', layer:'registres', svc:'all', floor:f, zone:'comuna', rs:true, container:true, lid:true, main: f===2,
    name:`Registre secundari — ${P}`, sigla:'',
@@ -430,31 +444,33 @@ const PTYPE = {
 };
 const cap = s => s[0].toUpperCase()+s.slice(1);
 
-for (const u of UNITS) {
-  const f=u.f, P=FLOORNAME(f).toLowerCase(), N=u.name, U=u.id, ex = U==='2A', K=(u.s==='A'||u.s==='D')?'e':'d';
+/* defineix tots els elements d'un habitatge u. u.del, u.al, u.el: com es diu «del 2n A», «al 2n A» i «el 2n A» (per defecte,
+   amb el nom de l'habitatge); el model de cases hi posa «de la casa 1», etc. */
+function defUnit(u) {
+  const f=u.f, P=FLOORNAME(f).toLowerCase(), N=u.name, DEL=u.del||`del ${N}`, AL=u.al||`al ${N}`, ELN=u.el||`el ${N}`, U=u.id, ex = U==='2A', K=(u.s==='A'||u.s==='D')?'e':'d';
   def({id:`cs_${U}`, fam:'canal', layer:'canalitzacions', svc:'all', floor:f, unit:U, zone:'comuna', main: ex,
-   name:`Canalització secundària, accés al ${N}`, sigla:'',
+   name:`Canalització secundària, accés ${AL}`, sigla:'',
    what:'Són els tres tubs de Ø25 mm que porten els cables des del registre de pas del distribuïdor fins al registre de terminació de xarxa de l\'habitatge. Formen l\'últim tram de la canalització secundària, que dona suport a la xarxa de dispersió.',
    purpose:'Fa que els cables surtin de la zona comuna i entrin a l\'habitatge protegits.',
-   where:`${FLOORNAME(f)}: des del registre de pas del distribuïdor, per dins de la paret, fins al rebedor del ${N}.`,
+   where:`${FLOORNAME(f)}: des del registre de pas del distribuïdor, per dins de la paret, fins al rebedor ${DEL}.`,
    connects:'Tres tubs de Ø25 mm (RD 346/2011): un per als dos coaxials de RTV, un per a parells o parells trenats i fibra òptica, i un per a coaxial de TBA (telecomunicacions de banda ampla; aquí de reserva, amb fil guia).',
-   example:`A la ${P}, permet que els cables passin del registre de pas al registre del ${N} sense tocar els dels altres habitatges.`,
+   example:`A la ${P}, permet que els cables passin del registre de pas al registre ${DEL} sense tocar els dels altres habitatges.`,
    confusion:'La canalització és el conducte que protegeix i allotja els cables. La xarxa està formada pels cables i els seus elements de connexió. El tram comunitari (quatre tubs, un per servei) arriba fins al registre de pas; des d\'allà, cada habitatge té els seus tres tubs d\'accés.',
    nets:[`xs_rtv_${U}`,`xs_fo_${U}`,`xs_pt_${U}`], links:[`rps_${f}${K}`,`rtr_${U}`]});
   def({id:`rtr_${U}`, fam:'recinte', layer:'registres', svc:'all', floor:f, unit:U, zone:'privada (frontera)', container:true, lid:true, main: ex,
    name:`Registre de terminació de xarxa — ${N}`, sigla:'RTR',
    what:'És la caixa encastada dins de l\'habitatge, a prop de l\'entrada, on acaben les xarxes de dispersió i comença la xarxa interior.',
    purpose:'Allotja els PAU de cada servei (el de RTV i el de TBA coaxial amb el repartidor integrat) i els extrems RJ45 de la xarxa interior. Té a prop una presa de corrent i el registre de presa configurable.',
-   where:`Rebedor del ${N}, paret del fons.`,
+   where:`Rebedor ${DEL}, paret del fons.`,
    connects:'Allotja el PAU + repartidor de RTV, la caixa de terminació òptica (PAU de fibra), les dues rosetes RJ45 amb el multiplexor passiu (PAU de parells) i el PAU + repartidor 2D de TBA coaxial. D\'aquí surten en estrella tots els tubs interiors.',
-   example:`Si obres la tapa del registre del ${N} veus un punt d\'accés diferent per a cada tecnologia.`,
+   example:`Si obres la tapa del registre ${DEL} veus un punt d\'accés diferent per a cada tecnologia.`,
    confusion:'El registre és la caixa; el PAU és el punt de connexió que hi ha a dins. Es pot canviar la tapa del registre sense tocar el PAU.',
    nets:[`xs_rtv_${U}`,`xs_fo_${U}`,`xs_pt_${U}`,`xi_rtv_${U}`,`xi_dat_${U}`,`xi_tba_${U}`,`xi_fo_${U}`], canals:[`cs_${U}`,`ci_${U}`], links:[`rconf_${U}`]});
   def({id:`ci_${U}`, fam:'canal', layer:'canalitzacions', svc:'all', floor:f, unit:U, zone:'privada',
    name:`Canalització interior d\'usuari — ${N}`, sigla:'',
    what:'Són els tubs encastats, independents i de Ø20 mm com a mínim, que van en estrella des del registre de terminació de xarxa fins a cada registre de presa.',
    purpose:'Allotgen la xarxa interior. Cada registre de presa té el seu propi tub independent.',
-   where:`Dins del ${N}: terra i parets, des del rebedor fins a les estàncies.`,
+   where:`Dins ${DEL}: terra i parets, des del rebedor fins a les estàncies.`,
    connects:'Catorze tubs: quatre de RTV, sis de parells trenats, dos de coaxial de TBA, un de fibra òptica i un cap al registre de presa configurable. Els tubs cap a la paret del televisor de la sala passen per un registre de pas.',
    example:'Per arribar a la sala, alguns tubs fan diversos canvis de direcció; el registre de pas permet estirar el cable sense forçar-lo.',
    confusion:'Si es trenca un tub, el cable pot continuar intacte, i a l\'inrevés: tub (canalització) i cable (xarxa) són coses diferents.',
@@ -463,29 +479,29 @@ for (const u of UNITS) {
   /* dispersió */
   def({id:`xs_rtv_${U}`, fam:'xarxa', layer:'xarxes', svc:'rtv', tram:'disp', tech:'coax', floor:f, unit:U, zone:'comuna',
    name:`Xarxa de dispersió de RTV — ${N}`, sigla:'',
-   what:`Són els dos cables coaxials que surten dels derivadors del registre secundari de la ${P} i arriben al PAU de RTV del ${N}.`,
+   what:`Són els dos cables coaxials que surten dels derivadors del registre secundari de la ${P} i arriben al PAU de RTV ${DEL}.`,
    purpose:'Fan arribar a l\'habitatge els dos cables previstos: el cable 1 (blanc) es connecta a l\'entrada del PAU + repartidor i el cable 2 (negre), en reserva, a l\'entrada carregada.',
-   where:`Registre secundari de la ${P} → tub de RTV de la canalització secundària → registre de terminació de xarxa del ${N}.`,
+   where:`Registre secundari de la ${P} → tub de RTV de la canalització secundària → registre de terminació de xarxa ${DEL}.`,
    connects:`Derivadors de la ${P} → PAU de RTV.`,
-   example:`Si la comunitat posa canals de satèl·lit al segon cable, el ${N} els pot rebre canviant el cable al PAU, sense obres a la zona comuna.`,
+   example:`Si la comunitat posa canals de satèl·lit al segon cable, ${ELN} els pot rebre canviant el cable al PAU, sense obres a la zona comuna.`,
    confusion:'La dispersió encara és instal·lació comuna: arriba fins al PAU. Després del PAU comença la xarxa interior.',
    canals:[`csc_${f}${K}`,`cs_${U}`], links:[`deriv_${f}`,`pau_rtv_${U}`]});
   def({id:`xs_fo_${U}`, fam:'xarxa', layer:'xarxes', svc:'fo', tram:'disp', tech:'fo', floor:f, unit:U, zone:'comuna',
    name:`Xarxa de dispersió de fibra òptica — ${N}`, sigla:'',
-   what:`És el cable d\'escomesa òptica (dues fibres, Ø3,8 mm) que surt per dalt de la caixa de segregació de la ${P} i acaba a la roseta òptica del ${N}.`,
-   purpose:`Porta les fibres assignades al ${N} des de la zona comuna fins al seu PAU.`,
+   what:`És el cable d\'escomesa òptica (dues fibres, Ø3,8 mm) que surt per dalt de la caixa de segregació de la ${P} i acaba a la roseta òptica ${DEL}.`,
+   purpose:`Porta les fibres assignades ${AL} des de la zona comuna fins al seu PAU.`,
    where:`Caixa de segregació (registre secundari, ${P}) → tub de parells i fibra de la canalització secundària → registre de terminació de xarxa.`,
    connects:'Empalmament a la caixa de segregació → roseta òptica (PAU).',
-   example:`A la caixa de segregació, l\'escomesa del ${N} està empalmada a fibres del cable de distribució etiquetades amb el seu nom.`,
+   example:`A la caixa de segregació, l\'escomesa ${DEL} està empalmada a fibres del cable de distribució etiquetades amb el seu nom.`,
    confusion:'La fibra de dispersió acaba a la roseta del PAU. Des d\'allà, una fibra interior la porta fins a la presa òptica de la sala, on es connecta l\'ONT.',
    canals:[`csc_${f}${K}`,`cs_${U}`], links:[`cseg_${f}`,`pau_fo_${U}`]});
   def({id:`xs_pt_${U}`, fam:'xarxa', layer:'xarxes', svc:'pt', tram:'disp', tech:'pt', floor:f, unit:U, zone:'comuna',
    name:`Xarxa de dispersió de parells — ${N}`, sigla:'',
-   what:`És el cable d\'escomesa de 2 parells (Ø4 mm) del ${N}: surt per dalt de la regleta del registre secundari i arriba al PAU de parells.`,
+   what:`És el cable d\'escomesa de 2 parells (Ø4 mm) ${DEL}: surt per dalt de la regleta del registre secundari i arriba al PAU de parells.`,
    purpose:'Porta les dues línies previstes per a l\'habitatge (RD 346/2011: 2 línies per habitatge).',
    where:'Regleta del registre secundari → tub de parells i fibra de la canalització secundària → registre de terminació de xarxa.',
    connects:'Regleta del punt de distribució de la planta → rosetes RJ45 del PAU (una per línia).',
-   example:`Per comprovar la línia del ${N}, el tècnic mesura des de la regleta de la planta (sense aixecar connexions) fins a la roseta del PAU.`,
+   example:`Per comprovar la línia ${DEL}, el tècnic mesura des de la regleta de la planta (sense aixecar connexions) fins a la roseta del PAU.`,
    confusion:'Comparteix tub amb la fibra, però són cables i serveis diferents.',
    canals:[`csc_${f}${K}`,`cs_${U}`], links:[`bucle_${f}`,`pau_pt_${U}`,'pi_pt']});
 
@@ -494,7 +510,7 @@ for (const u of UNITS) {
    name:`PAU + repartidor de RTV (2 entrades, una carregada, 4 sortides F; exemple: Televes ref. 519534) — ${N}`, sigla:'PAU',
    what:"És un únic element passiu de zamac (109 × 54 × 18 mm) amb sis connectors F roscats cap avall: l'entrada (fletxa amunt), l'entrada carregada (símbol de la resistència) i quatre sortides (fletxa avall), una per cada presa de RTV de l'habitatge. Banda de 5 a 2.400 MHz, amb 8–9 dB de pèrdua de distribució.",
    purpose:"Separa la instal·lació comuna de la privada (frontera de responsabilitats) i, alhora, reparteix el senyal en estrella cap a les preses.",
-   where:`Dins del registre de terminació de xarxa del ${N} (rebedor).`,
+   where:`Dins del registre de terminació de xarxa ${DEL} (rebedor).`,
    connects:"Entrada ← cable de dispersió 1 (blanc), que és el que arriba a les preses. Entrada carregada ← cable de dispersió 2 (negre): queda en reserva, tancat a dins amb una càrrega de 75 Ω. Els dos cables baixen per davant del PAU i fan una U per entrar als connectors per sota. Sortides → quatre cables coaxials interiors: cuina, sala d'estar, dormitori 2 i dormitori 1 (una presa per estància, sense comptar el bany).",
    example:"Si la comunitat posa un servei diferent al cable 2, n'hi ha prou d'intercanviar els connectors del cable blanc i del negre entre les dues entrades: no cal cap obra ni cap càrrega externa.",
    confusion:"No és un derivador de planta: el derivador és a la zona comuna i alimenta habitatges; el PAU + repartidor és dins de l'habitatge i alimenta preses. L'entrada carregada ja porta la càrrega de 75 Ω a dins: el cable que no es fa servir hi queda connectat i ben terminat.",
@@ -503,7 +519,7 @@ for (const u of UNITS) {
    name:`PAU de fibra òptica (roseta de terminació òptica, 2 × SC/APC; exemple: Televes ref. 231502) — ${N}`, sigla:'PAU',
    what:"És una caixa petita de plàstic blanc (119 × 94 × 33 mm) on s'empalma la fibra d'escomesa. Té lloc per a quatre sortides per la base i porta dos adaptadors SC/APC (verds, polit en angle) amb tapa autoblocant.",
    purpose:"Fa de frontera entre la fibra comuna de l'edifici i la xarxa interior de l'habitatge.",
-   where:`Dins del registre de terminació de xarxa del ${N}.`,
+   where:`Dins del registre de terminació de xarxa ${DEL}.`,
    connects:"Escomesa de fibra (entra per un pretallat lateral amb passacables i s'empalma a dins) → adaptador SC/APC de la sortida 1 → fibra interior (groga) fins a la roseta òptica de la sala d'estar. La sortida 2 queda en reserva, amb la tapa de l'adaptador tancada; les sortides 3 i 4 no porten adaptador.",
    example:"Quan l'operador activa el servei, comprova que la llum arriba bé a la sortida 1 del PAU i a la roseta de la sala.",
    confusion:"La caixa de terminació no és l'ONT: és passiva. Els connectors SC/APC són verds; els SC/UPC (blaus) no s'hi poden barrejar perquè el polit és diferent.",
@@ -512,7 +528,7 @@ for (const u of UNITS) {
    name:`PAU de parells (rosetes RJ45 i multiplexor passiu) — ${N}`, sigla:'PAU',
    what:'És una roseta doble RJ45 de superfície, una boca per línia: cada parell de l\'escomesa acaba als contactes 4 i 5 d\'una boca. A sota hi ha el multiplexor passiu (142 × 60 × 24 mm), on s\'endollen els cables interiors.',
    purpose:'Fa de punt de tall i de prova entre la xarxa comuna (propietat) i la interior (usuari), i permet portar cada línia a qualsevol presa de l\'habitatge.',
-   where:`Dins del registre de terminació de xarxa del ${N}.`,
+   where:`Dins del registre de terminació de xarxa ${DEL}.`,
    connects:'Escomesa de 2 parells → roseta doble RJ45 (línia 1 i línia 2) → latiguillo a l\'entrada (Line In) del multiplexor passiu, que té 8 sortides telefòniques i 1 d\'ADSL. Només hi van endollats els cables d\'una boca de la BAT doble de la sala i d\'una del dormitori 1 (telèfon); l\'altra boca de cada BAT és de dades i s\'uneix amb el latiguillo de l\'encaminador. Els altres cables queden lliures, amb el connector RJ45, per si cal.',
    example:'Si es vol telèfon a la cuina, n\'hi ha prou d\'endollar el connector RJ45 lliure del cable de la cuina a una sortida lliure del multiplexor.',
    confusion:'La xarxa comuna és de cables de parells (telefonia), però la xarxa interior és sempre de parells trenats: el PAU fa la transició.',
@@ -521,7 +537,7 @@ for (const u of UNITS) {
    name:`PAU + repartidor de TBA coaxial (1 entrada, 2 sortides F; exemple: Televes ref. 519602) — ${N}`, sigla:'PAU',
    what:"És un repartidor passiu de 2 sortides de zamac (74 × 54 × 18 mm), per a la banda de 5 a 1.220 MHz (també el canal de retorn de l'operador), amb tres connectors F roscats cap avall: l'entrada (fletxa amunt) i dues sortides (fletxa avall). Cada sortida rep el senyal amb una pèrdua de 4 dB.",
    purpose:"És el punt d'accés a l'usuari de la xarxa coaxial de TBA (telecomunicacions de banda ampla): separa la xarxa de l'operador de cable de la xarxa interior de l'habitatge i en reparteix el senyal a les dues preses.",
-   where:`Dins del registre de terminació de xarxa del ${N}, cargolat a la paret del fons, sota el PAU de RTV.`,
+   where:`Dins del registre de terminació de xarxa ${DEL}, cargolat a la paret del fons, sota el PAU de RTV.`,
    connects:"Entrada: lliure, tancada amb una càrrega de 75 Ω (no hi ha operador de cable; hi arribaria la seva escomesa coaxial pel tub de TBA de la canalització secundària). Sortides → cables interiors cap a la BAT de TBA de la sala d'estar i del dormitori 1.",
    example:"Si es contracta un operador de cable, l'instal·lador treu la càrrega i hi enrosca el connector F de l'escomesa: totes dues preses queden en servei sense tocar la xarxa interior.",
    confusion:"No és el PAU de RTV: aquest coaxial és de TBA (operadors de cable) i té tubs, cables, PAU i preses propis. Tampoc no és un derivador: reparteix el senyal a parts iguals entre les dues sortides.",
@@ -530,13 +546,13 @@ for (const u of UNITS) {
    name:`Registre de presa configurable — ${N}`, sigla:'',
    what:'És un registre de presa encastat a prop del registre de terminació de xarxa, amb el seu tub, sense una tecnologia assignada.',
    purpose:'Reserva un punt per a qualsevol servei futur (per exemple, un equip que l\'operador vulgui instal·lar a prop del PAU).',
-   where:`Rebedor del ${N}, al costat del registre de terminació de xarxa.`,
+   where:`Rebedor ${DEL}, al costat del registre de terminació de xarxa.`,
    connects:'Tub independent des del registre de terminació de xarxa. No té cable ni BAT instal·lats.',
    example:'Si cal posar-hi una presa de dades o un petit equip, s\'hi estén el cable pel tub que ja existeix.',
    confusion:'És un registre (caixa) buit, no una presa equipada: la normativa en demana un a prop del PAU.',
    canals:[`ci_${U}`], links:[`rtr_${U}`]});
   def({id:`rpas_${U}`, fam:'recinte', layer:'registres', svc:'all', floor:f, unit:U, zone:'privada', container:true,
-   name:`Registre de pas — canalització interior del ${N}`, sigla:'',
+   name:`Registre de pas — canalització interior ${DEL}`, sigla:'',
    what:'És una caixa petita intercalada en els tubs, sense connexions, que facilita estirar els cables en un canvi de direcció o un tram llarg.',
    purpose:'Evita forçar els cables quan el recorregut té corbes. Justificació al model: els tubs cap a la paret del televisor fan diversos canvis de direcció.',
    where:'Paret entre el dormitori 2 i la sala d\'estar, a prop del terra.',
@@ -550,7 +566,7 @@ for (const u of UNITS) {
    name:`Xarxa interior de RTV — ${N}`, sigla:'',
    what:'Són els cables coaxials que surten de les sortides del PAU + repartidor i van en estrella fins a cada registre de presa de RTV.',
    purpose:'Porten la ràdio i la televisió a cada estància.',
-   where:`Canalització interior del ${N} (un tub per presa).`,
+   where:`Canalització interior ${DEL} (un tub per presa).`,
    connects:'PAU + repartidor → quatre BAT de RTV: sala d\'estar, cuina, dormitori 1 i dormitori 2. Normativa: una presa per estància, excepte banys i trasters, amb un mínim de dues.',
    example:'El cable de la sala és independent del de la cuina: si un es fa malbé, els altres continuen funcionant.',
    confusion:'La xarxa interior és zona privada: la comunitat és responsable fins al PAU.',
@@ -559,7 +575,7 @@ for (const u of UNITS) {
    name:`Xarxa interior de parells trenats — ${N}`, sigla:'',
    what:'Són cables de parells trenats que surten del registre de terminació de xarxa, acabats en connectors RJ45 etiquetats, i van en estrella fins a les BAT RJ45.',
    purpose:'Permeten connectar ordinadors, televisors intel·ligents o telèfons a l\'encaminador o al PAU de parells.',
-   where:`Canalització interior del ${N} (un tub per registre de presa).`,
+   where:`Canalització interior ${DEL} (un tub per registre de presa).`,
    connects:'Vuit cables: dos a la BAT doble de la sala, un a l\'altra BAT de la sala, dos a la BAT doble del dormitori 1, un a l\'altra BAT del dormitori 1, un a la cuina i un al dormitori 2.',
    example:'L\'encaminador de la sala envia dades pel segon connector de la BAT doble fins al registre de terminació de xarxa; allà un latiguillo les passa al cable del dormitori 1.',
    confusion:'Aquest cable no és fibra: la fibra acaba a la presa òptica i a l\'ONT. Després de l\'encaminador, les dades van per parells trenats.',
@@ -568,7 +584,7 @@ for (const u of UNITS) {
    name:`Xarxa interior coaxial de TBA — ${N}`, sigla:'',
    what:'Són dos cables coaxials que van del PAU + repartidor de TBA del registre de terminació de xarxa fins a dues preses coaxials de TBA.',
    purpose:'Permeten rebre serveis d\'un operador de cable (TBA: telecomunicacions de banda ampla).',
-   where:`Canalització interior del ${N}: un tub cap a la sala d\'estar i un cap al dormitori 1.`,
+   where:`Canalització interior ${DEL}: un tub cap a la sala d\'estar i un cap al dormitori 1.`,
    connects:'Sortides del PAU + repartidor de TBA → BAT coaxial de TBA de la sala d\'estar i del dormitori 1 (les dues estàncies principals).',
    example:'Un descodificador d\'un operador de cable es connectaria a la presa de TBA de la sala.',
    confusion:'No es barreja amb la RTV: són cables, tubs i preses diferents encara que tots dos siguin coaxials.',
@@ -577,7 +593,7 @@ for (const u of UNITS) {
    name:`Xarxa interior de fibra òptica — ${N}`, sigla:'',
    what:'És un cable de fibra òptica (groc) amb connectors SC/APC verds que va de la sortida 1 del PAU de fibra fins a la roseta òptica de la sala d\'estar.',
    purpose:'Porta la fibra fins a l\'estància principal, perquè l\'ONT i l\'encaminador puguin estar a la sala i no al rebedor.',
-   where:`Canalització interior del ${N}: tub independent des del registre de terminació de xarxa fins a la sala d\'estar.`,
+   where:`Canalització interior ${DEL}: tub independent des del registre de terminació de xarxa fins a la sala d\'estar.`,
    connects:'Adaptador SC/APC de la roseta del PAU → BAT òptica (roseta SC/APC) de la sala d\'estar.',
    example:'L\'operador connecta l\'ONT directament a la presa òptica de la sala, al costat del televisor, sense passar cables pel passadís.',
    confusion:'Aquesta fibra és interior (privada): comença després del PAU. La fibra de dispersió, comuna, acaba al PAU.',
@@ -599,7 +615,7 @@ for (const u of UNITS) {
      name:`${T.reg}${p.k.startsWith('dat2')?' (2a)':''} — ${R.name}, ${N}`, sigla:'',
      what:`És la caixa encastada a la paret que allotja la ${T.bat[0].toLowerCase()+T.bat.slice(1)}${dblTxt}.`,
      purpose:`Protegeix l\'extrem del cable interior i fixa la BAT a la paret. ${why}`,
-     where:`${cap(R.name)} del ${N}, a prop del terra.`,
+     where:`${cap(R.name)} ${DEL}, a prop del terra.`,
      connects:`${p.dbl?'Hi arriben dos cables':'Hi arriba un cable'} ${p.t==='rtv'?'coaxial des d\'una sortida del PAU + repartidor':p.t==='tba'?'coaxial des d\'una sortida del PAU + repartidor de TBA':p.t==='fo'?'de fibra des de la roseta òptica del PAU':'de parells trenats des del registre de terminació de xarxa'}. Allotja la BAT.`,
      example: p.t==='fo' ? 'Darrere de l\'ONT de la sala hi ha aquest registre amb la roseta òptica.' : p.k==='rtv_sala' ? 'Darrere del televisor de la sala hi ha aquest registre.' : `${cap(R.a)}, la caixa queda darrere de la placa frontal de la presa.`,
      confusion:'El registre de presa és la caixa; la BAT és el connector frontal on l\'usuari endolla el cable. A menys de 50 cm hi ha d\'haver una presa de corrent.',
@@ -637,16 +653,17 @@ for (const u of UNITS) {
   def({id:`tv_${U}`, fam:'punt', layer:'equips', svc:'rtv', floor:f, unit:U, zone:'privada (equip terminal)', room:'sala',
    name:`Televisor (equip terminal) — ${N}`, sigla:'',
    what:'És l\'equip terminal de l\'usuari que rep la RTV.', purpose:'Mostra el destí final del recorregut de RTV.',
-   where:`Sala d\'estar del ${N}.`, connects:'Es connecta a la BAT de RTV de la sala.',
+   where:`Sala d\'estar ${DEL}.`, connects:'Es connecta a la BAT de RTV de la sala.',
    example:'Si el televisor no sintonitza, primer es prova amb un altre cable entre la BAT i el televisor.',
    confusion:'El televisor no forma part de la ICT.', links:[`bat_rtv_sala_${U}`]});
   def({id:`pc_${U}`, fam:'punt', layer:'equips', svc:'pt', floor:f, unit:U, zone:'privada (equip terminal)', room:'d1',
    name:`Ordinador (equip terminal) — ${N}`, sigla:'',
    what:'És l\'equip terminal de dades de l\'usuari.', purpose:'Mostra el destí final del recorregut de dades.',
-   where:`Escriptori del dormitori 1 del ${N}.`, connects:'Es connecta amb un latiguillo a la BAT RJ45 doble del dormitori 1.',
+   where:`Escriptori del dormitori 1 ${DEL}.`, connects:'Es connecta amb un latiguillo a la BAT RJ45 doble del dormitori 1.',
    example:'Una connexió per cable sol ser més estable que la Wi‑Fi per a videotrucades.',
    confusion:'L\'ordinador no forma part de la ICT ni de la xarxa interior: s\'hi connecta.', links:[`bat_dat_d1_${U}`,`router_${U}`]});
 }
+for (const u of UNITS) defUnit(u);
 
 /* ---------------- Fitxes sense representació 3D ---------------- */
 def({id:'ritu', fam:'recinte', layer:'recintes', svc:'all', floor:null, noModel:true, zone:'—',
@@ -1138,9 +1155,11 @@ Object.assign(EL.cap_mix.vt.B, {
  connects:"Entrada TER ← sortida MATV dels mòduls (latiguillo). Entrada SAT/A ← amplificador de FI 1. Entrada SAT/B ← amplificador de FI 2. Sortida SAT/A + TER → cable de distribució 1 (blanc). Sortida SAT/B + TER → cable de distribució 2 (negre). La connexió equipotencial es fa amb un terminal d'anella al cargol de fixació.",
  example:"Bandes: TER 47‑790 MHz i SAT 950‑2400 MHz. Pèrdues d'inserció d'exemple: 5,5 dB a la via terrestre (es reparteix a les dues sortides) i 1 dB a la de satèl·lit. Aïllament TER→SAT > 30 dB i SAT→TER > 28 dB.",
  confusion:"La FI no es reparteix: la sortida esquerra només porta SAT/A i la dreta només SAT/B; el senyal terrestre, en canvi, surt per totes dues. El pas de corrent continu (de cada sortida cap a la seva entrada SAT) serveix quan l'LNB s'alimenta des de la xarxa; en aquesta capçalera l'alimenten els amplificadors de FI."});
-/* contenidors inversos */
-for (const e of Object.values(EL)) e.children = [];
-for (const e of Object.values(EL)) if (e.parent) EL[e.parent].children.push(e.id);
+/* contenidors inversos (es calculen a init(), quan ja s'han definit tots els elements del model) */
+function linkChildren(){
+  for (const e of Object.values(EL)) e.children = [];
+  for (const e of Object.values(EL)) if (e.parent) EL[e.parent].children.push(e.id);
+}
 
 /* ---------------- Conceptes clau ---------------- */
 const CONCEPTS = [

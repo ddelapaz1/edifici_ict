@@ -8,13 +8,13 @@ const V = (x,y,z) => new THREE.Vector3(x,y,z);
 const yb = f => 3*f;
 
 /* ---------- Estat de la interfície ---------- */
-const S0 = () => ({learn:'free', mode:'oberta', floor:2, unitSide:'A', layers:{facana:true,estructura:true,recintes:true,registres:true,canalitzacions:true,xarxes:true,punts:true,equips:true,etiquetes:true},
+const S0 = () => ({learn:'free', mode:'oberta', floor:CFG.floor0, unitSide:CFG.side0, layers:{facana:true,estructura:true,recintes:true,registres:true,canalitzacions:true,xarxes:true,punts:true,equips:true,etiquetes:true},
   svc:'all', colorBy:'real', allLabels:false, tubesSee:true, openRec:false, openReg:false, sat:true, transp:0.25,
   reduced: window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, lowq:false,
   selected:null, hover:null, related:new Set(), openOv:new Map(), leaf:new Map(), openCanal:new Set(),
   cap:'A', ritsLook:'real', ritsLight:false, ritsRoof:false, ritsFront:false, ritsCut:false, ritsXray:false, ritsHl:null});
 let S = S0();
-const curUnit = () => (S.floor>=1 && S.floor<=4) ? `${S.floor}${S.unitSide}` : null;
+function curUnit(){ return CFG.unitFloors.includes(S.floor) ? `${S.floor}${S.unitSide}` : null; }
 
 /* ---------- Registre de geometria ---------- */
 const G = {meshes:[], byEl:{}, pick:[], cables:{}, arch:[], refs:[], refLabels:[], lids:[]};
@@ -34,6 +34,10 @@ function makeTex(kind){
 function ud(mesh, o){ mesh.userData = Object.assign({}, o); return mesh; }
 
 /* element ICT: crea material propi (per poder ressaltar-lo) */
+/* contenidor on es creen les malles (null: l'escena). El model de cases construeix el RITS i els habitatges dins de
+   grups girats i desplaçats: el codi de cada peça fa servir les seves coordenades de sempre. */
+let ROOT=null;
+function withRoot(r, f){ const p=ROOT; ROOT=r; try{ return f(); } finally{ ROOT=p; } }
 function ictMesh(geo, color, elId, o={}){
   const e=EL[elId]; if(!e) throw new Error('Element desconegut '+elId);
   const opacity = o.opacity ?? 1;
@@ -43,7 +47,7 @@ function ictMesh(geo, color, elId, o={}){
   const m=new THREE.Mesh(geo,mat);
   ud(m, Object.assign({kind:'ict', el:elId, base:color, baseOp:opacity}, o)); delete m.userData.map; delete m.userData.parent; if(o.std) m.userData.std=true;
   if(o.cast) m.castShadow=true; if(o.rits) m.receiveShadow=true;
-  (o.parent||scene).add(m); G.meshes.push(m); (G.byEl[elId] ||= []).push(m); if(SCOPE) SCOPE.meshes.push(m);
+  (o.parent||ROOT||scene).add(m); G.meshes.push(m); (G.byEl[elId] ||= []).push(m); if(SCOPE) SCOPE.meshes.push(m);
   if(o.lidOf) G.lids.push(m);
   return m;
 }
@@ -247,7 +251,7 @@ function regBox(elId, w,h,d, x,y,z, color, lidColor, dir=1){
 
 /* porta abatible: frontissa vertical a x=hx; side=+1 la fulla creix cap a +x */
 function doorLeaf(elId,hx,w,y0,y1,z,color,side){
-  const h=y1-y0, piv=new THREE.Group(); piv.position.set(hx,y0+h/2,z); scene.add(piv);
+  const h=y1-y0, piv=new THREE.Group(); piv.position.set(hx,y0+h/2,z); (ROOT||scene).add(piv);
   const m=ictMesh(new THREE.BoxGeometry(w,h,0.05),color,elId,{door:true}); scene.remove(m); piv.add(m); m.position.set(side*w/2,0,0); G.pick.push(m);
   const hd=ictMesh(new THREE.BoxGeometry(0.04,0.32,0.05),0x4A5560,elId,{door:true}); scene.remove(hd); piv.add(hd); hd.position.set(side*(w-0.12),-0.05,0.05);
   for(const yy of [-h/2+0.06,h/2-0.06]){ const st=ictMesh(new THREE.BoxGeometry(w-0.08,0.03,0.01),0x8494A6,elId,{door:true}); scene.remove(st); piv.add(st); st.position.set(side*w/2,yy,0.03); }
@@ -1187,8 +1191,8 @@ const VIEWS = {
     if(f===5) return {p:V(9,22.5,10), t:V(-0.5,16.2,-3)};
     if(f===-1) return VIEWS.basement();
     return {p:V(4,y+12,12.5), t:V(0,y+0.4,-5)}; },
-  ritsElec:()=>({p:V(1.25,17.55,-3.05), t:V(3.25,16.35,-3.35)}),
-  ritsIn:  ()=>({p:V(1.75,17.85,-2.45), t:V(1.40,16.20,-4.55)}),
+  ritsElec:()=>({p:ritsW(V(1.25,17.55,-3.05)), t:ritsW(V(3.25,16.35,-3.35))}),
+  ritsIn:  ()=>({p:ritsW(V(1.75,17.85,-2.45)), t:ritsW(V(1.40,16.20,-4.55))}),
   home:    ()=>{ const u=UNIT(curUnit()||'2A'), y=yb(u.f), x=mx(u,-5); return {p:V(x+mx(u,1.2),y+10.2,mz(u,8.6)), t:V(x,y+0.2,mz(u,-0.1))}; }
 };
 let camAnim=null;
@@ -1206,7 +1210,7 @@ function setView(name, opt={}){
   else if(name==='basement'||name==='ground'||/^f[1-4]$/.test(name)){ S.floor = name==='basement'?-1 : name==='ground'?0 : +name[1]; S.mode='planta'; syncControls(); applyVisibility(); name='floor'; }
   else if(name==='roof'){ if(S.mode==='planta'||S.mode==='habitatge') S.mode='oberta'; syncControls(); applyVisibility(); }
   if(name==='home'){
-    if(!curUnit()){ S.floor=2; S.unitSide='A'; }
+    if(!curUnit()){ S.floor=CFG.floor0; S.unitSide=CFG.side0; }
     S.mode='habitatge'; syncControls(); applyVisibility();
   }
   if((name==='building'||name==='entry') && (S.mode==='planta'||S.mode==='habitatge')){ S.mode='oberta'; syncControls(); applyVisibility(); }
@@ -1225,16 +1229,17 @@ function frameEl(id){
   const e=EL[id];
   let elev = e?.rs ? 0.12 : (e.floor>=1&&e.floor<=4&&S.mode!=='habitatge') ? 0.28 : S.mode==='habitatge' ? 0.85 : 0.5;
   if(e.vertical) elev=0.15;
-  const back = e.unit ? ZM(UNIT(e.unit)) : (c.z<-5.0 && c.y<15 && c.y>-0.5);
+  const back = CFG.backOf ? CFG.backOf(e,c) : e.unit ? ZM(UNIT(e.unit)) : (c.z<-5.0 && c.y<15 && c.y>-0.5);
   let dir=V(THREE.MathUtils.clamp(c.x/9,-0.55,0.55), elev, back ? -1 : 1).normalize();   // habitatges C i D: des de la façana posterior
   let dist=THREE.MathUtils.clamp((r*2.6+(e?.rs?0.35:1.1))/visFrac(), (e?.rs?0.75:1.8), 45);
-  if(inRits(id) && r<1.6 && c.x>-0.4 && c.x<3.4 && c.z<-2.4 && c.y>15){   // dins del RITS: des de l'espai de treball
-    dir = c.x>3.05 ? V(-1,0.4,0.25) : c.x<-0.1 ? V(1,0.4,0.25) : V(THREE.MathUtils.clamp((1.5-c.x)/4,-0.3,0.3),0.42,1);
-    dir.normalize(); dist=THREE.MathUtils.clamp(r*2.4+0.45, 0.55, 2.0);
+  const cl=c.clone().applyMatrix4(RITSI.copy(RITSM).invert());   // centre en coordenades del RITS
+  if(inRits(id) && r<1.6 && cl.x>-0.4 && cl.x<3.4 && cl.z<-2.4 && cl.y>15){   // dins del RITS: des de l'espai de treball
+    dir = cl.x>3.05 ? V(-1,0.4,0.25) : cl.x<-0.1 ? V(1,0.4,0.25) : V(THREE.MathUtils.clamp((1.5-cl.x)/4,-0.3,0.3),0.42,1);
+    dir.transformDirection(RITSM); dist=THREE.MathUtils.clamp(r*2.4+0.45, 0.55, 2.0);
     if(!S.ritsRoof && !S.ritsFront){ S.ritsRoof=true; applyVisibility(); }
   } else if(inRits(id) && id!=='rits' && id!=='rits_porta'){
     if(!S.ritsRoof && !S.ritsFront){ S.ritsRoof=true; applyVisibility(); }
-    flyTo(V(1.5,19.7,-0.3), V(1.5,16.0,-3.7)); return;
+    flyTo(ritsW(V(1.5,19.7,-0.3)), ritsW(V(1.5,16.0,-3.7))); return;
   }
   flyTo(c.clone().add(dir.multiplyScalar(dist)), c);
 }
@@ -1247,7 +1252,7 @@ function ensureVisible(id){
   if(S.svc!=='all' && e.svc!=='all' && e.svc!==S.svc){ S.svc='all'; ch=true; }
   if(e.fam==='xarxa' && !S.tubesSee){ S.tubesSee=true; ch=true; }
   const outside=['antena','antena_dab','antena_fm','torre','mastil','tirants','lnb','cab_dab','cab_fm','parabola','arqueta','canal_ext','peg','cab_capt','cab_sat','cab_sat2','canal_enllac_sup','reg_enllac_sup','xal_fo','xal_pt','rits'];
-  if(S.layers.facana && !outside.includes(id) && S.mode!=='ict'){ S.layers.facana=false; ch=true; }
+  if(S.layers.facana && !outside.includes(id) && !CFG.keepFacade?.(id) && S.mode!=='ict'){ S.layers.facana=false; ch=true; }
   if(S.mode==='planta' && !elAllowedByMode(e)){ if(e.floor!=null){ S.floor=e.floor; } else S.mode='oberta'; ch=true; }
   if(S.mode==='habitatge' && !elAllowedByMode(e)){ if(e.unit){ const u=UNIT(e.unit); S.floor=u.f; S.unitSide=u.s; } else if(e.rs && e.floor!=null){ S.floor=e.floor; } else S.mode='oberta'; ch=true; }
   if(e.variant && e.variant!==S.cap) setCap(e.variant);
@@ -1408,7 +1413,7 @@ function labelText(e){
   if(e.ptype){ const ty={rtv:'RTV',dat:'RJ45',tba:'TBA',fo:'fibra'}[e.ptype]; t = (e.sigla?'BAT ':'Registre ')+ty+(e.dbl?' doble':'')+' · '+ROOM(e.room).name; return `${famIcon(e)} ${t}`; }
   if(e.sigla && e.unit) t+=` ${UNIT(e.unit).name}`;
   else if(!e.sigla && e.unit) t+=` · ${UNIT(e.unit).name}`;
-  else if(e.rs) t+=` · ${e.floor}a`;
+  else if(e.rs) t+=` · ${e.rsTag||e.floor+'a'}`;
   return `${famIcon(e)} ${t}`;
 }
 function anchorOf(id){
@@ -1494,7 +1499,7 @@ function renderList(){
     for(const un of UNITS){
       const its=items.filter(e=>e.unit===un.id); if(!its.length) continue;
       const k=fk+'_'+un.id, open = q || famOpen[k] || (S.selected && EL[S.selected].unit===un.id && EL[S.selected].fam===fk);
-      h+=`<li><details class="fam sub" data-fam="${k}" ${open?'open':''}><summary>Habitatge ${esc(un.name)} <span class="muted small">(${its.length})</span></summary><ul>${its.map(li).join('')}</ul></details></li>`;
+      h+=`<li><details class="fam sub" data-fam="${k}" ${open?'open':''}><summary>${esc(unitTitle(un))} <span class="muted small">(${its.length})</span></summary><ul>${its.map(li).join('')}</ul></details></li>`;
     }
     h+='</ul></details>';
   }
@@ -1509,13 +1514,13 @@ function renderInfo(){
   const box=$('#infoPanel'), id=S.selected;
   if(!id){
     box.innerHTML = Q.active ? '' : `<div class="card"><h2>Benvingut/da</h2>
-    <p>Aquest model mostra la <b>ICT</b> (infraestructura comuna de telecomunicacions) d'un edifici amb soterrani d'aparcament, planta baixa amb vestíbul i botiga, i quatre plantes amb quatre habitatges per planta (A, B, C i D: 16 habitatges).</p>
+    ${CFG.welcome || `<p>Aquest model mostra la <b>ICT</b> (infraestructura comuna de telecomunicacions) d'un edifici amb soterrani d'aparcament, planta baixa amb vestíbul i botiga, i quatre plantes amb quatre habitatges per planta (A, B, C i D: 16 habitatges).</p>`}
     <p><b>Com començar:</b></p><ol class="small"><li>Fes clic en un element de l'escena: se selecciona i la càmera s'hi apropa. El botó <b>◀</b> torna a la vista anterior.</li><li>Fes <b>doble clic</b> en una porta, un armari o una tapa per obrir-la; torna-hi a fer doble clic per tancar-la.</li><li>Amb la icona de l'<b>ull</b> tries què es veu (per exemple, treure la façana) i hi tens la llegenda de colors; amb <b>Vistes</b> vas a una planta, a un habitatge o a l'interior del RITS.</li><li>Quan acabis d'explorar, posa't a prova amb <b>Comprova què has après</b>.</li></ol>
     <p class="small muted">Famílies: 〰 xarxes (cables) · ◯ canalitzacions (tubs) · ▣ recintes i registres (locals i caixes) · ● punts de connexió i equips.</p></div>`;
     return;
   }
   const e=Object.assign({}, EL[id], (EL[id].vt||{})[S.cap]||{}), fam=FAMILIES[e.fam];
-  const loc = e.noModel ? 'No representat al model' : (e.unit? `Habitatge ${UNIT(e.unit).name} · ` : '') + (e.floor==null? 'Diverses plantes (tram vertical)' : FLOORNAME(e.floor));
+  const loc = e.noModel ? 'No representat al model' : (e.unit? `${unitTitle(UNIT(e.unit))} · ` : '') + (e.floor==null? 'Diverses plantes (tram vertical)' : FLOORNAME(e.floor));
   const parentChain=[]; let p=e.parent; while(p){ parentChain.push(p); p=EL[p].parent; }
   const rel=relatedOf(id);
   const nets=[...rel].filter(x=>EL[x].fam==='xarxa'), cans=[...rel].filter(x=>EL[x].fam==='canal');
@@ -1557,27 +1562,27 @@ function setMode(m, silent){
   if(!silent) navPush();
   if(m==='complet'){ m='oberta'; S.layers.facana=true; }
   S.mode=m;
-  if(m==='habitatge' && !curUnit()){ S.floor=2; S.unitSide='A'; }
+  if(m==='habitatge' && !curUnit()){ S.floor=CFG.floor0; S.unitSide=CFG.side0; }
   syncControls(); applyVisibility();
   if(!silent && renderer){ if(m==='habitatge') flyTo(VIEWS.home().p,VIEWS.home().t); else if(m==='planta') flyTo(VIEWS.floor().p,VIEWS.floor().t); }
   navUI();
 }
 function syncControls(){
   $('#selMode').value=S.mode; $('#selFloor').value=String(S.floor); $('#selUnit').value=S.unitSide;
-  $('#selUnit').disabled = !(S.floor>=1&&S.floor<=4);
+  $('#selUnit').disabled = !CFG.unitFloors.includes(S.floor);
   for(const [k] of Object.entries(LAYERS)){ const c=$(`#ly_${k}`); if(c) c.checked=S.layers[k]; }
   const sv=$(`input[name=svc][value=${S.svc}]`); if(sv) sv.checked=true;
   $(`input[name=colorBy][value=${S.colorBy}]`).checked=true;
   $('#optAllLabels').checked=S.allLabels; $('#optTubes').checked=S.tubesSee; $('#optOpenRec').checked=S.openRec; $('#optOpenReg').checked=S.openReg;
   $('#optSat').checked=S.sat; $('#optReduced').checked=S.reduced; $('#optLowQ').checked=S.lowq; $('#transp').value=S.transp; $('#optNav').checked=NAV.on;
-  $('#homeFloor').value=String(curUnit()?S.floor:2); $('#homeUnit').value=S.unitSide;
+  $('#homeFloor').value=String(curUnit()?S.floor:CFG.floor0); $('#homeUnit').value=S.unitSide;
   renderLegend();
 }
 function updateStatus(){
-  const names={oberta:S.layers.facana?'Edifici complet':'Façana oberta',transp:'Transparència',ict:'Només ICT',planta:'Planta aïllada',habitatge:'Habitatge detallat'};
+  const names={oberta:S.layers.facana?CFG.whole:'Façana oberta',transp:'Transparència',ict:'Només ICT',planta:'Planta aïllada',habitatge:'Habitatge detallat'};
   let t=`<b>${names[S.mode]}</b>`;
   if(S.mode==='planta') t+=` · ${FLOORNAME(S.floor)}`;
-  if(S.mode==='habitatge') t+=` · Habitatge ${UNIT(curUnit()).name}`;
+  if(S.mode==='habitatge') t+=` · ${unitTitle(UNIT(curUnit()))}`;
   if(S.svc!=='all') t+=` · Servei: ${SERVICES[S.svc]}`;
   if(S.selected) t+=` · ${esc(EL[S.selected].sigla||EL[S.selected].name)}`;
   $('#statusChip').innerHTML=t;
@@ -1597,7 +1602,7 @@ function renderLegend(){
 function resetView(){ const v=VIEWS.start(); flyTo(v.p,v.t); }
 function resetAll(){
   Q.active=false; NAV.stack=[]; hideLeafChip(); setLiftFloor(0);
-  const keep=S.reduced; S=S0(); S.reduced=keep; if(renderer && CAPBUILT!==S.cap){ clearScope(); buildCapVariant(S.cap); } if(RG.spot) RG.spot.intensity=0; shadowRefresh();
+  const keep=S.reduced; S=S0(); S.reduced=keep; if(renderer && CAPBUILT!==S.cap){ clearScope(); withRoot(RITS_ROOT,()=>buildCapVariant(S.cap)); } if(RG.spot) RG.spot.intensity=0; shadowRefresh();
   setLearn('free'); syncControls(); applyVisibility(); select(null); resetView(); setPanel('eye',false); setPanel('views',false);
   for(const w of ['left','right']) openDrawer(w,false); navUI();
 }
@@ -1612,7 +1617,7 @@ function bestView(id){
   let c=b.getCenter(new THREE.Vector3()); const sz=b.getSize(new THREE.Vector3());
   let r=Math.max(sz.length()/2,0.22);
   const cabs=Object.values(G.cables).filter(k=>k.el===id && k.mesh && k.mesh.visible && k.pts.length>1);
-  if(cabs.length){ const cb=cabs.reduce((a,k)=>polyLen(k.pts)>polyLen(a.pts)?k:a); c=pathPoint(cb.pts,0.5); r=Math.min(r,1.6); }
+  if(cabs.length){ const cb=cabs.reduce((a,k)=>polyLen(k.pts)>polyLen(a.pts)?k:a); c=pathPoint(cb.pts,0.5).applyMatrix4(cb.mesh.matrixWorld); r=Math.min(r,1.6); }
   const vis=visArea(), vf0=camera.fov*Math.PI/180, vf=2*Math.atan(Math.tan(vf0/2)*vis.y), hf=2*Math.atan(Math.tan(vf0/2)*camera.aspect*vis.x), fit=Math.min(vf,hf);
   const want=THREE.MathUtils.clamp(r/Math.sin(fit/2)*1.25, (EL[id]?.rs ? 0.65 : 0.9), 45);
   /* eix més prim: cara frontal de registres, preses i plaques */
@@ -1769,7 +1774,7 @@ function buildStaticUI(){
   $('#svcBox').innerHTML=Object.entries(SERVICES).map(([k,n])=>`<label class="opt"><input type="radio" name="svc" value="${k}" ${k==='all'?'checked':''}> ${esc(n)}</label>`).join('');
   $('#conceptsBody').innerHTML=CONCEPTS.map(([t,x])=>`<div class="concept"><h3>${esc(t)}</h3><p style="margin:2px 0">${x}</p></div>`).join('');
   $('#aboutBody').innerHTML=`<h3>Simplificacions i limitacions</h3><ul>${SIMPLIFICATIONS.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
-   <h3>Configuració representada</h3><ul><li>RTV: torre de 6 m amb tres tirants i màstil amb antenes TDT, DAB i FM; parabòlica offset amb LNB doble (es pot amagar) → cinc coaxials independents per l\'enllaç superior → capçalera al RITS amb dos amplificadors de FI i mesclador (cable 1: terrestre + SAT A; cable 2: terrestre + SAT B) → dos cables de distribució en arbre-branca amb derivadors a cada registre secundari → dos cables de dispersió (blanc i negre) fins al PAU + repartidor (2 entrades F, una carregada; 4 sortides) → xarxa interior en estrella.</li>
+   ${CFG.about ?? `<h3>Configuració representada</h3><ul><li>RTV: torre de 6 m amb tres tirants i màstil amb antenes TDT, DAB i FM; parabòlica offset amb LNB doble (es pot amagar) → cinc coaxials independents per l\'enllaç superior → capçalera al RITS amb dos amplificadors de FI i mesclador (cable 1: terrestre + SAT A; cable 2: terrestre + SAT B) → dos cables de distribució en arbre-branca amb derivadors a cada registre secundari → dos cables de dispersió (blanc i negre) fins al PAU + repartidor (2 entrades F, una carregada; 4 sortides) → xarxa interior en estrella.</li>
    <li>Fibra òptica: operador → arqueta → canalització externa → punt d'entrada general → enllaç inferior → registre principal òptic (punt d'interconnexió) → cable multifibra de distribució → caixa de segregació amb empalmaments a cada planta → escomesa → roseta òptica (PAU) → fibra interior → presa òptica de la sala d'estar → ONT i encaminador (equips de l'usuari) → retorn per la BAT RJ45 doble fins al registre de terminació de xarxa → xarxa interior de parells trenats.</li>
    <li>Preses de cada habitatge (dotació mínima): 4 de RTV, 6 registres de parells trenats (BAT doble a la sala i al dormitori 1), 2 coaxials de TBA (sala i dormitori 1), 1 de fibra òptica a la sala i 1 registre configurable al rebedor. El bany no en té.</li>
    <li>Parells (STDP): mànega de l'operador → 8 regletes Krone d'entrada → ponts → 5 regletes de sortida → mànega de 50 parells (37 línies × 1,2) → sangrat de 10 parells a cada planta → regleta del registre secundari (8 parells connectats, 2 lliures) → escomesa de 2 parells → dues rosetes RJ45 al PAU.</li></ul>
@@ -1782,7 +1787,8 @@ function buildStaticUI(){
     <li>Recinte (porta, safata, alimentació elèctrica, il·luminació, ventilació, placa i anell de terra): RD 346/2011, annex III, apartats 5.5 i 7.1. El model en fa una representació orientativa; no n'acredita el compliment.</li></ul>
    <h3>L'edifici del model</h3><p class="small">Edifici plurifamiliar entre mitgeres amb nucli central d'escala i ascensor: soterrani d'aparcament (16 places, rampa de vehicles, trasters i vestíbul d'independència), planta baixa (vestíbul, local de serveis, RITI i una botiga), quatre plantes amb quatre habitatges (A–D) al voltant d'un distribuïdor comú i coberta transitable amb el RITS i les antenes. Les dimensions (forjats de 3 m entre plantes, escala de dos trams amb esglaons de 17 × 28 cm, portes de 0,9 m, cabina d'ascensor d'uns 1,4 × 1,9 m) són plausibles però <b>no constitueixen un projecte arquitectònic</b> ni acrediten el compliment del CTE (DB-SUA, DB-SI) ni de la normativa d'accessibilitat.</p>
    <ul class="small"><li>Tipologies generals d'habitatge plurifamiliar amb nucli central i distribuïdor (manuals de projecte i exemples docents d'arquitectura); dimensions d'escales i passos de referència del CTE DB-SUA 1 (consulta orientativa). <a href="https://www.codigotecnico.org" target="_blank" rel="noopener">codigotecnico.org</a></li></ul>
-   <h3>Tecnologia</h3><p class="small">Fitxer HTML autònom amb Three.js r160 integrat. No necessita connexió ni servidor.</p>`;
+`}
+   <h3>Tecnologia</h3><p class="small">Pàgina web estàtica amb Three.js r160 inclòs (sense connexió a internet). Els models glTF dels equips es carreguen si la pàgina se serveix des d'un servidor web; si no, se'n mostra una versió simplificada.</p>`;
 }
 function bindEvents(){
   $('#list').addEventListener('click',e=>{ const b=e.target.closest('[data-id]'); if(b) select(b.dataset.id,{fromList:true}); });
@@ -1867,7 +1873,7 @@ function initGL(){
     renderer=new THREE.WebGLRenderer({antialias:true, logarithmicDepthBuffer:true});
   }catch(err){ renderer=null; glOK=false; $('#nogl').style.display='flex'; $('#help').classList.add('hidden'); return false; }
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.domElement.tabIndex=0; renderer.domElement.setAttribute('aria-label','Escena 3D de l\'edifici. Usa la llista d\'elements per seleccionar amb el teclat.');
+  renderer.domElement.tabIndex=0; renderer.domElement.setAttribute('aria-label',CFG.sceneLabel+'. Usa la llista d\'elements per seleccionar amb el teclat.');
   $('#view3d').prepend(renderer.domElement);
   renderer.shadowMap.enabled=false; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate=false;
   scene=new THREE.Scene(); scene.background=new THREE.Color(0xEEF2F6);
@@ -1878,7 +1884,7 @@ function initGL(){
   controls=new OrbitControls(camera, renderer.domElement);
   controls.enableDamping=true; controls.dampingFactor=0.12; controls.minDistance=0.3; controls.maxDistance=80; controls.zoomToCursor=true; controls.zoomSpeed=1.1; controls.rotateSpeed=0.8;
   controls.maxPolarAngle=Math.PI*0.495; controls.screenSpacePanning=true;
-  controls.addEventListener('change',()=>{ const t=controls.target; t.x=THREE.MathUtils.clamp(t.x,-16,16); t.y=THREE.MathUtils.clamp(t.y,-4,22); t.z=THREE.MathUtils.clamp(t.z,-24,16); });
+  controls.addEventListener('change',()=>{ const t=controls.target, K=CFG.clamp; t.x=THREE.MathUtils.clamp(t.x,...K.x); t.y=THREE.MathUtils.clamp(t.y,...K.y); t.z=THREE.MathUtils.clamp(t.z,...K.z); });
   controls.addEventListener('start',()=>{ camAnim=null; });
   const cv=renderer.domElement;
   cv.addEventListener('pointerdown',onPointerDown); cv.addEventListener('pointermove',onPointerMove);
@@ -2044,6 +2050,7 @@ function leavesTick(dt){
 }
 /* tapes de registres i armaris: la tapa gira sobre una frontissa en comptes de desaparèixer */
 function finalizeLids(){
+  scene.updateMatrixWorld(true);   // tapes dins de grups (model de cases): caixes en coordenades de l'escena
   const groups={}; for(const m of new Set(G.lids)) (groups[m.userData.lidOf] ||= []).push(m);
   for(const [of,ms] of Object.entries(groups)){
     const lb=new THREE.Box3(); for(const m of ms){ m.updateMatrixWorld(true); lb.union(new THREE.Box3().setFromObject(m)); }
@@ -2396,7 +2403,7 @@ function buildRefs(){
     l.userData={kind:'ref', floor:f}; scene.add(l); G.refs.push(l);
     G.refLabels.push({text: FLOORNAME(f), pos:V(-8.6,y+0.3,4.6), floor:f, cls:'ref'});
   }
-  for(const u of UNITS) G.refLabels.push({text:`Habitatge ${u.name}`, pos:V(mx(u,-5),yb(u.f)+2.4,mz(u,4.2)), floor:u.f, unit:u.id, cls:'ref', unitLbl:true});
+  for(const u of UNITS) G.refLabels.push({text:unitTitle(u), pos:V(mx(u,-5),yb(u.f)+2.4,mz(u,4.2)), floor:u.f, unit:u.id, cls:'ref', unitLbl:true});
   const r2=[["Rebedor",-3.2,-3.6],["Sala d'estar",-6.2,0.6],["Cuina",-6.2,-3.2],["Dormitori 1",-3.2,3.3],["Dormitori 2",-3.2,0],["Bany (sense preses)",-6.9,3.9],["Balcó",-5.1,5.7]];
   for(const u of UNITS) for(const [t,x,z] of r2) G.refLabels.push({text:t,pos:V(mx(u,x),yb(u.f)+1.25,mz(u,z)),floor:u.f,unit:u.id,cls:'room'});
   const Z=(t,x,y,z,f)=>G.refLabels.push({text:t,pos:V(x,y,z),floor:f,cls:'zone'});
@@ -2413,6 +2420,11 @@ function buildRefs(){
 let SCOPE=null;                       // meshes de la variant de capçalera en construcció
 const VAR={meshes:[], keys:[], extra:[]};
 const RI={x0:-0.34, x1:3.34, z0:-4.73, z1:-2.48, y0:15.02, y1:17.6};
+/* posició del RITS a l'escena. A l'edifici és la identitat; el model de cases construeix el RITS (i les antenes) dins del
+   grup RITS_ROOT i hi copia la matriu. ritsW(v): punt en coordenades del RITS → escena. */
+const RITSM=new THREE.Matrix4(), RITSI=new THREE.Matrix4();
+let RITS_ROOT=null;
+const ritsW = v => v.applyMatrix4(RITSM);
 const ZP=-4.715;                      // cara frontal de la placa de muntatge
 const RFN={capt:0xA8742A, dist:0x2F6FDE, ac:0xD32F2F, dc:0xEF8A00, pe:0x2E9B3F, tube:0x7A8794, eq:0x455A64};
 const RM={};                          // paràmetres de materials físics
@@ -2707,7 +2719,7 @@ function symSprite(el, pos, text, color, sc=0.26){
   const w=Math.max(320, Math.ceil(text.length*25+40));
   const t=textTex([text],{w,h:80,size:40,bg:'#FFFFFF',fg:color,border:color,bw:6,bold:[true]});
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:true,transparent:true}));
-  s.position.copy(pos); const k=sc/320; s.scale.set(w*k,80*k,1); s.userData={sprite:true, el}; s.renderOrder=6; scene.add(s); RG.sprites.push(s); if(SCOPE) SCOPE.extra.push(s); return s;
+  s.position.copy(pos); const k=sc/320; s.scale.set(w*k,80*k,1); s.userData={sprite:true, el}; s.renderOrder=6; (ROOT||scene).add(s); RG.sprites.push(s); if(SCOPE) SCOPE.extra.push(s); return s;
 }
 
 /* =====================================================================
@@ -2738,7 +2750,7 @@ function buildRITSRoom(){
   rBox(D,2.255,3.045,17.05,17.13,-2.50,-2.34,0xB7BDB8,'paint',FR);
   rBox(D,2.17,3.13,15.0,15.028,-2.52,-2.34,0x9DA3A8,'steel',{ritsPart:'front'});     // llindar
   for(const y of [15.30,16.06,16.82]) rCyl(D,0.009,0.11,V(3.052,y,-2.334),UP,0x9DA3A8,'steel',{ritsPart:'front'});
-  const piv=new THREE.Group(); piv.position.set(3.045,16.035,-2.375); scene.add(piv);
+  const piv=new THREE.Group(); piv.position.set(3.045,16.035,-2.375); (ROOT||scene).add(piv);
   const L=(geo,col,mat,x,y,z,o={})=>{ const m=rMesh(o.el||D,geo,col,mat,Object.assign({parent:piv,ritsPart:'front',cast:true},o)); m.position.set(x,y,z); return m; };
   const leaf=L(new THREE.BoxGeometry(0.788,2.028,0.045),DC,'paint',-0.395,0,-0.0225); G.pick.push(leaf);
   L(new THREE.BoxGeometry(0.70,0.006,0.004),0xB4BAB4,'paint',-0.395,0.62,0.0015); L(new THREE.BoxGeometry(0.70,0.006,0.004),0xB4BAB4,'paint',-0.395,-0.30,0.0015);
@@ -2829,7 +2841,7 @@ function buildRITSElectrical(){
   }
   rBox(Q,3.27,3.33,16.27,16.29,-2.99,-2.90,0x2E9B3F,'plastic'); rBox(Q,3.27,3.33,16.27,16.29,-2.90,-2.86,0xE8C71A,'plastic');
   rPlane(Q,0.30,0.04,V(3.3385,16.69,-2.85),V(-1,0,0),textTex(['Quadre de protecció del RITS · exemple didàctic'],{w:1024,h:120,size:46,bg:'#FFFFFF',fg:'#B71C1C'}));
-  { const piv=new THREE.Group(); piv.position.set(3.226,16.45,-3.03); scene.add(piv);
+  { const piv=new THREE.Group(); piv.position.set(3.226,16.45,-3.03); (ROOT||scene).add(piv);
     const lid=rMesh(Q,new THREE.BoxGeometry(0.006,0.40,0.36),0x9EA7AD,{roughness:0.15,metalness:0},{parent:piv,opacity:0.42}); lid.position.set(0,0,0.18); G.pick.push(lid);
     // perfils sense cares coplanàries amb la tapa (evita el «z-fighting» quan es mira la tapa oberta)
     const fr=rMesh(Q,new THREE.BoxGeometry(0.010,0.012,0.362),0xE7E9EA,'plastic',{parent:piv}); fr.position.set(-0.0015,0.1945,0.18);
@@ -2873,7 +2885,7 @@ function buildRITSElectrical(){
   /* llums */
   const sp=new THREE.SpotLight(0xFFF3E0,0,3.3,1.2,0.75,1.6); sp.position.set(1.5,17.50,-3.6); sp.target.position.set(1.5,15.0,-3.62);
   sp.castShadow=true; sp.shadow.mapSize.set(1024,1024); sp.shadow.bias=-0.0004; sp.shadow.normalBias=0.012; sp.shadow.camera.near=0.05; sp.shadow.camera.far=3.4;
-  sp.visible=false; scene.add(sp); scene.add(sp.target); RG.spot=sp;
+  sp.visible=false; (ROOT||scene).add(sp); (ROOT||scene).add(sp.target); RG.spot=sp;
 }
 
 /* =====================================================================
@@ -3331,7 +3343,7 @@ const ritsBad = id => !!(id && EL[id] && EL[id].variant && EL[id].variant!==S.ca
 function inRits(id){ if(!id||!EL[id]) return false; if(id==='rits'||id==='rits_porta') return true; let p=EL[id].parent; while(p){ if(p==='rits') return true; p=EL[p].parent; } return false; }
 function setCap(v){
   if(v===S.cap && CAPBUILT===v) return;
-  S.cap=v; clearScope(); buildCapVariant(v);
+  S.cap=v; clearScope(); withRoot(RITS_ROOT,()=>buildCapVariant(v));
   if(ritsBad(S.selected)) S.selected='capcalera';
   if(ritsBad(S.hover)) S.hover=null;
   S.related=new Set([...S.related].filter(x=>!ritsBad(x)));
@@ -3366,12 +3378,12 @@ function ritsInterior(){
 function ritsCardHTML(id){
   const open = id==='rits'||id==='capcalera'||id==='rits_porta';
   const b=(act,on,t1,t0)=>`<button data-ract="${act}" aria-pressed="${!!on}" class="${on?'on':''}">${on?t0:t1}</button>`;
-  return `<details class="card ritscfg" ${open?'open':''}><summary><b>Configuració del RITS</b></summary>
+  return `<details class="card ritscfg" ${open?'open':''}><summary><b>Configuració del ${CFG.rits}</b></summary>
    <fieldset><legend>Tipus de capçalera</legend>
     <label class="opt"><input type="radio" name="ritsCap" value="A" ${S.cap==='A'?'checked':''}> Centraleta programable amb FI <span class="muted small">(exemple: Televes AVANT 12 PRO SAT, ref. 532204 · 2n amplificador de FI i mesclador 745210)</span></label>
     <label class="opt"><input type="radio" name="ritsCap" value="B" ${S.cap==='B'?'checked':''}> Amplificadors monocanal <span class="muted small">(exemple: Televes T12 · 10 de TDT, DAB, FM, 2 de FI i mesclador 740710)</span></label></fieldset>
    <div class="small" style="margin:6px 0 2px"><b>Vista</b></div>
-   <div class="actions" style="margin-top:2px"><button data-ract="view" class="primary">Interior del RITS</button>
+   <div class="actions" style="margin-top:2px"><button data-ract="view" class="primary">Interior del ${CFG.rits}</button>
     ${b('door',isOpen('rits'),'Obrir la porta','Tancar la porta')}${b('roof',S.ritsRoof,'Retirar el sostre','Recuperar el sostre')}${b('front',S.ritsFront,'Retirar la paret frontal','Recuperar la paret frontal')}</div>
    <div class="small" style="margin:6px 0 2px"><b>Observar</b></div>
    <div class="actions" style="margin-top:2px">${b('light',S.ritsLight,'Encendre llum','Apagar llum')}${b('cut',S.ritsCut,'Obrir un tram de corrugat','Tancar el tram de corrugat')}
@@ -3637,7 +3649,7 @@ function buildAntennas(){
 }
 
 function init(){
-  buildStaticUI(); bindEvents();
+  linkChildren(); buildStaticUI(); bindEvents();
   const gl=initGL();
   if(gl){
     TEX.fo=makeTex('fo'); TEX.pt=makeTex('pt');

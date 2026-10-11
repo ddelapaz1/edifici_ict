@@ -21,6 +21,10 @@ header h1 small{display:block;font-weight:400;color:var(--tx2);font-size:.75rem}
 .seg{display:flex;border:1px solid var(--bd);border-radius:8px;overflow:hidden;flex-shrink:0}
 .seg button{border:0;border-radius:0;border-right:1px solid var(--bd)}
 .seg button:last-child{border-right:0}
+.seg.model a{display:flex;align-items:center;padding:5px 10px;min-height:36px;text-decoration:none;color:inherit;border-right:1px solid var(--bd);white-space:nowrap;font-size:.86rem;background:var(--bg)}
+.seg.model a:last-child{border-right:0}
+.seg.model a:hover{background:var(--sec)}
+.seg.model a[aria-current="page"]{background:#1F3A5F;color:#fff;font-weight:600}
 .spacer{flex:1}
 .hgroup{display:flex;gap:6px;flex-wrap:nowrap;align-items:center;flex-shrink:0}
 .hgroup button{font-size:.86rem;padding:5px 9px}
@@ -146,7 +150,7 @@ dialog h2{margin-top:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .hidden{display:none!important}
 .ritscfg summary{cursor:pointer;padding:2px 0}.ritscfg fieldset{margin:6px 0}.ritscfg .actions button.on{background:#FFE7B8;border-color:#C98A1A;color:#4A2E00}.ritscfg label.opt{display:block;margin:2px 0}
-@media (max-width:1100px){ :root{--lw:300px;--rw:340px} header h1 small{display:none} .seg button,.hgroup button{padding:4px 7px;font-size:.8rem} .link2d{padding:4px 7px;font-size:.8rem} }
+@media (max-width:1100px){ :root{--lw:300px;--rw:340px} header h1 small{display:none} .seg button,.hgroup button{padding:4px 7px;font-size:.8rem} .link2d,.seg.model a{padding:4px 7px;font-size:.8rem} }
 @media (max-width:900px){ header{flex-wrap:wrap} }
 @media (max-width:760px){
  :root{--lw:0px;--rw:0px}
@@ -157,6 +161,7 @@ dialog h2{margin-top:0}
  #left.open,#right.open{transform:none}
  header{flex-wrap:wrap;row-gap:4px}
  header .seg{flex:1 1 100%} header .seg button{flex:1 1 0;min-width:0}
+ header .seg.model{flex:1 1 100%} header .seg.model a{flex:1 1 0;justify-content:center;min-height:34px}
  header .hgroup{flex:1 1 auto} header .hgroup button{flex:1 1 auto;padding:4px 5px}
  .app.leftOpen #tl,.app.leftOpen .pop{left:10px}
  .app.rightOpen #navbtns{right:10px}

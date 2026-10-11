@@ -151,7 +151,7 @@ python3 models/src/scripts/pau_fo_serigrafia.py
 ```
 
 PAU: origen al centre de la cara posterior; buits `sc1`…`sc4` (boca exterior de cada sortida, a la base; 1 i 2 a la
-fila davantera) i `entrada_d` / `entrada_e` (pretallat lateral superior per a l'acometida). Adaptador: origen al centre de
+fila davantera) i `entrada_d` / `entrada_e` (pretallat lateral superior per a l'escomesa). Adaptador: origen al centre de
 la boca exterior, eix cap endins (+Y en glTF), cara ampla segons X; buits `sc` (pla d'acoblament, a 12,7 mm) i
 `interior`; la tapa autoblocant té el material `tapa`, que la web treu (`recolor {tapa: null}`) quan hi ha connector.
 Connector: origen a la punta de la virola, cable cap a +Y en glTF; buits `tip` i `cable` (a 52 mm).

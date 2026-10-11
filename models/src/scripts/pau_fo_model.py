@@ -88,10 +88,10 @@ for t,cl in ((lid,cs_l),(base,cs_b)):
 bpy.ops.mesh.primitive_plane_add(size=1); o=bpy.context.object; o.name='etiqueta'
 o.dimensions=(mm(79.6),mm(24.3),0); o.rotation_euler=(math.pi/2,0,0); o.location=(0,YF+mm(0.75),mm((4.61-19.69)/2-C))
 bpy.ops.object.transform_apply(location=False,rotation=True,scale=True); link(o,'etiqueta')
-# --- objectes buits: boca exterior de cada sortida SC (els adaptadors sobresurten 3,22 mm), entrada de l'acometida
+# --- objectes buits: boca exterior de cada sortida SC (els adaptadors sobresurten 3,22 mm), entrada de l'escomesa
 for k in PX:
     e=bpy.data.objects.new(f'sc{k}',None); e.location=(mm(PX[k]),mm(PY[k]),mm(-48.38-C)); col.objects.link(e)
-for n,s in (('entrada_d',1),('entrada_e',-1)):                # pretallat superior de cada lateral: entrada de l'acometida
+for n,s in (('entrada_d',1),('entrada_e',-1)):                # pretallat superior de cada lateral: entrada de l'escomesa
     e=bpy.data.objects.new(n,None); e.location=(s*mm(59.7),mm(-7.0),mm(SIDE[0]-C)); col.objects.link(e)
 # --- unir per material
 for o in list(col.objects):

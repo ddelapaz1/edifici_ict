@@ -77,6 +77,20 @@ Opciones habituales en `o`: `{pick:true}` (seleccionable), `{pick:false}` (decor
 Si un modelo tiene muchas piezas pequeñas, fusiónalas (`mergeParts`, colores por vértice) para no multiplicar
 mallas: el edificio ya tiene unas 4.700.
 
+### Rendimiento: qué no se dibuja
+
+Bloque «RENDIMENT» antes de `loop()` en `js/app.js`:
+
+- **Dibujo a demanda**: `loop()` solo dibuja si la cámara se ha movido, hay una animación (vuelo, puertas y tapas,
+  zoom con la rueda) o se ha llamado a `invalidate()`. `applyMaterials()`, `onResize()`, `shadowRefresh()` y cualquier
+  evento de ratón o teclado ya lo hacen. **Si cambias la escena desde otro sitio (un temporizador, una carga
+  asíncrona…), llama a `invalidate()`** o no se verá hasta que se mueva la cámara.
+- **Oclusión**: lo que cabe entero dentro de un registro (`e.lid`, menos los recintos RITI/RITS, que no son cajas
+  cerradas) no se dibuja si la tapa está cerrada y la cámara fuera (`OCC`, `occClosed()`).
+- **Detalle**: no se dibujan las mallas con radio en pantalla < `OCC.px` (1 px CSS).
+- Las mallas solo se ocultan durante `renderer.render()` (`cullBegin()`/`cullEnd()`): `m.visible` sigue siendo el de
+  la aplicación. `scene.matrixWorldAutoUpdate` es `false`: las matrices se actualizan en `cullBegin()`.
+
 ### Dónde está cada cosa (busca por nombre de función)
 
 | Zona | Funciones |

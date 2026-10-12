@@ -1162,7 +1162,7 @@ function applyMaterials(){
     if(d.glow){ if(!em && S.ritsLight){ mat.emissive.setHex(0xFFF1D6); mat.emissiveIntensity=1.25; } else mat.emissiveIntensity=1; }
     if(d.led && !em) mat.emissive.setHex(d.led);
   }
-  updateSelBox();
+  updateSelBox(); invalidate();
 }
 let selBox=null;
 function elBox(id, onlyVisible=true){
@@ -1867,7 +1867,7 @@ function dolly(k){
 function onResize(){
   if(!renderer) return;
   const el=$('#view3d'), w=el.clientWidth, h=el.clientHeight;
-  renderer.setSize(w,h,false); camera.aspect=w/Math.max(h,1); syncViewOffset(true); applyViewOffset(); needLabels=true;
+  renderer.setSize(w,h,false); camera.aspect=w/Math.max(h,1); syncViewOffset(true); applyViewOffset(); needLabels=true; invalidate();
 }
 function initGL(){
   try{
@@ -1879,7 +1879,7 @@ function initGL(){
   renderer.domElement.tabIndex=0; renderer.domElement.setAttribute('aria-label',CFG.sceneLabel+'. Usa la llista d\'elements per seleccionar amb el teclat.');
   $('#view3d').prepend(renderer.domElement);
   renderer.shadowMap.enabled=false; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate=false;
-  scene=new THREE.Scene(); scene.background=new THREE.Color(0xEEF2F6);
+  scene=new THREE.Scene(); scene.background=new THREE.Color(0xEEF2F6); scene.matrixWorldAutoUpdate=false;   // ho fa cullBegin()
   camera=new THREE.PerspectiveCamera(42,1,0.05,400);
   scene.add(new THREE.HemisphereLight(0xffffff,0xB8B4AC,2.1));
   const dl=new THREE.DirectionalLight(0xffffff,1.9); dl.position.set(18,30,22); scene.add(dl);
@@ -1905,6 +1905,52 @@ function wheelTick(dt){
   let d=WHEEL.d*(1-Math.exp(-dt*16)); if(Math.abs(WHEEL.d-d)<0.5) d=WHEEL.d; WHEEL.d-=d;
   WHEEL.pass=true; renderer.domElement.dispatchEvent(new WheelEvent('wheel',{deltaY:d,clientX:WHEEL.x,clientY:WHEEL.y,bubbles:true,cancelable:true})); WHEEL.pass=false;
 }
+/* ===================================================================
+   RENDIMENT: no es dibuixa el que no es veu
+   - Oclusió: si un registre (RITI, secundari, RTR…) té la tapa tancada i la càmera és a fora, no es dibuixa
+     res del que hi ha a dins (malles de G.meshes que hi caben senceres). Els recintes (RITI, RITS) no hi
+     entren: el terra i el sostre són de l'edifici i en el mode «Només ICT» es veuen per dins.
+   - Detall: les peces que a la pantalla farien menys d'un píxel (connectors, cargols… vistos de lluny).
+   Les malles només s'amaguen mentre dura renderer.render(): m.visible de l'aplicació no canvia.
+   - La imatge només es torna a dibuixar quan alguna cosa canvia (invalidate()).
+   =================================================================== */
+const OCC={cs:null, n:0, px:1}, HID=[];   // px: radi mínim a la pantalla (px CSS)
+function occBoxes(){   // amb totes les tapes tancades (a l'arrencada)
+  OCC.cs=[]; scene.updateMatrixWorld(true);
+  for(const e of Object.values(EL)){ const own=e.lid && e.layer!=='recintes' && G.byEl[e.id]; if(!own || !own.length) continue;
+    const box=new THREE.Box3(); for(const m of own) box.union(new THREE.Box3().setFromObject(m));
+    OCC.cs.push({id:e.id, own, box:box.expandByScalar(0.001), cam:box.clone().expandByScalar(0.08), items:[]}); }
+}
+function occAssign(){   // malles noves (p. ex. la variant de capçalera que es construeix més tard)
+  const b=new THREE.Box3();
+  for(; OCC.n<G.meshes.length; OCC.n++){ const m=G.meshes[OCC.n], d=m.userData; m.updateWorldMatrix(true,false); b.setFromObject(m); if(b.isEmpty()) continue;
+    for(const c of OCC.cs) if(c.id!==d.el && c.id!==d.lidOf && c.box.containsBox(b)) c.items.push(m); }
+}
+function occClosed(c){
+  if(!elVisible(EL[c.id]) || isOpen(c.id) || c.cam.containsPoint(camera.position)) return false;
+  for(const l of (LEAF_OF[c.id]||[])) if(l.cur>0.001) return false;   // tapa que encara s'està tancant
+  for(const m of c.own) if(m.visible && m.material.transparent && m.material.opacity<1) return false;
+  return true;
+}
+const _sp=new THREE.Sphere();
+function cullBegin(){
+  if(!OCC.cs) occBoxes(); occAssign();
+  for(const c of OCC.cs) if(occClosed(c)) for(const m of c.items) if(m.visible){ m.visible=false; HID.push(m); }
+  scene.updateMatrixWorld();   // el renderer no ho torna a fer (matrixWorldAutoUpdate=false)
+  const cp=camera.position, k=renderer.domElement.clientHeight/2/Math.tan(camera.fov*Math.PI/360);
+  (function walk(o){ for(const ch of o.children){ if(!ch.visible) continue;
+    if(ch.isMesh && ch.frustumCulled && !ch.children.length){ const g=ch.geometry; if(!g.boundingSphere) g.computeBoundingSphere();
+      _sp.copy(g.boundingSphere).applyMatrix4(ch.matrixWorld); const d=_sp.center.distanceTo(cp);
+      if(d>_sp.radius && _sp.radius*k<OCC.px*d){ ch.visible=false; HID.push(ch); } }
+    else if(ch.children.length) walk(ch); } })(scene);
+}
+function cullEnd(){ for(const m of HID) m.visible=true; HID.length=0; }
+/* dibuix a demanda: es dibuixa si es mou la càmera o hi ha animacions, o durant uns fotogrames després d'un canvi */
+let dirty=2; const _pm=new THREE.Matrix4(), _vm=new THREE.Matrix4();
+function invalidate(n=2){ dirty=Math.max(dirty,n); }
+for(const ev of ['pointerdown','pointerup','click','dblclick','keydown','wheel','change','input']) addEventListener(ev,()=>invalidate(45),{capture:true,passive:true});
+addEventListener('pointermove',()=>invalidate(3),{capture:true,passive:true});
+document.addEventListener('visibilitychange',()=>invalidate());
 let last=performance.now();
 function loop(now){
   requestAnimationFrame(loop);
@@ -1913,10 +1959,15 @@ function loop(now){
     camera.position.lerpVectors(camAnim.p0,camAnim.p1,k); controls.target.lerpVectors(camAnim.t0,camAnim.t1,k); if(u>=1) camAnim=null; }
   wheelTick(dt); controls.update();
   if(Math.abs(VOFF.x-VOFF.tx)>0.5 || Math.abs(VOFF.y-VOFF.ty)>0.5){ const k=Math.min(1,dt*10); VOFF.x+=(VOFF.tx-VOFF.x)*k; VOFF.y+=(VOFF.ty-VOFF.y)*k; if(Math.abs(VOFF.x-VOFF.tx)<=0.5) VOFF.x=VOFF.tx; if(Math.abs(VOFF.y-VOFF.ty)<=0.5) VOFF.y=VOFF.ty; applyViewOffset(); }
-  doHover(); leavesTick(dt);
+  doHover(); if(leavesTick(dt)) invalidate();
+  camera.updateMatrixWorld();
+  if(!_vm.equals(camera.matrixWorld) || !_pm.equals(camera.projectionMatrix)){ _vm.copy(camera.matrixWorld); _pm.copy(camera.projectionMatrix); invalidate(); }
+  if(needLabels) invalidate();
+  if(dirty<=0 || document.hidden) return;
+  dirty--;
   if(needLabels) rebuildLabels();
   placeLabels();
-  renderer.render(scene,camera);
+  cullBegin(); renderer.render(scene,camera); cullEnd();
 }
 /* =====================================================================
    ARQUITECTURA DE L'EDIFICI
@@ -2052,14 +2103,17 @@ function slideDoor(key,label,x,y0,z,w,h,dx,mat,flags){
   return regLeaf({key,label,piv,kind:'slide',base:x,open:dx,arch:true,flags});
 }
 function leafOpen(l){ if(S.leaf.has(l.key)) return S.leaf.get(l.key); return l.of ? elOpenDefault(l.of) : false; }
-function leavesTick(dt){
+function leavesTick(dt){   // retorna si alguna fulla s'ha mogut
+  let mv=false;
   for(const l of LEAVES){
     const tg = leafOpen(l) ? 1 : 0;
-    l.cur = S.reduced ? tg : l.cur + (tg-l.cur)*Math.min(1,dt*5);
+    if(l.cur===tg) continue;
+    l.cur = S.reduced || Math.abs(tg-l.cur)<1e-4 ? tg : l.cur + (tg-l.cur)*Math.min(1,dt*5); mv=true;
     if(l.kind==='rot') l.piv.rotation.y = l.base + l.open*l.cur;
     else if(l.kind==='rotx') l.piv.rotation.x = l.open*l.cur;
     else if(l.kind==='slide') l.piv.position.x = l.base + l.open*l.cur;
   }
+  return mv;
 }
 /* tapes de registres i armaris: la tapa gira sobre una frontissa en comptes de desaparèixer */
 function finalizeLids(){
@@ -2342,7 +2396,7 @@ function buildCore(){
   cm(1.3,0.04,0.04,1.15,0.95,4.66,AM.rail); cm(0.06,0.4,0.2,1.82,1.2,3.3,AM.frame);
   setLiftFloor(0);
 }
-function setLiftFloor(f){ LIFT.floor=f; if(!LIFT.cab) return; LIFT.cab.position.y=yb(f); LIFT.cab.children.forEach(m=>m.userData.floor=f); }
+function setLiftFloor(f){ LIFT.floor=f; if(renderer) invalidate(); if(!LIFT.cab) return; LIFT.cab.position.y=yb(f); LIFT.cab.children.forEach(m=>m.userData.floor=f); }
 
 /* ---------- HABITATGES: envolupant, portes, balcons ---------- */
 function buildUnitShell(u){
@@ -3378,7 +3432,7 @@ function ritsVisibility(){
   for(const s of RG.sprites){ const e=EL[s.userData.el]; s.visible = did && elVisible(e) && (G.byEl[s.userData.el]||[]).some(m=>m.visible); }
   for(const h of RG.halos) h.visible = did;
 }
-function shadowRefresh(){ if(!renderer) return; const on=S.ritsLight && !S.lowq; renderer.shadowMap.enabled=on; renderer.shadowMap.autoUpdate=on; renderer.shadowMap.needsUpdate=true; if(RG.spot){ RG.spot.visible=S.ritsLight; RG.spot.castShadow=on; } }
+function shadowRefresh(){ if(!renderer) return; const on=S.ritsLight && !S.lowq; renderer.shadowMap.enabled=on; renderer.shadowMap.autoUpdate=on; renderer.shadowMap.needsUpdate=true; invalidate(); if(RG.spot){ RG.spot.visible=S.ritsLight; RG.spot.castShadow=on; } }
 function setRitsLight(on){
   S.ritsLight=on; if(RG.spot){ RG.spot.intensity = on ? 16 : 0; }
   shadowRefresh(); applyMaterials(); renderInfo();
@@ -3681,7 +3735,7 @@ function init(){
   let seen=false; try{ seen=localStorage.getItem('ict3d.helpSeen')==='1'; }catch(_){}
   if(seen) $('#help').classList.add('hidden');
   if(/[?&]debug\b/.test(location.search)) window.__ICT={BEND,look:(p,t)=>{camAnim=null; camera.position.set(...p); controls.target.set(...t); controls.update();},setCap,ANT,frameEl,setRitsLight,ritsAction,ritsInterior,RG,CAPB:()=>CAPBUILT,get S(){return S},EL,G,NAV,navTo,navBack,setNav,bestView,select,setMode,setView,pickAt,ensureVisible,applyVisibility,setLearn,Q,QUIZ,elBox,get camera(){return camera},get renderer(){return renderer},get controls(){return controls},
-    LEAVES,LEAF_BY_KEY,LEAF_OF,leavesTick,toggleLeaf,leafOpen,isOpen,setOpen,leafAt,singleAction,doubleAction,onPointerDown,onPointerUp,LIFT,setLiftFloor,COLL,UNITS,setPanel,openDrawer,closeAllLeaves,navPush,resetAll,}; // per a proves
+    LEAVES,LEAF_BY_KEY,LEAF_OF,leavesTick,toggleLeaf,leafOpen,isOpen,setOpen,leafAt,singleAction,doubleAction,onPointerDown,onPointerUp,LIFT,setLiftFloor,COLL,UNITS,setPanel,openDrawer,closeAllLeaves,navPush,resetAll,OCC,cullBegin,cullEnd,invalidate,get scene(){return scene},}; // per a proves
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */

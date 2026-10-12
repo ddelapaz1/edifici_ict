@@ -1999,9 +1999,10 @@ function archMats(){
   AM.ground=L(0xC9D8B8); AM.side=L(0xCFCCC6); AM.street=L(0x8E9196); AM.soil=L(0x8B6B4A); AM.found=L(0xB8B2A8);
   AM.park=L(0x9EA2A6); AM.line=L(0xF4F4F0); AM.lineY=L(0xE8C547); AM.concrete=L(0xB7B5B0); AM.door=L(0x9A7A58); AM.doorM=L(0x8E979F); AM.liftDoor=L(0xA9B1B8);
   AM.car1=L(0x3F6FB5); AM.car2=L(0xB8433A); AM.car3=L(0xD9D9D4); AM.car4=L(0x3E4348); AM.tyre=L(0x222222);
+  AM.carV=new THREE.MeshPhongMaterial({vertexColors:true, shininess:40, specular:0x1E1E1E});   // cotxes (colors per vèrtex)
   AM.shop=L(0xEFE6D2); AM.shelf=L(0xB98B5E); AM.awning=L(0x2F8A5B); AM.tile=L(0xD8CDBB); AM.lobby=L(0xE2DBD0);
   AM.ref=new THREE.LineBasicMaterial({color:0x5D6B7A});
-  AM.list=[AM.wall,AM.wallIn,AM.facade,AM.facade2,AM.slab,AM.roof,AM.edge,AM.plinth,AM.frame,AM.rail,AM.stair,AM.stairEdge,AM.furn,AM.furn2,AM.furn2b,AM.furn3,AM.found,AM.park,AM.concrete,AM.door,AM.doorM,AM.liftDoor,AM.shop,AM.shelf,AM.tile,AM.lobby,AM.car1,AM.car2,AM.car3,AM.car4,AM.tyre,AM.line,AM.lineY,AM.awning];
+  AM.list=[AM.wall,AM.wallIn,AM.facade,AM.facade2,AM.slab,AM.roof,AM.edge,AM.plinth,AM.frame,AM.rail,AM.stair,AM.stairEdge,AM.furn,AM.furn2,AM.furn2b,AM.furn3,AM.found,AM.park,AM.concrete,AM.door,AM.doorM,AM.liftDoor,AM.shop,AM.shelf,AM.tile,AM.lobby,AM.car1,AM.car2,AM.car3,AM.car4,AM.tyre,AM.carV,AM.line,AM.lineY,AM.awning];
 }
 
 /* ---------- cua de caixes d'arquitectura: es fusionen per material i etiquetes ---------- */
@@ -2026,9 +2027,10 @@ function aGeo(g, mat, o={}){
 }
 function mergeGeos(geos){
   let n=0; for(const g of geos) n+=g.attributes.position.count;
-  const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2); let o=0;
-  for(const g of geos){ pos.set(g.attributes.position.array,o*3); nor.set(g.attributes.normal.array,o*3); uv.set(g.attributes.uv.array,o*2); o+=g.attributes.position.count; g.dispose(); }
+  const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2), col=geos[0].attributes.color ? new Float32Array(n*3) : null; let o=0;
+  for(const g of geos){ pos.set(g.attributes.position.array,o*3); nor.set(g.attributes.normal.array,o*3); uv.set(g.attributes.uv.array,o*2); if(col) col.set(g.attributes.color.array,o*3); o+=g.attributes.position.count; g.dispose(); }
   const m=new THREE.BufferGeometry(); m.setAttribute('position',new THREE.BufferAttribute(pos,3)); m.setAttribute('normal',new THREE.BufferAttribute(nor,3)); m.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+  if(col) m.setAttribute('color',new THREE.BufferAttribute(col,3));
   m.computeBoundingBox(); m.computeBoundingSphere(); return m;
 }
 function flushArch(){
@@ -2038,6 +2040,170 @@ function flushArch(){
   ARCHQ.clear();
 }
 function addArch(mesh, o){ ud(mesh, Object.assign({kind:'arch'}, o)); scene.add(mesh); G.arch.push(mesh); return mesh; }
+
+/* ---------- cotxes d'exemple: quatre models procedurals amb les mides reals de catàleg ----------
+   Carrosseria: perfil lateral superior (top) i inferior (bot) en [x, y] (morro a +x, origen al centre a terra), passos de
+   roda circulars, laterals amb caiguda cap al sostre (tu) i extrems arrodonits en planta (pf, pr) i en alçat (be, bt).
+   Els colors van per vèrtex (un sol material per a tots els cotxes): carrosseria, vidres, embellidors, fars, pilots,
+   graelles, matrícules i plàstics. belt: línia de cintura; g: vidre lateral [x0, x1] (kr: inclinació del pilar posterior,
+   m: marge del sostre); pil: pilars foscos; ws: parabrisa (al Tesla, tot el sostre de vidre menys la travessa bar);
+   rw: lluneta [x0, x1, y mínima]; hl/tl: fars i pilots [x límit, y0, y1, |zn| mínim al frontal]; gr: graelles
+   [y0, y1, |zn| màxim]; pf/pr: alçada de les matrícules; rim/spk: llanta i radis. */
+const CARS={
+  /* Tesla Model 3 (2024): 4.720 × 1.849 × 1.441 mm, batalla 2.875, pneumàtic 235/45 R18 */
+  tesla:{L:4.72, W:1.849, H:1.441, wb:2.875, fo:0.86, R:0.334, tw:0.235, yb:0.95, tu:0.74, pf:0.12, pr:0.10, be:0.09, bt:0.035,
+    top:[[-2.36,0.58],[-2.345,0.80],[-2.31,0.93],[-2.23,0.99],[-1.80,1.04],[-1.45,1.08],[-0.95,1.32],[-0.45,1.43],[0.05,1.441],[0.40,1.36],[0.80,1.17],[1.20,0.98],[1.65,0.89],[2.05,0.80],[2.25,0.70],[2.36,0.52]],
+    bot:[[-2.36,0.32],[-2.20,0.22],[-1.90,0.15],[1.95,0.15],[2.25,0.22],[2.36,0.30]],
+    belt:[[-2.36,0.99],[1.2,0.95],[2.36,0.85]], g:[-1.15,1.2], kr:1.6, m:0.05, pil:[[-0.02,0.08]],
+    ws:[-1.45,1.2], bar:[0.34,0.46], hl:[2.0,0.66,0.80,0.42], tl:[-2.2,0.84,0.97,0.30], gr:[[0.22,0.33,0.55]], fpl:0.36, rpl:0.42,
+    rim:0x9AA0A6, spk:0x4E5357, mir:'paint'},
+  /* Toyota Corolla hatchback (E210): 4.370 × 1.790 × 1.435 mm, batalla 2.640, pneumàtic 225/45 R17 */
+  corolla:{L:4.37, W:1.79, H:1.435, wb:2.64, fo:0.93, R:0.317, tw:0.225, yb:0.95, tu:0.75, pf:0.14, pr:0.12, be:0.08, bt:0.035,
+    top:[[-2.185,0.56],[-2.17,0.86],[-2.13,0.98],[-2.06,1.06],[-1.92,1.28],[-1.78,1.39],[-1.4,1.425],[-0.6,1.435],[0.0,1.42],[0.25,1.37],[0.65,1.17],[1.05,0.97],[1.45,0.88],[1.90,0.78],[2.10,0.70],[2.185,0.52]],
+    bot:[[-2.185,0.33],[-2.05,0.21],[-1.75,0.14],[1.85,0.14],[2.10,0.22],[2.185,0.30]],
+    belt:[[-2.1,1.01],[1.05,0.95],[2.185,0.85]], g:[-1.88,1.05], kr:1.3, m:0.06, pil:[[-0.38,-0.28],[-1.52,-1.44]],
+    ws:[0.25,1.05], rw:[-2.06,-1.78,1.05], hl:[1.85,0.70,0.80,0.45], tl:[-2.08,0.92,1.04,0.35], gr:[[0.24,0.47,0.6],[0.62,0.67,0.3]], fpl:0.36, rpl:0.70,
+    rim:0xC4C8CC, spk:0x2E3135, mir:'paint'},
+  /* Toyota RAV4 (XA50): 4.600 × 1.855 × 1.685 mm, batalla 2.690, pneumàtic 225/60 R18 */
+  rav4:{L:4.60, W:1.855, H:1.685, wb:2.69, fo:0.925, R:0.365, tw:0.225, yb:1.04, tu:0.82, pf:0.10, pr:0.08, be:0.07, bt:0.03,
+    top:[[-2.30,0.62],[-2.29,0.98],[-2.25,1.12],[-2.21,1.45],[-2.14,1.63],[-1.95,1.675],[-0.6,1.685],[0.30,1.67],[0.45,1.63],[0.85,1.38],[1.25,1.12],[1.65,1.06],[2.05,0.99],[2.22,0.92],[2.30,0.76]],
+    bot:[[-2.30,0.46],[-2.12,0.33],[-1.85,0.20],[1.80,0.20],[2.15,0.33],[2.30,0.44]],
+    belt:[[-2.2,1.14],[1.25,1.04],[2.3,0.95]], g:[-2.08,1.25], kr:2.2, m:0.08, pil:[[-0.02,0.10],[-1.55,-1.42]],
+    ws:[0.45,1.25], rw:[-2.30,-2.12,1.18], hl:[2.08,0.86,0.96,0.45], tl:[-2.24,1.02,1.14,0.32], gr:[[0.30,0.52,0.62],[0.58,0.84,0.42]], fpl:0.42, rpl:0.80,
+    clad:0.52, rails:[-1.85,0.25], rim:0x4A4E52, spk:0xB9BDC1, mir:'paint'},
+  /* Audi A4 Avant (B9): 4.725 × 1.842 × 1.435 mm, batalla 2.820, pneumàtic 225/50 R17 */
+  a4:{L:4.725, W:1.842, H:1.435, wb:2.82, fo:0.86, R:0.33, tw:0.225, yb:0.96, tu:0.75, pf:0.12, pr:0.10, be:0.08, bt:0.035,
+    top:[[-2.3625,0.58],[-2.35,0.88],[-2.31,1.00],[-2.24,1.08],[-2.10,1.30],[-1.95,1.395],[-1.6,1.42],[-0.4,1.435],[0.25,1.41],[0.45,1.35],[0.85,1.16],[1.25,0.98],[1.70,0.89],[2.15,0.80],[2.30,0.71],[2.3625,0.53]],
+    bot:[[-2.3625,0.33],[-2.15,0.21],[-1.85,0.14],[1.90,0.14],[2.20,0.22],[2.3625,0.30]],
+    belt:[[-2.25,1.00],[1.25,0.96],[2.36,0.86]], g:[-2.02,1.25], kr:1.4, m:0.055, pil:[[-0.12,-0.02],[-1.42,-1.32]],
+    ws:[0.45,1.25], rw:[-2.26,-1.96,1.06], hl:[1.98,0.70,0.80,0.45], tl:[-2.26,0.90,1.02,0.35], gr:[[0.30,0.68,0.40],[0.22,0.30,0.75]], fpl:0.42, rpl:0.74,
+    rails:[-1.9,0.2], rim:0xC9CCCF, spk:0x2A2D30, mir:'paint'}
+};
+/* colors de les classes de triangle: 0 carrosseria, 1 vidre, 2 embellidor, 3 far, 4 pilot, 5 graella, 6 matrícula, 7 plàstic, 8 baixos */
+const CARPAL=[0, 0x1B242D, 0x141618, 0xBFD3E0, 0xA3161A, 0x1A1C1E, 0xF0F0EE, 0x2B2D30, 0x0E0F10];
+const CARB={};
+/* semiamplada de la carrosseria a l'alçada y i a la posició x (caiguda del lateral i extrems arrodonits en planta) */
+function carHW(M, x, y){
+  const h=M.L/2, xf=h-M.fo, xr=xf-M.wb, yb=M.yb;
+  const wy = y<=yb ? 1-0.05*((yb-y)/yb)**2 : 1-(1-M.tu)*Math.min(1,(y-yb)/(M.H-yb))**1.3;
+  const e=xf+0.25, r=xr-0.25, px = x>e ? 1-M.pf*((x-e)/(h-e))**2 : x<r ? 1-M.pr*((r-x)/(r+h))**2 : 1;
+  return M.W/2*wy*px;
+}
+function carBody(type){
+  if(CARB[type]) return CARB[type];
+  const M=CARS[type], h=M.L/2, hs=h-M.be, k=h/hs, xf=h-M.fo, wx=[xf, xf-M.wb], Ra=M.R+0.035;
+  const lerp=(P,x)=>{ if(x<=P[0][0]) return P[0][1]; for(let i=1;i<P.length;i++) if(x<=P[i][0]){ const [a,b]=P[i-1],[c,d]=P[i]; return b+(d-b)*(x-a)/(c-a); } return P[P.length-1][1]; };
+  /* estacions: pas de 6 cm, més els punts dels passos de roda i les vores dels vidres */
+  let X=[]; const N=Math.round(M.L/0.06); for(let i=0;i<=N;i++) X.push(-hs+2*hs*i/N);
+  for(const w of wx){ for(let a=0;a<=180;a+=12) X.push(w+Ra*Math.cos(a*Math.PI/180)); X.push(w-Ra-0.002, w+Ra+0.002); }
+  for(const v of [M.g[0],M.g[1],...M.pil.flat()]) X.push(v/k);
+  X=X.filter(x=>x>=-hs && x<=hs).sort((a,b)=>a-b).filter((x,i,a)=>i===0 || x-a[i-1]>0.008);
+  const sm=a=>{ for(let n=0;n<2;n++){ const b=a.slice(); for(let i=1;i<a.length-1;i++) b[i]=(a[i-1]+2*a[i]+a[i+1])/4; a=b; } return a; };
+  const top=sm(X.map(x=>lerp(M.top,x*k))), bot0=sm(X.map(x=>lerp(M.bot,x*k)));
+  /* nivells de cada estació: baix, faldó, 2 intermedis, cintura, meitat del vidre, capçal del vidre, sostre */
+  const LV=X.map((x,i)=>{
+    let b=bot0[i]; for(const w of wx){ const d=Math.abs(x-w); if(d<Ra) b=Math.max(b,M.R+Math.sqrt(Ra*Ra-d*d)); }
+    const t=Math.max(top[i],b), sx=x*k, be=Math.min(Math.max(lerp(M.belt,sx),b),t);
+    let wt = sx>M.g[0] && sx<M.g[1] ? Math.min(t-M.m, be+(sx-M.g[0])*M.kr) : be; wt=Math.min(Math.max(wt,be),t);
+    const l1=Math.min(b+0.12,be);
+    return [b,l1,l1+(be-l1)/3,l1+2*(be-l1)/3,be,(be+wt)/2,wt,t];
+  });
+  const pos=[], idx=[], info=[];
+  const vtx=(x,y,z)=>{ pos.push(x,y,z); return pos.length/3-1; };
+  const tri=(a,b,c,f)=>{ idx.push(a,b,c); info.push(f); };
+  /* laterals */
+  for(const s of [1,-1]){
+    const G=X.map((x,i)=>LV[i].map(y=>vtx(x,y,s*carHW(M,x,y))));
+    for(let i=0;i<X.length-1;i++) for(let j=0;j<7;j++){
+      const h0=LV[i][j+1]-LV[i][j], h1=LV[i+1][j+1]-LV[i+1][j]; if(h0<1e-5 && h1<1e-5) continue;
+      const f={s:0, x:(X[i]+X[i+1])/2*k, xt:(X[i]+X[i+1])/2, y:(LV[i][j]+LV[i][j+1]+LV[i+1][j]+LV[i+1][j+1])/4, j, zn:s};
+      const a=G[i][j], b=G[i+1][j], c=G[i+1][j+1], d=G[i][j+1];
+      if(s>0){ if(h1>1e-5 || true) tri(a,b,c,f); if(h0>1e-5) tri(a,c,d,f); }
+      else { tri(a,c,b,f); if(h0>1e-5) tri(a,d,c,f); }
+    }
+  }
+  /* contorn (sentit antihorari vist des de +z): baixos, frontal, sostre i darrere */
+  const Lp=[]; const n=X.length-1;
+  for(let i=0;i<=n;i++) Lp.push([X[i],LV[i][0],i>0 && i<n]);                    // baixos i passos de roda: sense bombat
+  for(let j=1;j<8;j++) Lp.push([X[n],LV[n][j]]);
+  for(let i=n-1;i>=0;i--) Lp.push([X[i],LV[i][7]]);
+  for(let j=6;j>=1;j--) Lp.push([X[0],LV[0][j]]);
+  const P0=Lp.filter((p,i)=>{ const q=Lp[(i+Lp.length-1)%Lp.length]; return Math.hypot(p[0]-q[0],p[1]-q[1])>1e-5; }), P=[];
+  /* trams llargs (frontal, portó) subdividits cada 4 cm; la semiamplada s'interpola perquè coincideixi amb la vora del lateral */
+  P0.forEach((p,i)=>{ const q=P0[(i+1)%P0.length], hp=carHW(M,p[0],p[1]), hq=carHW(M,q[0],q[1]), m=Math.ceil(Math.hypot(q[0]-p[0],q[1]-p[1])/0.04);
+    for(let t=0;t<m;t++){ const u=t/m; P.push([p[0]+(q[0]-p[0])*u, p[1]+(q[1]-p[1])*u, p[2]&&(t===0||q[2]), hp+(hq-hp)*u]); } });
+  const sn=P.map((p,i)=>{ const q=P[(i+1)%P.length], dx=q[0]-p[0], dy=q[1]-p[1], l=Math.hypot(dx,dy); return [dy/l,-dx/l]; });
+  let nr=P.map((p,i)=>{ const a=sn[(i+P.length-1)%P.length], b=sn[i], x=a[0]+b[0], y=a[1]+b[1], l=Math.hypot(x,y)||1; return [x/l,y/l]; });
+  for(let it=0;it<4;it++) nr=nr.map((v,i)=>{ const a=nr[(i+P.length-1)%P.length], b=nr[(i+1)%P.length], x=a[0]+2*v[0]+b[0], y=a[1]+2*v[1]+b[1], l=Math.hypot(x,y)||1; return [x/l,y/l]; });   // normals suavitzades (bombat sense ondulacions)
+  const K=8, W=P.map(([x,y],i)=>{ const [nx,ny]=nr[i], bu = ny<-0.3 || P[i][2] ? 0 : M.bt*Math.max(ny,0)+M.be*Math.abs(nx);
+    return [...Array(K+1)].map((_,c)=>{ const zn=-1+2*c/K, b=bu*(1-zn*zn); return vtx(x+nx*b, y+ny*b, zn*P[i][3]); }); });
+  for(let p=0;p<P.length;p++){ const q=(p+1)%P.length;
+    for(let c=0;c<K;c++){
+      const f={s:1, x:(P[p][0]+P[q][0])/2*k, xt:(P[p][0]+P[q][0])/2, y:(P[p][1]+P[q][1])/2, zn:-1+(2*c+1)/K, nx:sn[p][0], ny:sn[p][1]};
+      tri(W[p][c],W[q][c],W[q][c+1],f); tri(W[p][c],W[q][c+1],W[p][c+1],f);
+    }
+  }
+  let g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx);
+  g.computeVertexNormals(); g=g.toNonIndexed();
+  g.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
+  const cls=new Uint8Array(info.map(f=>carClass(M,f,wx)));
+  return CARB[type]={geo:g, cls, lv:{X,LV}};
+}
+/* classe (color) de cada triangle segons la posició: f.s 0 lateral / 1 contorn, f.x en coordenades del perfil */
+function carClass(M, f, wx){
+  const az=Math.abs(f.zn), inB=(y0,y1)=>f.y>=y0 && f.y<=y1;
+  if(f.s && f.ny<-0.3) return 8;
+  if(f.s && az<0.3 && ((f.nx>0.5 && inB(M.fpl,M.fpl+0.11)) || (f.nx<-0.5 && inB(M.rpl,M.rpl+0.11)))) return 6;
+  if(f.x>M.hl[0] && inB(M.hl[1],M.hl[2]) && (!f.s || az>M.hl[3])) return 3;
+  if(f.x<M.tl[0] && inB(M.tl[1],M.tl[2]) && (!f.s || az>M.tl[3])) return 4;
+  if(f.s && f.nx>0.3) for(const g of M.gr) if(inB(g[0],g[1]) && az<g[2]) return 5;
+  if(!f.s && (f.j===4 || f.j===5)) return M.pil.some(p=>f.x>p[0] && f.x<p[1]) ? 2 : 1;
+  if(f.s && f.ny>0.1){ if(M.bar && f.x>M.bar[0] && f.x<M.bar[1]) return 0; if(f.x>M.ws[0] && f.x<M.ws[1]) return 1; }
+  if(f.s && M.rw && f.x>M.rw[0] && f.x<M.rw[1] && f.y>M.rw[2] && f.ny>-0.3) return 1;
+  if(f.s && f.y<0.24 && Math.abs(f.nx)>0.3) return 7;                       // part baixa dels para-xocs
+  if(M.clad){
+    if(!f.s && (f.j===0 || wx.some(w=>Math.hypot(f.xt-w,f.y-M.R)<M.R+0.12))) return 7;
+    if(f.s && Math.abs(f.nx)>0.3 && f.y<M.clad) return 7;
+  }
+  return 0;
+}
+function vcol(g, hex){
+  if(g.index) g=g.toNonIndexed();
+  const c=new THREE.Color(hex), n=g.attributes.position.count, a=new Float32Array(n*3);
+  for(let i=0;i<n;i++){ a[3*i]=c.r; a[3*i+1]=c.g; a[3*i+2]=c.b; }
+  g.setAttribute('color',new THREE.BufferAttribute(a,3)); return g;
+}
+/* cotxe d'exemple. type: 'tesla', 'corolla', 'rav4' o 'a4'; dir: cap on mira el morro ('+z', '-z', '+x' o '-x');
+   mat: material de color de la carrosseria (AM.car1…) */
+function carModel(x, y, z, dir, type, mat, o={}){
+  const M=CARS[type], B=carBody(type), paint=mat.color.getHex(), rot={'+z':-Math.PI/2,'-z':Math.PI/2,'+x':0,'-x':Math.PI}[dir];
+  const T=g=>{ g.rotateY(rot); g.translate(x,y,z); return g; };            // local: x llargada (morro a +x), y alçada, z amplada
+  const add=(g,hex)=>aGeo(T(vcol(g,hex)),AM.carV,o);
+  /* carrosseria: colors per triangle */
+  const g=B.geo.clone(), n=g.attributes.position.count, a=new Float32Array(n*3), C=CARPAL.map((h,i)=>new THREE.Color(i?h:paint));
+  for(let t=0;t<n/3;t++){ const c=C[B.cls[t]]; for(let v=0;v<3;v++){ a[9*t+3*v]=c.r; a[9*t+3*v+1]=c.g; a[9*t+3*v+2]=c.b; } }
+  g.setAttribute('color',new THREE.BufferAttribute(a,3)); aGeo(T(g),AM.carV,o);
+  /* rodes: pneumàtic, llanta amb 5 radis i botó central */
+  const h=M.L/2, xf=h-M.fo, R=M.R;
+  for(const xw of [xf, xf-M.wb]) for(const s of [1,-1]){
+    const zt=s*(carHW(M,xw,R)-M.tw/2-0.02);
+    const ty=new THREE.CylinderGeometry(R,R,M.tw,22); ty.rotateX(Math.PI/2); ty.translate(xw,R,zt); add(ty,0x1E1F21);
+    const zo=zt+s*(M.tw/2+0.003), rm=new THREE.CylinderGeometry(R*0.66,R*0.68,0.02,22); rm.rotateX(Math.PI/2); rm.translate(xw,R,zo-s*0.01); add(rm,M.rim);
+    for(let q=0;q<5;q++){ const sp=new THREE.BoxGeometry(R*0.42,0.06,0.012); sp.translate(R*0.37,0,0); sp.rotateZ(q*2*Math.PI/5+0.3); sp.translate(xw,R,zo+s*0.002); add(sp,M.spk); }
+    const hb=new THREE.CylinderGeometry(0.045,0.045,0.03,12); hb.rotateX(Math.PI/2); hb.translate(xw,R,zo+s*0.008); add(hb,M.spk);
+  }
+  /* retrovisors (a la base del pilar A) */
+  const xm=M.g[1]*(h-M.be)/h-0.12, ym=Math.min(...M.belt.map(p=>p[1]))+0.07, wm=carHW(M,xm,ym);
+  for(const s of [1,-1]){ const mb=new THREE.BoxGeometry(0.2,0.11,0.17); mb.translate(xm,ym,s*(wm+0.05)); add(mb,paint);
+    const gl=new THREE.BoxGeometry(0.004,0.08,0.13); gl.translate(xm-0.1,ym,s*(wm+0.06)); add(gl,0x2A3440); }
+  /* barres de sostre (RAV4 i A4 Avant) */
+  if(M.rails){ const {X,LV}=B.lv, k=h/(h-M.be), ty=xx=>{ let i=X.findIndex(v=>v>=xx/k); return LV[Math.max(i,0)][7]; };
+    for(const s of [1,-1]) for(let q=0;q<4;q++){ const x0=M.rails[0]+(M.rails[1]-M.rails[0])*q/4, x1=x0+(M.rails[1]-M.rails[0])/4, xc=(x0+x1)/2, yt=ty(xc)+0.03;
+      const rb=new THREE.BoxGeometry(x1-x0,0.03,0.04); rb.translate(xc,yt,s*(carHW(M,xc,yt)-0.1)); add(rb,type==='a4'?0xB8BCC0:0x2A2C2E); } }
+  /* col·lisió (mode primera persona) */
+  const ex=dir[1]==='x' ? h : M.W/2+0.15, ez=dir[1]==='x' ? M.W/2+0.15 : h;
+  COLL.push({x0:x-ex,x1:x+ex,y0:y,y1:y+M.H,z0:z-ez,z1:z+ez,f:Object.assign({},o)});
+}
 
 /* caixa en coordenades de l'habitatge A, reflectida per a l'habitatge u */
 function UB(u,x0,x1,y0,y1,z0,z1,mat,o){ const a=mx(u,x0),b=mx(u,x1),c=mz(u,z0),d=mz(u,z1); return aBoxB(Math.min(a,b),Math.max(a,b),y0,y1,Math.min(c,d),Math.max(c,d),mat,o); }
@@ -2264,11 +2430,8 @@ function buildBasement(){
     textPlane([String(i+1)],0.7,0.7,c.clone().add(off),V(0,1,0),{bg:'#9EA2A6',fg:'#FFFFFF',px:128,flags:{floor:f}});
   });
   // cotxes d'exemple
-  const car=(cx,cz,ax,mat)=>{ const [lw,ll]=[1.75,4.2]; const bx=ax==='x'?ll:lw, bz=ax==='x'?lw:ll;
-    aBox(bx,0.62,bz,cx,y+0.55,cz,mat,ow); aBox(ax==='x'?2.2:1.55,0.5,ax==='x'?1.55:2.2,cx,y+1.1,cz,mat,ow);
-    aBox(ax==='x'?2.0:1.58,0.38,ax==='x'?1.58:2.0,cx,y+1.1,cz,AM.glass,ow);
-    for(const s of [-1,1]) for(const t of [-1,1]) aBox(ax==='x'?0.62:0.22,0.62,ax==='x'?0.22:0.62,cx+(ax==='x'?s*1.35:t*0.82),y+0.31,cz+(ax==='x'?t*0.82:s*1.35),AM.tyre,ow); };
-  car(-5.3,-10.75,'x',AM.car1); car(5.25,-5.75,'x',AM.car2); car(0.75,-19.6,'z',AM.car3); car(5.75,-19.6,'z',AM.car4); car(-5.3,-3.25,'x',AM.car3);
+  carModel(-5.3,y,-10.75,'-x','a4',AM.car1,ow); carModel(5.25,y,-5.75,'+x','corolla',AM.car2,ow); carModel(0.75,y,-19.6,'-z','tesla',AM.car3,ow);
+  carModel(5.75,y,-19.6,'-z','rav4',AM.car4,ow); carModel(-5.3,y,-3.25,'-x','corolla',AM.car3,ow);
   // pilars
   for(const [x,z] of [[-2.95,-12],[2.95,-12],[-2.95,-7],[2.95,-7],[2,-17],[-3,-17],[7,-17]]) aBoxB(x-0.2,x+0.2,y,y+H,z-0.2,z+0.2,AM.concrete,ow);
   // fletxes i rètols

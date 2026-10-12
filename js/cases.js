@@ -138,9 +138,9 @@ function buildBasementC(){
     for(const xx of [a,b]) L(xx-0.05,xx+0.05,z0,z1);
     textPlane([String(++n)],0.6,0.6,V((a+b)/2,y+0.016,r==='F'?z0+0.8:z1-0.8),V(0,1,0),{bg:'#9EA2A6',fg:'#FFFFFF',px:128,flags:{floor:f}}); }
   for(let x=-19; x<26; x+=2.4) aBoxB(x,x+1.2,y,y+0.012,-8.25,-8.15,AM.line,o);                  // línia del passadís
-  const cars=[[-18.4,'F',AM.car1],[-13.6,'F',AM.car3],[-8.6,'F',AM.car2],[-3.8,'F',AM.car5],[1.4,'F',AM.car4],[13.8,'F',AM.car6],[21.4,'F',AM.car2],
-    [-6.2,'B',AM.car6],[3.8,'B',AM.car4],[11.4,'B',AM.car1],[16.2,'B',AM.car3],[23.8,'B',AM.car5]];
-  for(const [x,r,m] of cars) carModel(x,y,r==='F' ? (PARK.rowF[0]+PARK.rowF[1])/2+0.1 : (PARK.rowB[0]+PARK.rowB[1])/2-0.1, r==='F'?'+z':'-z', m, o);
+  const cars=[[-18.4,'F','a4',AM.car1],[-13.6,'F','tesla',AM.car3],[-8.6,'F','corolla',AM.car2],[-3.8,'F','rav4',AM.car5],[1.4,'F','a4',AM.car4],[13.8,'F','rav4',AM.car6],
+    [21.4,'F','tesla',AM.car2],[-6.2,'B','corolla',AM.car6],[3.8,'B','tesla',AM.car4],[11.4,'B','rav4',AM.car1],[16.2,'B','corolla',AM.car3],[23.8,'B','a4',AM.car5]];
+  for(const [x,r,t,m] of cars) carModel(x,y,r==='F' ? (PARK.rowF[0]+PARK.rowF[1])/2+0.1 : (PARK.rowB[0]+PARK.rowB[1])/2-0.1, r==='F'?'+z':'-z', t, m, o);
   /* llums del sostre (pantalles estanques), rètols i extintors */
   for(let x=-17; x<26; x+=5) for(const z of [-8.2,-2.6,-13.7]) if(!(x>20 && z>-3)) { aBoxB(x-0.6,x+0.6,-0.42,-0.36,z-0.08,z+0.08,AM.neon,o); aBoxB(x-0.62,x+0.62,-0.36,-0.32,z-0.09,z+0.09,AM.frame,o); }
   textPlane(['APARCAMENT COMUNITARI','planta -1'],2.2,0.5,V(5,y+2.25,B.z0+0.31),V(0,0,1),{bg:'#1F3A5F',fg:'#FFFFFF',flags:{floor:f}});
@@ -156,19 +156,6 @@ function buildBasementC(){
   for(const x of [R.x0-0.15,R.x1+0.15]){ aBoxB(x-0.03,x+0.03,0.95,1.0,R.z0-5,R.z1,AM.rail,{floor:0}); for(let z=R.z0-5;z<=R.z1;z+=1.5) aBoxB(x-0.02,x+0.02,0.05,0.97,z-0.02,z+0.02,AM.rail,{floor:0}); }
   aBoxB(B.x0-0.02,B.x0+0.32,y+2.15,y+2.35,-17.15,-12.45,AM.doorM,o);
 }
-/* cotxe d'exemple (turisme de 4,3 × 1,8 m): perfil lateral extruït, vidres foscos, rodes i llums.
-   dir: cap on mira el morro ('+z', '-z', '+x' o '-x') */
-function carModel(x, y, z, dir, mat, o){
-  const W=1.78, rot={'+z':-Math.PI/2,'-z':Math.PI/2,'+x':0,'-x':Math.PI}[dir];
-  const T=g=>{ g.rotateY(rot); g.translate(x,y,z); return g; };            // local: x llargada (morro a +x), y alçada, z amplada
-  const ext=(pts,d,m)=>{ const sh=new THREE.Shape(); sh.moveTo(...pts[0]); for(const p of pts.slice(1)) sh.lineTo(...p); sh.closePath();
-    const g=new THREE.ExtrudeGeometry(sh,{depth:d,bevelEnabled:false}); g.translate(0,0,-d/2); aGeo(T(g),m,o); };
-  ext([[-2.15,0.32],[-2.15,0.78],[-1.95,0.92],[-1.0,0.98],[-0.55,1.42],[0.85,1.45],[1.35,1.0],[2.05,0.9],[2.15,0.7],[2.15,0.32]],W,mat);
-  ext([[-0.95,1.0],[-0.52,1.38],[0.82,1.4],[1.25,1.02]],W+0.02,AM.glassD);
-  for(const a of [-1.35,1.35]) for(const b of [-0.8,0.8]){ const g=new THREE.CylinderGeometry(0.33,0.33,0.24,14); g.rotateX(Math.PI/2); g.translate(a,0.33,b); aGeo(T(g),AM.tyre,o); }
-  for(const b of [-0.58,0.58]){ aGeo(T(new THREE.BoxGeometry(0.04,0.12,0.26).translate(2.15,0.68,b)),AM.lamp,o); aGeo(T(new THREE.BoxGeometry(0.04,0.1,0.3).translate(-2.15,0.72,b)),AM.red,o); }
-}
-
 /* ---------- cases: murs, finestres, coberta ---------- */
 function buildHouse(u){
   const [hx0,hx1]=houseX(u), id=u.id, o={floor:0, unit:id}, o1={floor:1, unit:id}, H=KC.H, n=u.n, R=AM.rend[n-1];
@@ -289,7 +276,7 @@ function buildStreet(){
     const p=new THREE.CylinderGeometry(0.06,0.08,4.6,8); p.translate(x,KC.yWalk+2.3,6.0); aGeo(p,AM.metal,g);
     aBoxB(x-0.04,x+0.04,KC.yWalk+4.5,KC.yWalk+4.58,5.4,6.0,AM.metal,g); aBoxB(x-0.16,x+0.16,KC.yWalk+4.38,KC.yWalk+4.5,5.2,5.6,AM.lamp,g); }
   for(const x of [-13,-1,15]){ aBoxB(x-0.6,x+0.6,KC.yWalk,KC.yWalk+0.03,4.9,6.1,AM.soilT,g); tree(x,5.5,0.8,g); }
-  carModel(-9.0,KC.yRoad,8.1,'+x',AM.car2,g); carModel(3.5,KC.yRoad,8.1,'+x',AM.car5,g); carModel(17.0,KC.yRoad,11.9,'-x',AM.car3,g);
+  carModel(-9.0,KC.yRoad,8.1,'+x','rav4',AM.car2,g); carModel(3.5,KC.yRoad,8.1,'+x','a4',AM.car5,g); carModel(17.0,KC.yRoad,11.9,'-x','tesla',AM.car3,g);
 }
 /* ---------- zona comuna del RITU: grava, camí, mur amb porta, tanca amb el jardí de la casa 4 i llosa del RITU ---------- */
 function buildRITUSite(){

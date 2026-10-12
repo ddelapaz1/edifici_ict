@@ -110,6 +110,7 @@ Bloque «RENDIMENT» antes de `loop()` en `js/app.js`:
 | Modelos glTF | `MODELS`, `loadModels()`, `placeModel()`, `modelPoint()` (al final del segundo `<script>`) |
 | Paisaje de fondo | `skyTexture()`, `buildMountains()`, `buildLandscape()`, `landscapeVisibility()` |
 | Antenas | `buildAntennas()` |
+| Cotxes (Tesla Model 3, Corolla, RAV4, A4 Avant; colors per vèrtex, material `AM.carV`) | `CARS`, `carBody()`, `carClass()`, `carModel(x,y,z,dir,type,mat,o)` |
 
 ### Cables: diámetros y curvas
 

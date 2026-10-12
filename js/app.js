@@ -1995,13 +1995,13 @@ function archMats(){
   AM.wall=L(0xEDE8DF); AM.wallIn=L(0xF6F3EE); AM.facade=L(0xE7DCCB); AM.facade2=L(0xC98F6B); AM.slab=L(0xD9D5CE); AM.roof=L(0xC9C4BB);
   AM.edge=L(0xB9B2A6); AM.plinth=L(0xA8A39A);
   AM.glass=L(0x8FB3CF,{transparent:true, opacity:0.42, depthWrite:false}); AM.glassRail=L(0xA9C9DC,{transparent:true, opacity:0.32, depthWrite:false});
-  AM.frame=L(0x4A4F55); AM.rail=L(0x5B6168); AM.stair=L(0xCFCAC2); AM.stairEdge=L(0xB2ABA0); AM.furn=L(0xC8B79E); AM.furn2=L(0x9DB4C8); AM.furn3=L(0x7E9A6E);
+  AM.frame=L(0x4A4F55); AM.rail=L(0x5B6168); AM.stair=L(0xCFCAC2); AM.stairEdge=L(0xB2ABA0); AM.furn=L(0xC8B79E); AM.furn2=L(0x9DB4C8); AM.furn2b=L(0xB9CBDA); AM.furn3=L(0x7E9A6E);
   AM.ground=L(0xC9D8B8); AM.side=L(0xCFCCC6); AM.street=L(0x8E9196); AM.soil=L(0x8B6B4A); AM.found=L(0xB8B2A8);
   AM.park=L(0x9EA2A6); AM.line=L(0xF4F4F0); AM.lineY=L(0xE8C547); AM.concrete=L(0xB7B5B0); AM.door=L(0x9A7A58); AM.doorM=L(0x8E979F); AM.liftDoor=L(0xA9B1B8);
   AM.car1=L(0x3F6FB5); AM.car2=L(0xB8433A); AM.car3=L(0xD9D9D4); AM.car4=L(0x3E4348); AM.tyre=L(0x222222);
   AM.shop=L(0xEFE6D2); AM.shelf=L(0xB98B5E); AM.awning=L(0x2F8A5B); AM.tile=L(0xD8CDBB); AM.lobby=L(0xE2DBD0);
   AM.ref=new THREE.LineBasicMaterial({color:0x5D6B7A});
-  AM.list=[AM.wall,AM.wallIn,AM.facade,AM.facade2,AM.slab,AM.roof,AM.edge,AM.plinth,AM.frame,AM.rail,AM.stair,AM.stairEdge,AM.furn,AM.furn2,AM.furn3,AM.found,AM.park,AM.concrete,AM.door,AM.doorM,AM.liftDoor,AM.shop,AM.shelf,AM.tile,AM.lobby,AM.car1,AM.car2,AM.car3,AM.car4,AM.tyre,AM.line,AM.lineY,AM.awning];
+  AM.list=[AM.wall,AM.wallIn,AM.facade,AM.facade2,AM.slab,AM.roof,AM.edge,AM.plinth,AM.frame,AM.rail,AM.stair,AM.stairEdge,AM.furn,AM.furn2,AM.furn2b,AM.furn3,AM.found,AM.park,AM.concrete,AM.door,AM.doorM,AM.liftDoor,AM.shop,AM.shelf,AM.tile,AM.lobby,AM.car1,AM.car2,AM.car3,AM.car4,AM.tyre,AM.line,AM.lineY,AM.awning];
 }
 
 /* ---------- cua de caixes d'arquitectura: es fusionen per material i etiquetes ---------- */
@@ -2018,6 +2018,12 @@ function aBox(w,h,d,x,y,z,mat,o={}){
   return null;
 }
 function aBoxB(x0,x1,y0,y1,z0,z1,mat,o){ return aBox(Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0),(x0+x1)/2,(y0+y1)/2,(z0+z1)/2,mat,o); }
+/* geometria qualsevol a la cua d'arquitectura (es fusiona per material, com aBox) */
+function aGeo(g, mat, o={}){
+  const key=mat.uuid+'|'+JSON.stringify(o);
+  if(!ARCHQ.has(key)) ARCHQ.set(key,{mat,flags:Object.assign({},o),geos:[]});
+  ARCHQ.get(key).geos.push(g.index ? g.toNonIndexed() : g);
+}
 function mergeGeos(geos){
   let n=0; for(const g of geos) n+=g.attributes.position.count;
   const pos=new Float32Array(n*3), nor=new Float32Array(n*3), uv=new Float32Array(n*2); let o=0;
@@ -2035,6 +2041,14 @@ function addArch(mesh, o){ ud(mesh, Object.assign({kind:'arch'}, o)); scene.add(
 
 /* caixa en coordenades de l'habitatge A, reflectida per a l'habitatge u */
 function UB(u,x0,x1,y0,y1,z0,z1,mat,o){ const a=mx(u,x0),b=mx(u,x1),c=mz(u,z0),d=mz(u,z1); return aBoxB(Math.min(a,b),Math.max(a,b),y0,y1,Math.min(c,d),Math.max(c,d),mat,o); }
+/* punt (x, z) de la disposició A a l'escena (el model de cases la redefineix) */
+function UXZ(u,x,z){ return V(mx(u,x),0,mz(u,z)); }
+/* geometria unitària centrada (cilindre, esfera… simètrica respecte de y) escalada a una caixa de la disposició A.
+   No s'infla com aBox: per a peces petites (tiradors, aixetes) i formes arrodonides del mobiliari. */
+function UG(u,g,x0,x1,y0,y1,z0,z1,mat,o){
+  const a=UXZ(u,x0,z0), b=UXZ(u,x1,z1);
+  g.scale(Math.abs(b.x-a.x),y1-y0,Math.abs(b.z-a.z)); g.translate((a.x+b.x)/2,(y0+y1)/2,(a.z+b.z)/2); aGeo(g,mat,o);
+}
 
 /* paret amb obertures. axis 'x': paret al llarg de x (gruix en z); 'z': al llarg de z.
    ops: [a0,a1,b0,b1] (a: coordenada al llarg de la paret; b: alçada relativa a y0) */
@@ -2431,31 +2445,82 @@ function buildPartitions(u){
   W(-7.75,-6.0,3.2-t,3.2+t); W(-6.0-t,-6.0+t,3.2,3.4); W(-6.0-t,-6.0+t,4.1,4.75);
   B(-2.2,-2.0,y,y+0.012,-3.4,-2.5,AM.edge,o);                          // llindar
 }
-/* mobiliari (disposició A). El 2n A en té més detall. */
+/* mobiliari (disposició A). Formes senzilles fusionades per material (cua d'arquitectura): no afegeixen malles.
+   El 2n A en té més (menjador, armaris, planta, balcó). */
 function buildFurniture(u){
   const y2=yb(u.f), o={floor:u.f,unit:u.id};
-  const F=(x0,x1,y0,y1,z0,z1,m)=>UB(u,x0,x1,y2+y0,y2+y1,z0,z1,m,o);
-  F(-7.6,-6.0,0,0.45,1.0,2.0,AM.furn2); F(-7.6,-7.3,0,0.8,1.0,2.0,AM.furn2);      // sofà
-  F(-7.6,-6.6,0,0.45,-1.5,-1.15,AM.furn);                                       // moble TV
-  F(-6.35,-5.65,0.93,0.97,-1.75,-1.48,AM.furn);                                 // prestatge de l'ONT
-  F(-7.7,-4.6,0,0.9,-4.7,-4.15,AM.furn);                                        // taulell de cuina
-  F(-4.3,-2.6,0,0.5,3.0,4.7,AM.furn2);                                          // llit dormitori 1
-  F(-3.3,-2.3,0.68,0.72,2.05,2.5,AM.furn);
-  for(const [lx,lz] of [[-3.27,2.08],[-2.33,2.08],[-3.27,2.47],[-2.33,2.47]]) F(lx-0.025,lx+0.025,0,0.68,lz-0.025,lz+0.025,AM.furn);
-  F(-4.3,-2.6,0,0.5,-0.4,1.2,AM.furn2);                                         // llit dormitori 2
-  F(-7.6,-7.2,0,0.42,4.2,4.65,AM.wallIn); F(-6.9,-6.4,0.6,0.85,4.35,4.7,AM.wallIn);   // bany
-  F(-3.0,-2.3,0,0.02,-3.3,-2.6,AM.furn3);                                       // estora del rebedor
+  const F=(x0,x1,y0,y1,z0,z1,m)=>UB(u,x0,x1,y2+y0,y2+y1,z0,z1,m,o);                                       // caixa
+  const D=(x0,x1,y0,y1,z0,z1,m)=>UG(u,new THREE.BoxGeometry(1,1,1),x0,x1,y2+y0,y2+y1,z0,z1,m,o);           // caixa sense inflar: peces petites i cossos amb detalls a la cara
+  const C=(x0,x1,y0,y1,z0,z1,m,rt=1,seg=20)=>UG(u,new THREE.CylinderGeometry(0.5*rt,0.5,1,seg),x0,x1,y2+y0,y2+y1,z0,z1,m,o);   // cilindre el·líptic; rt: radi de dalt relatiu
+  const E=(x0,x1,y0,y1,z0,z1,m)=>UG(u,new THREE.SphereGeometry(0.5,16,10),x0,x1,y2+y0,y2+y1,z0,z1,m,o);    // el·lipsoide
+  const legs=(x0,x1,z0,z1,h,m,s=0.04)=>{ for(const x of [x0,x1-s]) for(const z of [z0,z1-s]) F(x,x+s,0,h,z,z+s,m); };
+  const table=(x0,x1,z0,z1,h,m)=>{ F(x0,x1,h-0.03,h,z0,z1,m); legs(x0+0.03,x1-0.03,z0+0.03,z1-0.03,h-0.03,m); };
+  const chair=(cx,cz,dx,dz,m)=>{ F(cx-0.21,cx+0.21,0.43,0.47,cz-0.21,cz+0.21,m); legs(cx-0.2,cx+0.2,cz-0.2,cz+0.2,0.43,m,0.03);   // respatller cap a (dx, dz)
+    const bx=cx+dx*0.19, bz=cz+dz*0.19; F(dx?bx-0.02:cx-0.21, dx?bx+0.02:cx+0.21, 0.47,0.88, dz?bz-0.02:cz-0.21, dz?bz+0.02:cz+0.21, m); };
+  const lamp=(cx,cz,y0)=>{ C(cx-0.06,cx+0.06,y0,y0+0.02,cz-0.06,cz+0.06,AM.frame); C(cx-0.01,cx+0.01,y0+0.02,y0+0.22,cz-0.01,cz+0.01,AM.frame,1,8);
+    C(cx-0.1,cx+0.1,y0+0.2,y0+0.36,cz-0.1,cz+0.1,AM.tile,0.7); };
+  /* llit: capçal a l'extrem 'head' ('x0' o 'z1'); a: distància des del capçal, b: de través */
+  const bed=(x0,x1,z0,z1,head)=>{ const hx=head==='x0', L=hx?x1-x0:z1-z0, W=hx?z1-z0:x1-x0;
+    const R=(a0,a1,b0,b1)=>hx ? [x0+a0,x0+a1,z0+b0,z0+b1] : [x0+b0,x0+b1,z1-a1,z1-a0];
+    const B=(a0,a1,y0,y1,b0,b1,m,f=F)=>{ const [p,q,r,t]=R(a0,a1,b0,b1); f(p,q,y0,y1,r,t,m); };
+    B(-0.05,0,0,0.95,-0.03,W+0.03,AM.shelf);                                              // capçal
+    B(0,L,0.1,0.3,0,W,AM.shelf); for(const a of [0.05,L-0.1]) for(const b of [0.05,W-0.1]) B(a,a+0.05,0,0.1,b,b+0.05,AM.frame);   // somier i potes
+    B(0.02,L-0.02,0.3,0.5,0.02,W-0.02,AM.wallIn);                                          // matalàs
+    B(0.6,L,0.5,0.54,0,W,AM.furn2); B(L,L+0.02,0.3,0.54,0,W,AM.furn2);                      // edredó
+    B(0.6,L,0.3,0.54,-0.02,0,AM.furn2); B(0.6,L,0.3,0.54,W,W+0.02,AM.furn2);
+    const n=W>1.2?2:1, w=(W-0.1)/n; for(let i=0;i<n;i++) B(0.08,0.48,0.47,0.63,0.08+i*w,0.02+(i+1)*w,AM.wallIn,E);   // coixins
+  };
+  // SALA: sofà de tres places (respatller cap a +z) davant de la TV
+  F(-7.6,-6.0,0.1,0.4,1.0,2.0,AM.furn2); legs(-7.58,-6.02,1.02,1.98,0.1,AM.frame);
+  F(-7.6,-6.0,0.4,0.85,1.78,2.0,AM.furn2); F(-7.6,-7.42,0.4,0.62,1.0,1.78,AM.furn2); F(-6.18,-6.0,0.4,0.62,1.0,1.78,AM.furn2);   // respatller i braços
+  for(const [a,b] of [[-7.42,-6.8],[-6.8,-6.18]]){ F(a+0.01,b-0.01,0.4,0.52,1.02,1.76,AM.furn2b); F(a+0.01,b-0.01,0.52,0.82,1.64,1.78,AM.furn2b); }   // coixins
+  D(-7.6,-6.6,0.06,0.45,-1.5,-1.15,AM.furn); F(-7.58,-6.62,0,0.06,-1.48,-1.2,AM.frame);   // moble TV
+  D(-7.104,-7.096,0.08,0.43,-1.152,-1.146,AM.frame); for(const x of [-7.15,-7.05]) D(x-0.04,x+0.04,0.36,0.375,-1.15,-1.13,AM.liftDoor);
+  F(-6.35,-5.65,0.93,0.97,-1.75,-1.48,AM.furn);                                          // prestatge de l'ONT
+  table(-7.35,-6.75,0.1,0.6,0.4,AM.furn);                                                // tauleta de centre
+  // CUINA: mobles baixos al llarg de la paret (frontal a z = -4.17), nevera, campana i mobles alts
+  F(-7.7,-5.25,0,0.1,-4.7,-4.22,AM.frame); D(-7.7,-5.25,0.1,0.86,-4.7,-4.17,AM.wallIn); D(-7.72,-5.23,0.86,0.9,-4.72,-4.13,AM.stair);
+  for(const x of [-7.1,-6.5,-5.9]) D(x-0.004,x+0.004,0.12,0.84,-4.172,-4.164,AM.frame);
+  for(const x of [-7.4,-6.8,-6.2,-5.57]) D(x-0.08,x+0.08,0.76,0.775,-4.17,-4.15,AM.liftDoor);   // tiradors
+  D(-7.3,-6.8,0.9,0.906,-4.62,-4.25,AM.liftDoor); D(-7.26,-6.84,0.906,0.908,-4.58,-4.29,AM.frame);   // aigüera
+  C(-7.07,-7.03,0.9,1.14,-4.68,-4.64,AM.liftDoor,1,10); D(-7.06,-7.04,1.12,1.14,-4.66,-4.48,AM.liftDoor);   // aixeta
+  D(-6.2,-5.6,0.9,0.912,-4.65,-4.2,AM.frame);                                             // placa de cocció
+  for(const [x,z] of [[-6.05,-4.3],[-5.75,-4.3],[-6.05,-4.55],[-5.75,-4.55]]) C(x-0.08,x+0.08,0.912,0.915,z-0.08,z+0.08,AM.car4,1,16);
+  F(-6.25,-5.55,1.55,1.68,-4.7,-4.25,AM.liftDoor); F(-6.0,-5.8,1.68,2.78,-4.7,-4.52,AM.liftDoor);   // campana
+  D(-7.7,-6.3,1.45,2.15,-4.7,-4.38,AM.wallIn); D(-7.004,-6.996,1.47,2.13,-4.382,-4.374,AM.frame);   // mobles alts
+  for(const x of [-7.06,-6.94]) D(x-0.006,x+0.006,1.5,1.62,-4.38,-4.36,AM.liftDoor);
+  D(-5.2,-4.55,0,1.85,-4.7,-4.1,AM.liftDoor); D(-5.2,-4.55,1.195,1.205,-4.102,-4.096,AM.frame);   // nevera
+  for(const [y0,y1] of [[0.85,1.1],[1.3,1.55]]) D(-4.64,-4.62,y0,y1,-4.1,-4.07,AM.frame);
+  // BANY: plat de dutxa amb mampara, vàter i lavabo amb moble i mirall
+  D(-7.72,-6.95,0,0.04,3.28,4.04,AM.wallIn); C(-7.36,-7.3,0.04,0.044,3.63,3.69,AM.frame,1,12);
+  D(-7.7,-7.0,0.04,1.95,4.03,4.045,AM.glass); D(-7.7,-7.0,1.95,1.965,4.025,4.05,AM.liftDoor);
+  D(-7.745,-7.72,0.95,1.95,3.65,3.67,AM.liftDoor); D(-7.745,-7.6,1.95,1.965,3.65,3.67,AM.liftDoor); C(-7.68,-7.52,1.93,1.95,3.58,3.74,AM.liftDoor,1,16);
+  D(-7.745,-7.7,1.0,1.08,3.6,3.72,AM.liftDoor);                                           // aixeta de la dutxa
+  C(-7.55,-7.25,0,0.38,4.2,4.6,AM.wallIn,1.25); C(-7.57,-7.23,0.38,0.41,4.17,4.6,AM.wallIn);   // vàter
+  F(-7.58,-7.22,0.41,0.8,4.56,4.72,AM.wallIn); C(-7.42,-7.38,0.8,0.806,4.62,4.66,AM.liftDoor,1,10);   // cisterna i polsador
+  D(-6.9,-6.4,0.15,0.78,4.38,4.72,AM.shelf); D(-6.88,-6.42,0.6,0.61,4.375,4.38,AM.frame);   // moble del lavabo
+  D(-6.92,-6.38,0.78,0.84,4.36,4.72,AM.wallIn); C(-6.8,-6.5,0.84,0.846,4.42,4.64,AM.tile,1,20);
+  C(-6.665,-6.635,0.84,1.0,4.66,4.69,AM.liftDoor,1,8); D(-6.66,-6.64,0.97,0.99,4.58,4.68,AM.liftDoor);
+  D(-6.85,-6.45,1.0,1.45,4.72,4.735,AM.glassRail);                                         // mirall
+  // DORMITORI 1: llit doble, tauleta de nit amb llum, calaixera sota la finestra i taula de l'ordinador
+  bed(-4.35,-2.45,2.95,4.35,'x0');
+  F(-4.35,-3.95,0,0.45,2.5,2.9,AM.shelf); lamp(-4.15,2.7,0.45);
+  D(-3.5,-2.7,0,0.75,4.4,4.72,AM.shelf); for(const y of [0.27,0.51]) D(-3.48,-2.72,y-0.004,y+0.004,4.395,4.4,AM.frame);
+  for(const y of [0.15,0.39,0.63]) D(-3.16,-3.04,y-0.01,y+0.01,4.38,4.395,AM.liftDoor);
+  F(-3.3,-2.3,0.68,0.72,2.05,2.5,AM.furn); legs(-3.29,-2.31,2.06,2.49,0.68,AM.furn,0.05);
+  // DORMITORI 2: llit (capçal a l'envà del dormitori 1) i tauleta
+  bed(-3.55,-2.25,-0.35,1.55,'z1');
+  F(-4.05,-3.65,0,0.45,1.1,1.5,AM.shelf); lamp(-3.85,1.3,0.45);
+  F(-3.0,-2.3,0,0.02,-3.3,-2.6,AM.furn3);                                               // estora del rebedor
   if(u.id==='2A'){
-    F(-6.4,-5.2,0,0.74,0.2,1.2,AM.furn); F(-6.35,-5.25,0.74,0.77,0.15,1.25,AM.furn);       // taula del menjador
-    for(const [cx,cz] of [[-6.6,0.7],[-5.0,0.7]]) F(cx-0.2,cx+0.2,0,0.45,cz-0.2,cz+0.2,AM.furn2);
-    F(-7.7,-7.1,0,0.85,-3.2,-2.0,AM.liftDoor);                                  // nevera i rentaplats
-    F(-6.2,-5.6,0.9,0.93,-4.65,-4.2,AM.frame);                                  // placa de cocció
-    F(-4.3,-3.7,0,2.0,4.1,4.7,AM.shelf);                                        // armari del dormitori 1
-    F(-3.6,-2.4,0,2.0,-2.1,-1.6,AM.shelf);                                      // armari del dormitori 2
-    F(-4.3,-4.0,0,1.6,-4.7,-4.4,AM.shelf);                                      // penjador del rebedor
-    F(-7.0,-5.6,0,0.02,0.0,2.4,AM.awning);                                      // catifa
-    F(-7.0,-6.6,0,1.5,-0.9,-0.6,AM.furn3);                                      // planta
-    F(-7.4,-6.4,0,0.6,5.5,6.0,AM.furn);                                         // taula del balcó
+    table(-6.0,-5.0,-0.25,0.65,0.76,AM.furn); chair(-5.5,-0.5,0,-1,AM.furn); chair(-5.5,0.9,0,1,AM.furn);   // menjador
+    C(-7.68,-7.38,0,0.35,2.3,2.6,AM.facade2,1.2); E(-7.73,-7.3,0.3,1.25,2.22,2.68,AM.furn3);   // planta
+    D(-3.6,-2.4,0,2.0,-2.1,-1.6,AM.shelf); D(-3.004,-2.996,0.02,1.98,-1.6,-1.594,AM.frame);   // armari del dormitori 2
+    for(const x of [-3.06,-2.94]) D(x-0.01,x+0.01,0.9,1.2,-1.594,-1.574,AM.liftDoor);
+    F(-4.3,-4.0,0,1.6,-4.7,-4.4,AM.shelf);                                                // penjador del rebedor
+    F(-7.0,-5.6,0,0.02,0.0,2.4,AM.awning);                                                // catifa
+    C(-7.2,-6.6,0.7,0.73,5.4,6.0,AM.furn); C(-6.92,-6.88,0,0.7,5.68,5.72,AM.frame,1,10);   // taula rodona del balcó
+    chair(-7.45,5.7,-1,0,AM.furn); chair(-6.35,5.7,1,0,AM.furn);
   }
 }
 

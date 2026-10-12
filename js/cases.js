@@ -44,12 +44,8 @@ function UB(u,x0,x1,y0,y1,z0,z1,mat,o){
   const a=UW(u,x0,0,z0), b=UW(u,x1,0,z1);
   return aBoxB(Math.min(a.x,b.x),Math.max(a.x,b.x),y0,y1,Math.min(a.z,b.z),Math.max(a.z,b.z),mat,o);
 }
-/* geometria qualsevol a la cua d'arquitectura (es fusiona per material, com aBox) */
-function aGeo(g, mat, o={}){
-  const key=mat.uuid+'|'+JSON.stringify(o);
-  if(!ARCHQ.has(key)) ARCHQ.set(key,{mat,flags:Object.assign({},o),geos:[]});
-  ARCHQ.get(key).geos.push(g.index ? g.toNonIndexed() : g);
-}
+/* punt (x, z) de la disposició A a l'escena (per a UG del mobiliari) */
+function UXZ(u,x,z){ return UW(u,x,0,z); }
 /* caixa girada al voltant de l'eix x (vessants de la coberta): centre c, angle a */
 function aRotX(w,h,d,a,c,mat,o){ const g=new THREE.BoxGeometry(w,h,d); g.rotateX(a); g.translate(c.x,c.y,c.z); aGeo(g,mat,o); }
 

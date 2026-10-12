@@ -1202,7 +1202,7 @@ let camAnim=null;
 function flyTo(p,t){
   if(!renderer) return;
   if(S.reduced){ camera.position.copy(p); controls.target.copy(t); controls.update(); return; }
-  camAnim={p0:camera.position.clone(), t0:controls.target.clone(), p1:p.clone(), t1:t.clone(), s:performance.now(), d:650};
+  WHEEL.d=0; camAnim={p0:camera.position.clone(), t0:controls.target.clone(), p1:p.clone(), t1:t.clone(), s:performance.now(), d:650};
 }
 /* vistes predefinides (menú «Vistes»): cada canvi es desa a l'historial de «Tornar» */
 function setView(name, opt={}){
@@ -1892,10 +1892,20 @@ function initGL(){
   controls.addEventListener('change',()=>{ const t=controls.target, K=CFG.clamp; t.x=THREE.MathUtils.clamp(t.x,...K.x); t.y=THREE.MathUtils.clamp(t.y,...K.y); t.z=THREE.MathUtils.clamp(t.z,...K.z); });
   controls.addEventListener('start',()=>{ camAnim=null; });
   const cv=renderer.domElement;
+  // Zoom suau: la roda no mou la càmera de cop; s'acumula i loop() l'envia a OrbitControls a trossos (wheelTick)
+  $('#view3d').addEventListener('wheel',e=>{ if(WHEEL.pass || e.target!==cv || S.reduced || !controls.enabled || !controls.enableZoom) return;
+    e.preventDefault(); e.stopPropagation(); const d=e.deltaY*(e.deltaMode===1?33:e.deltaMode===2?400:1);
+    if(Math.sign(d)!==Math.sign(WHEEL.d)) WHEEL.d=0; WHEEL.d+=d; WHEEL.x=e.clientX; WHEEL.y=e.clientY; },{capture:true,passive:false});
   cv.addEventListener('pointerdown',onPointerDown); cv.addEventListener('pointermove',onPointerMove);
   cv.addEventListener('pointerup',onPointerUp); cv.addEventListener('pointerleave',()=>{ hoverQueued=null; setHover(null); });
   addEventListener('resize',onResize); new ResizeObserver(onResize).observe($('#view3d'));
   return true;
+}
+const WHEEL={d:0,x:0,y:0,pass:false};
+function wheelTick(dt){
+  if(!WHEEL.d) return;
+  let d=WHEEL.d*(1-Math.exp(-dt*16)); if(Math.abs(WHEEL.d-d)<0.5) d=WHEEL.d; WHEEL.d-=d;
+  WHEEL.pass=true; renderer.domElement.dispatchEvent(new WheelEvent('wheel',{deltaY:d,clientX:WHEEL.x,clientY:WHEEL.y,bubbles:true,cancelable:true})); WHEEL.pass=false;
 }
 let last=performance.now();
 function loop(now){
@@ -1903,7 +1913,7 @@ function loop(now){
   const dt=Math.min((now-last)/1000,0.1); last=now;
   if(camAnim){ let u=(now-camAnim.s)/camAnim.d; if(u>=1){u=1;} const k=u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
     camera.position.lerpVectors(camAnim.p0,camAnim.p1,k); controls.target.lerpVectors(camAnim.t0,camAnim.t1,k); if(u>=1) camAnim=null; }
-  controls.update();
+  wheelTick(dt); controls.update();
   if(Math.abs(VOFF.x-VOFF.tx)>0.5 || Math.abs(VOFF.y-VOFF.ty)>0.5){ const k=Math.min(1,dt*10); VOFF.x+=(VOFF.tx-VOFF.x)*k; VOFF.y+=(VOFF.ty-VOFF.y)*k; if(Math.abs(VOFF.x-VOFF.tx)<=0.5) VOFF.x=VOFF.tx; if(Math.abs(VOFF.y-VOFF.ty)<=0.5) VOFF.y=VOFF.ty; applyViewOffset(); }
   doHover(); leavesTick(dt);
   if(needLabels) rebuildLabels();

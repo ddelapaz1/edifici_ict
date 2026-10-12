@@ -746,13 +746,11 @@ function buildUnit(u, C){
 const PPOS = {
   dat_cuina:{x:-6.85,z:-1.89,dir:-1,yl:0.16}, rtv_cuina:{x:-7.2,z:-1.89,dir:-1,yl:0.16},
   tba_sala:{x:-7.4,z:-1.71,dir:1,yl:0.07}, rtv_sala:{x:-6.95,z:-1.71,dir:1,yl:0.07}, dat_sala:{x:-6.3,z:-1.71,dir:1,yl:0.07}, fo_sala:{x:-5.92,z:-1.71,dir:1,yl:0.07},
-  dat2_sala:{ax:'x',x:-7.71,z:2.6,dir:1,yl:0.07},
   rtv_d2:{x:-4.0,z:-2.11,dir:1,yl:0.25}, dat_d2:{x:-3.65,z:-2.11,dir:1,yl:0.25},
   rtv_d1:{x:-4.2,z:1.69,dir:1,yl:0.16}, tba_d1:{x:-3.88,z:1.69,dir:1,yl:0.16}, dat_d1:{x:-3.5,z:1.69,dir:1,yl:0.16},
-  dat2_d1:{ax:'x',x:-4.36,z:2.75,dir:1,yl:0.07},
   conf:{x:-2.45,z:-4.71,dir:1,yl:0.5}
 };
-const EXIT_ORDER = ['dat_cuina','rtv_cuina','tba_sala','rtv_sala','dat_sala','fo_sala','dat2_sala','rtv_d2','dat_d2','rtv_d1','tba_d1','dat_d1','dat2_d1','conf'];
+const EXIT_ORDER = ['dat_cuina','rtv_cuina','tba_sala','rtv_sala','dat_sala','fo_sala','rtv_d2','dat_d2','rtv_d1','tba_d1','dat_d1','conf'];
 function dedupe(pts){ const o=[]; for(const p of pts){ const l=o[o.length-1]; if(!l || Math.hypot(l[0]-p[0],l[1]-p[1],l[2]-p[2])>1e-4) o.push(p); } return o; }
 
 /* multiplexor passiu RJ45 de l'RTR (1 entrada, 8 sortides telefòniques i 1 sortida ADSL), 142 × 60 × 24 mm.
@@ -765,7 +763,7 @@ const MUXJ = n => { const mp=modelPoint('mux', typeof n==='number' ? 'j'+n : n);
    (sortida del multiplexor) i l'altra de dades (latiguillo de l'encaminador); la resta queden lliures amb el connector RJ45 */
 const MUXOUT={dat_sala_a:1, dat_d1_a:2};
 const PATCHED={dat_sala_b:-2.95, dat_d1_b:-2.77};
-const FREEEND={dat2_sala:-2.91, dat_cuina:-2.88, dat_d2:-2.85, dat2_d1:-2.82};
+const FREEEND={dat_cuina:-2.88, dat_d2:-2.85};
 let MUX_TEX=null;
 function muxTex(){ return MUX_TEX ||= canvasTex(568,240,(g,w,h)=>{ const k=4;
   g.fillStyle='#2C2E31'; g.fillRect(0,0,w,h); g.strokeStyle='#45484C'; g.lineWidth=6; g.strokeRect(3,3,w-6,h-6);

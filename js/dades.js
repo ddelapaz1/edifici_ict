@@ -430,8 +430,8 @@ const ROOM = k => ROOMS.find(r=>r.k===k);
 /* preses de cada habitatge: k = part de l'id, t = tipus, room, dbl = BAT doble */
 const PRESES = [
   {k:'rtv_sala', t:'rtv', room:'sala'}, {k:'rtv_cuina', t:'rtv', room:'cuina'}, {k:'rtv_d1', t:'rtv', room:'d1'}, {k:'rtv_d2', t:'rtv', room:'d2'},
-  {k:'dat_sala', t:'dat', room:'sala', dbl:true, nearFO:true}, {k:'dat2_sala', t:'dat', room:'sala'},
-  {k:'dat_d1', t:'dat', room:'d1', dbl:true}, {k:'dat2_d1', t:'dat', room:'d1'},
+  {k:'dat_sala', t:'dat', room:'sala', dbl:true, nearFO:true},
+  {k:'dat_d1', t:'dat', room:'d1', dbl:true},
   {k:'dat_cuina', t:'dat', room:'cuina'}, {k:'dat_d2', t:'dat', room:'d2'},
   {k:'tba_sala', t:'tba', room:'sala'}, {k:'tba_d1', t:'tba', room:'d1'},
   {k:'fo_sala', t:'fo', room:'sala'}
@@ -576,7 +576,7 @@ function defUnit(u) {
    what:'Són cables de parells trenats que surten del registre de terminació de xarxa, acabats en connectors RJ45 etiquetats, i van en estrella fins a les BAT RJ45.',
    purpose:'Permeten connectar ordinadors, televisors intel·ligents o telèfons a l\'encaminador o al PAU de parells.',
    where:`Canalització interior ${DEL} (un tub per registre de presa).`,
-   connects:'Vuit cables: dos a la BAT doble de la sala, un a l\'altra BAT de la sala, dos a la BAT doble del dormitori 1, un a l\'altra BAT del dormitori 1, un a la cuina i un al dormitori 2.',
+   connects:'Sis cables: dos a la BAT doble de la sala, dos a la BAT doble del dormitori 1, un a la BAT de la cuina i un a la del dormitori 2.',
    example:'L\'encaminador de la sala envia dades pel segon connector de la BAT doble fins al registre de terminació de xarxa; allà un latiguillo les passa al cable del dormitori 1.',
    confusion:'Aquest cable no és fibra: la fibra acaba a la presa òptica i a l\'ONT. Després de l\'encaminador, les dades van per parells trenats.',
    canals:[`ci_${U}`], links:[`pau_pt_${U}`,`router_${U}`]});
@@ -605,14 +605,14 @@ function defUnit(u) {
     const dblTxt = p.dbl ? ' doble (dos connectors RJ45 alimentats per cables independents)' : '';
     const why = {
       rtv:'Normativa: una presa de RTV per estància, excepte banys i trasters (mínim dues).',
-      dat: p.room==='sala' ? (p.dbl ? 'Normativa: a la sala, almenys dos registres amb BAT; un amb BAT doble a menys de 50 cm de la presa de fibra.' : 'Normativa: la sala (estància principal) ha de tenir almenys dos registres de presa de parells trenats.')
-          : p.room==='d1' ? (p.dbl ? 'Normativa: com a mínim una altra estància ha de tenir una BAT doble; aquí és el dormitori 1.' : 'Normativa: les dues estàncies principals tenen dos registres de presa de parells trenats.')
-          : 'Normativa: a la resta d\'estàncies (excepte banys i trasters), un registre de presa de parells trenats amb BAT.',
+      dat: p.room==='sala' ? (p.dbl ? 'Normativa: una presa RJ45 a cada estància excepte banys i trasters; a la sala, una BAT doble a menys de 50 cm de la presa de fibra.' : '')
+          : p.room==='d1' ? (p.dbl ? 'Normativa: una altra estància ha de tenir una BAT doble; aquí és el dormitori 1.' : '')
+          : 'Normativa: una presa RJ45 a cada estància excepte banys i trasters; a la cuina i al dormitori 2, una BAT simple.',
       tba:'Normativa: dues preses coaxials de TBA, en dues estàncies diferents (aquí, les dues estàncies principals).',
       fo:'Normativa (última redacció): una presa de fibra òptica en una estància principal, preferiblement la sala d\'estar, a prop de la BAT RJ45 doble.'
     }[p.t];
     def({id:`rp_${pid}`, fam:'recinte', layer:'registres', svc:T.svc, floor:f, unit:U, zone:'privada', room:p.room, container:true, ptype:p.t,
-     name:`${T.reg}${p.k.startsWith('dat2')?' (2a)':''} — ${R.name}, ${N}`, sigla:'',
+     name:`${T.reg} — ${R.name}, ${N}`, sigla:'',
      what:`És la caixa encastada a la paret que allotja la ${T.bat[0].toLowerCase()+T.bat.slice(1)}${dblTxt}.`,
      purpose:`Protegeix l\'extrem del cable interior i fixa la BAT a la paret. ${why}`,
      where:`${cap(R.name)} ${DEL}, a prop del terra.`,
@@ -621,7 +621,7 @@ function defUnit(u) {
      confusion:'El registre de presa és la caixa; la BAT és el connector frontal on l\'usuari endolla el cable. A menys de 50 cm hi ha d\'haver una presa de corrent.',
      nets:[`${T.net}_${U}`], canals:[`ci_${U}`], links:[`bat_${pid}`]});
     def({id:`bat_${pid}`, fam:'punt', layer:'punts', svc:T.svc, floor:f, unit:U, zone:'privada', room:p.room, parent:`rp_${pid}`, ptype:p.t, dbl:!!p.dbl,
-     name:`${T.bat}${p.dbl?' doble':''}${p.k.startsWith('dat2')?' (2a)':''} — ${R.name}, ${N}`, sigla:'BAT',
+     name:`${T.bat}${p.dbl?' doble':''} — ${R.name}, ${N}`, sigla:'BAT',
      what: p.t==='fo' ? 'És la presa òptica (roseta amb adaptador SC/APC) on es connecta l\'ONT amb un latiguillo òptic.' : `És la presa${p.dbl?' doble':''} on l\'usuari connecta ${p.t==='rtv'?'el televisor o la ràdio':p.t==='tba'?'l\'equip d\'un operador de cable':'un equip de dades'}.`,
      purpose:`És el punt final de la xarxa interior ${p.t==='rtv'?'de RTV':p.t==='tba'?'coaxial de TBA':p.t==='fo'?'de fibra òptica':'de parells trenats'}. ${why}`,
      where:`Dins del ${T.reg[0].toLowerCase()+T.reg.slice(1)} ${R.de}.`,
@@ -1172,7 +1172,7 @@ const CONCEPTS = [
  ['RITU', 'Recinte únic que acumula les funcions de RITI i RITS. Admès en edificis de fins a tres plantes i planta baixa amb un màxim de deu PAU, i en conjunts unifamiliars. No s\'aplica a l\'edifici del model.'],
  ['RITM', 'Realització modular dels recintes amb armaris no propagadors de la flama, admesa en edificis de fins a 45 PAU i conjunts unifamiliars de fins a 20 PAU, amb les condicions de protecció corresponents.'],
  ['Derivador, repartidor i capçalera', '<b>Capçalera:</b> equips del RITS que adapten els senyals de les antenes. <b>Derivador:</b> a la zona comuna, treu senyal del cable de distribució cap als habitatges d\'una planta. <b>PAU + repartidor:</b> dins de l\'habitatge, en un sol element, rep els cables de dispersió (una entrada carregada) i reparteix el senyal cap a les preses.'],
- ['Preses de l\'habitatge', 'Dotació mínima en un habitatge: <b>RTV</b>, una presa per estància (excepte banys i trasters, mínim dues). <b>Parells trenats</b>, dos registres a cada estància principal i un a la resta; a la sala, una BAT doble a menys de 50 cm de la presa de fibra, i una altra BAT doble en una altra estància. <b>Coaxial de TBA</b>, dues preses en dues estàncies diferents. <b>Fibra òptica</b>, una presa a una estància principal, preferiblement la sala d\'estar. A prop del PAU, un registre de presa configurable.'],
+ ['Preses de l\'habitatge', 'Dotació mínima en un habitatge: <b>RTV</b>, una presa per estància (excepte banys i trasters, mínim dues). <b>Parells trenats (RJ45)</b>, una presa a cada estància excepte banys i trasters; a la sala, una BAT doble a menys de 50 cm de la presa de fibra, i una altra BAT doble en una altra estància (aquí, el dormitori 1). <b>Coaxial de TBA</b>, dues preses en dues estàncies diferents. <b>Fibra òptica</b>, una presa a una estància principal, preferiblement la sala d\'estar. A prop del PAU, un registre de presa configurable.'],
  ['PAU, ONT i encaminador', 'El <b>PAU</b> és la frontera entre la xarxa comuna i la interior. L\'<b>ONT</b> converteix la llum de la fibra en senyal elèctric. L\'<b>encaminador</b> crea la xarxa local. ONT i encaminador són equips associats al servei de l\'usuari, no part de la ICT comuna.']
 ];
 
@@ -1222,7 +1222,7 @@ const SIMPLIFICATIONS = [
  'Registre secundari: els coaxials van per carrils arran de la placa del fons i pugen junt a les parets; la fibra i els parells de dispersió hi passen per davant; els baixants entren i surten dels tubs en posicions fixes. Sangrat de la mànega: es representa una finestra de 16 cm amb la coberta oberta, 8 grups de parells en pas (en lloc dels 40, 30, 20 o 10 parells reals) i els 10 parells de la planta, trenats, que entren per sota a la regleta; les escomeses en surten per dalt.',
  'Per defecte els cables tenen un aspecte real habitual: els dos coaxials de distribució de RTV es distingeixen pel color (cable 1 blanc, cable 2 negre, també a la dispersió), la fibra és groga i els connectors SC/APC verds. Les opcions «per tram» i «per tecnologia» són un codi didàctic d\'aquesta aplicació. Cap color és obligatori.',
  'Les canalitzacions tenen el nombre de tubs i el diàmetre del RD 346/2011; els tubs es dibuixen translúcids i llisos (sense corrugat), excepte a la coberta i al RITS.',
- 'Tots els habitatges tenen la mateixa distribució (sala d\'estar, cuina, dos dormitoris, bany i rebedor; els B, C i D són simètrics de l\'A respecte dels eixos de l\'edifici) i la dotació mínima de preses: 4 de RTV, 6 registres de parells trenats (2 amb BAT doble), 2 coaxials de TBA, 1 de fibra òptica a la sala i 1 registre configurable. Les preses de corrent properes no es dibuixen.',
+ 'Tots els habitatges tenen la mateixa distribució (sala d\'estar, cuina, dos dormitoris, bany i rebedor; els B, C i D són simètrics de l\'A respecte dels eixos de l\'edifici) i la dotació mínima de preses: 4 de RTV, 4 registres de parells trenats (2 amb BAT doble: sala i dormitori 1), 2 coaxials de TBA, 1 de fibra òptica a la sala i 1 registre configurable. Les preses de corrent properes no es dibuixen.',
  'Les preses s\'han situat de manera orientativa. En un projecte real la posició depèn del mobiliari previst i de les distàncies que fixa la normativa.',
  'La xarxa de distribució de fibra es mostra com un sol cable multifibra. Configuració escollida: empalmament a la caixa de segregació de cada planta i fibres en pas per a les altres plantes.',
  'La xarxa comuna de parells segueix l\'opció de cables de parells del RD 346/2011 (mànega multiparell i regletes), la més habitual en edificis existents; la xarxa interior és de parells trenats.',

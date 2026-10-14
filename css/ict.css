@@ -18,6 +18,9 @@ header h1{font-size:1rem;margin:0;white-space:nowrap;overflow:hidden;text-overfl
 header h1 small{display:block;font-weight:400;color:var(--tx2);font-size:.75rem}
 .link2d{font-size:.84rem;color:#1A5FB4;text-decoration:none;border:1px solid #BFD3EE;border-radius:8px;padding:5px 10px;white-space:nowrap;flex-shrink:0}
 .link2d:hover{background:#EAF1FB}
+.fsbtn{display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;height:36px;min-height:36px;padding:0;flex-shrink:0;color:#1A5FB4;border-color:#BFD3EE}
+.fsbtn[hidden],.fsbtn .fs-off,.fsbtn.isFS .fs-on{display:none}
+.fsbtn.isFS .fs-off{display:block}
 .seg{display:flex;border:1px solid var(--bd);border-radius:8px;overflow:hidden;flex-shrink:0}
 .seg button{border:0;border-radius:0;border-right:1px solid var(--bd)}
 .seg button:last-child{border-right:0}
@@ -161,7 +164,7 @@ dialog h2{margin-top:0}
  #left.open,#right.open{transform:none}
  header{flex-wrap:wrap;row-gap:4px}
  header .seg{flex:1 1 100%} header .seg button{flex:1 1 0;min-width:0}
- header .seg.model{flex:1 1 auto;order:1} header .seg.model a{flex:1 1 0;justify-content:center;min-height:34px} header .link2d{order:2} header .seg:not(.model){order:3} header .hgroup{order:4}
+ header .seg.model{flex:1 1 auto;order:1} header .seg.model a{flex:1 1 0;justify-content:center;min-height:34px} header .link2d{order:2} header .fsbtn{order:2} header .seg:not(.model){order:3} header .hgroup{order:4}
  header .hgroup{flex:1 1 auto} header .hgroup button{flex:1 1 auto;padding:4px 5px}
  .app.leftOpen #tl,.app.leftOpen .pop{left:10px}
  .app.rightOpen #navbtns{right:10px}

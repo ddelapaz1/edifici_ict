@@ -3993,3 +3993,19 @@ function placeModel(k, el, x, y, z, recolor={}, rot=0){
 }
 /* posició d'un objecte buit del model (p. ex. 'port_in1') respecte de l'origen del model, o null */
 function modelPoint(k, name){ const o=MODELS[k].scene?.getObjectByName(name); return o ? o.getWorldPosition(new THREE.Vector3()) : null; }
+
+// pantalla completa (pissarra digital)
+(function(){
+  const b=document.getElementById('btnFS'), root=document.documentElement;
+  if(!b || !(root.requestFullscreen || root.webkitRequestFullscreen)) return;
+  const cur=()=>document.fullscreenElement || document.webkitFullscreenElement;
+  const toggle=()=>{ if(cur()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else (root.requestFullscreen || root.webkitRequestFullscreen).call(root); };
+  const sync=()=>{ const on=!!cur(); b.classList.toggle('isFS',on);
+    b.setAttribute('aria-label',on?'Surt de la pantalla completa':'Pantalla completa');
+    b.title=on?'Surt de la pantalla completa (F o Esc)':'Pantalla completa (F)'; };
+  b.hidden=false; b.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync); document.addEventListener('webkitfullscreenchange',sync);
+  addEventListener('keydown',e=>{ if((e.key==='f'||e.key==='F') && !e.ctrlKey && !e.metaKey && !e.altKey
+    && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName) && !document.querySelector('dialog[open]')) toggle(); });
+})();

@@ -190,6 +190,10 @@ const P = a => a.map(p => Array.isArray(p) ? (p.length>3 ? Object.assign(V(p[0],
 /* camí d'un tub desplaçat un vector constant v: si el tub i el cable fan servir el mateix radi R a les cantonades,
    la corba del cable és exactament la del tub traslladada, i per tant hi queda a dins (distància a l'eix = |v|). */
 const inTube = (pts,v,R) => pts.map(p=>[p[0]+v[0],p[1]+v[1],p[2]+v[2],R]);
+/* Punt de gir fora del tub, prolongant el tram recte que travessa la boca. */
+function pastMouth(pts,length){
+  const [a,b]=P(pts.slice(-2)); return b.clone().addScaledVector(b.clone().sub(a).normalize(),length);
+}
 
 /* cable: tram de xarxa amb dades de connexió. o.k: tipus de CBL (si no, per la clau); o.r i o.R ho sobreescriuen */
 function cable(key, elId, pts, o){
@@ -539,7 +543,7 @@ function buildICT(){
   regBox('reg_enllac_inf',0.5,0.5,0.25,ax,0.62,4.6,C.reg,C.regLid);
   /* Xarxes d'alimentació: un cable per tub (vegeu ALX) */
   /* fibra: dos operadors, cadascun amb el seu cable fins al premsaestopes de la seva CTO (vegeu CTO_FO) */
-  const foTail = op => { const g=CTO_FO.ops[op].gland; return [[CTO_FO.cx,2.05,g[2]],[CTO_FO.cx,g[1]+0.05,g[2]],[CTO_FO.cx+0.02,g[1],g[2]],g]; };
+  const foTail = op => { const g=CTO_FO.ops[op].gland, x=1.49+0.064*op; return [[x,2.11,g[2]],[x,g[1],g[2]],g]; };
   for(const [k,el,tail] of [['fo','xal_fo',foTail(0)],['fo2','xal_fo',foTail(1)],['pt','xal_pt',[[2.688,2.05,-4.6],[2.688,1.84,-4.705],[2.688,1.50,-4.705]]]]){
     const dx=ALX[k];
     const x=ax+dx, tx=tail[0][0];
@@ -722,14 +726,14 @@ function buildUnit(u, C){
     const far=Math.abs(PR.at(c==='a'?'in':'inc').x-tp[tp.length-1][0]) > Math.abs(PR.at(c==='a'?'inc':'in').x-tp[tp.length-1][0]), zf=E.z+sz*(far?0.084:0.068);
     const te=tp[tp.length-1][1]+w[1];                                                   // alçada d'entrada al RTR
     const tail = [[E.x,te,zf],[E.x,yu,zf],[E.x,yu,E.z],[E.x,E.y,E.z]];
-    cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [...rs,...viaRPS('rtv',v,tp,w),...tail], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
+    cable(`xs_rtv_${c}_${id}`, `xs_rtv_${id}`, [...rs,...viaRPS('rtv',v,tp,w),pastMouth(accIn(tp,w),0.07),...tail], {tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${u.f}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
   }
   /* fibra: de la caixa de segregació puja i va horitzontal a l'alçada del tub; entra al PAU de fibra pel pretallat lateral
      del costat del tub, amb un passacables de goma */
   { const gx=CSEG.gx[u.s], w=cscW(u,true), v=cscV(u,0.004,ZM(u)), tp=csPath(u,y,1.52), zt=CSC.fo.z+v[2], H=y+CSC.fo.h+v[1], dz=Math.abs(zt-CSEG.gz), E=tp[tp.length-1][1]+w[1];
     const pf=pauFoPos(u), ed=pf.at('entrada_d'), ee=pf.at('entrada_e'), en=Math.abs(ed.x-X(-2.96))<Math.abs(ee.x-X(-2.96))?ed:ee, out=Math.sign(X(-2.96)-en.x);
     rCyl(`pau_fo_${id}`,0.0036,0.003,V(en.x+out*0.001,en.y,en.z),V(1,0,0),0x2A2D31,'rubber',{r2:0.0036});
-    cable(`xs_fo_${id}`, `xs_fo_${id}`, [[gx,y+CSEG.y+0.17,CSEG.gz],[gx,y+1.72,CSEG.gz],[gx,y+1.72+dz,zt],[gx,H,zt],...viaRPS('fo',v,tp,w),
+    cable(`xs_fo_${id}`, `xs_fo_${id}`, [[gx,y+CSEG.y+0.17,CSEG.gz],[gx,y+1.72,CSEG.gz],[gx,y+1.72+dz,zt],[gx,H,zt],...viaRPS('fo',v,tp,w),pastMouth(accIn(tp,w),0.055),
       [X(-2.96),E,en.z],[X(-2.96),en.y,en.z],[en.x-out*0.008,en.y,en.z]], {tram:'disp',tech:'fo',svc:'fo',from:`cseg_${u.f}`, to:`pau_fo_${id}`, via:`cs_${id}`}); }
   /* parells: escomesa de 2 parells des de la sortida (part de dalt) de la regleta; la del D passa per darrere de les del
      C i el B, i la del B per sobre de la columna del C */
@@ -737,7 +741,7 @@ function buildUnit(u, C){
     const z0=-4.69, pp=X(-2.86);   // parells 1-2 (A), 3-4 (B), 5-6 (C), 7-8 (D); el 9 i el 10 lliures
     const col = u.s==='D' ? [[kx,y+2.20,z0],[kx,y+2.23,-4.66],[kx,H,-4.66],[1.28,H,-4.66],[1.22,H,zt]]
               : (yy=>[[kx,y+yy,z0],[kx,y+yy+Math.abs(zt-z0),zt],[kx,H,zt]])(u.s==='C'?2.16:2.00);
-    cable(`xs_pt_${id}`, `xs_pt_${id}`, [[kx,y+RSK.y+0.014,z0],...col,...viaRPS('pt',v,tp,w),[pp,E,Z(-4.705)],[pp,y+1.69,Z(-4.712)]], {tram:'disp',tech:'pt',svc:'pt',from:`bucle_${u.f}`, to:`pau_pt_${id}`, via:`cs_${id}`}); }
+    cable(`xs_pt_${id}`, `xs_pt_${id}`, [[kx,y+RSK.y+0.014,z0],...col,...viaRPS('pt',v,tp,w),pastMouth(accIn(tp,w),0.045),[pp,E,Z(-4.705)],[pp,y+1.69,Z(-4.712)]], {tram:'disp',tech:'pt',svc:'pt',from:`bucle_${u.f}`, to:`pau_pt_${id}`, via:`cs_${id}`}); }
   buildInterior(u);
 }
 
@@ -1989,20 +1993,74 @@ const ZM = u => (u.s==='C'||u.s==='D');
 const SZ = u => ZM(u) ? -1 : 1;
 const mz = (u,z) => ZM(u) ? -10 - z : z;
 
-/* ---------- materials ---------- */
+/* ---------- acabats de superfície, amb textura periòdica i relleu a escala real ---------- */
+const FINISHES={
+  plaster:{size:[0.85,0.85], detail:[11,11,58,58], relief:0.0009, roughness:0.94, tone:8},
+  concrete:{size:[1.6,1.6], detail:[7,7,72,72], relief:0.0022, roughness:0.88, tone:20},
+  asphalt:{size:[1.4,1.4], detail:[6,6,106,106], relief:0.0025, roughness:0.98, tone:31},
+  tile:{size:[2.4,2.4], detail:[8,8,45,45], relief:0.0015, roughness:0.46, tone:11, joints:4},
+  pavers:{size:[2.4,1.6], detail:[8,8,54,54], relief:0.003, roughness:0.86, tone:18, joints:4},
+  clay:{size:[1.2,0.9], detail:[7,5,46,46], relief:0.0018, roughness:0.79, tone:18},
+  grass:{size:[5,5], detail:[14,16,110,112], relief:0.004, roughness:0.99, tone:17},
+  wood:{size:[0.62,2.2], detail:[18,3,112,9], relief:0.0008, roughness:0.57, tone:28}
+};
+const FINISH_MATS={};
+function surfaceFinish(kind){
+  if(FINISH_MATS[kind]) return FINISH_MATS[kind];
+  const {size,detail,relief,roughness,tone,joints}=FINISHES[kind], n=256, mottling=kind==='grass'?0.45:1.3;
+  let seed=137;
+  const rand=()=>{ seed=(Math.imul(seed,1664525)+1013904223)>>>0; return seed/4294967296; };
+  const noise=(nx,ny)=>{ const grid=Float32Array.from({length:nx*ny},rand);
+    return (u,v)=>{ const x=u*nx,y=v*ny, i=Math.floor(x),j=Math.floor(y), a=x-i,b=y-j;
+      const ax=a*a*(3-2*a), by=b*b*(3-2*b), at=(p,q)=>grid[(q%ny)*nx+p%nx];
+      return THREE.MathUtils.lerp(THREE.MathUtils.lerp(at(i,j),at(i+1,j),ax),THREE.MathUtils.lerp(at(i,j+1),at(i+1,j+1),ax),by); }; };
+  const broad=noise(detail[0],detail[1]), fine=noise(detail[2],detail[3]);
+  const panels=joints?Float32Array.from({length:joints*joints},rand):null;
+  const color=new Uint8ClampedArray(n*n), height=new Uint8ClampedArray(n*n);
+  for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+    const u=x/n,v=y/n, i=y*n+x, large=broad(u,v)-0.5, grain=fine(u,v)-0.5;
+    let shade=241+tone*(mottling*large+1.5*grain)+5*(rand()-0.5), depth=128+42*large+78*grain;
+    if(joints){
+      const row=v*joints, col=u*joints+(kind==='pavers'&&Math.floor(row)%2?0.5:0);
+      const edge=Math.min(Math.abs(row-Math.round(row)),Math.abs(col-Math.round(col)));
+      const seam=1-THREE.MathUtils.smoothstep(edge,0.003,kind==='tile'?0.012:0.024);
+      shade+=18*(panels[Math.floor(row)*joints+Math.floor(col)%joints]-0.5)-46*seam; depth-=64*seam;
+    }
+    color[i]=shade; height[i]=depth;
+  }
+  const texture=(values,srgb)=>{
+    const tex=canvasTex(n,n,(g)=>{ const pixels=g.createImageData(n,n);
+      for(let i=0;i<values.length;i++){ const j=4*i; pixels.data[j]=pixels.data[j+1]=pixels.data[j+2]=values[i]; pixels.data[j+3]=255; }
+      g.putImageData(pixels,0,0); },srgb);
+    tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(1/size[0],1/size[1]); return tex;
+  };
+  return FINISH_MATS[kind]={map:texture(color,true),bumpMap:texture(height,false),bumpScale:relief,roughness};
+}
+function archFinish(color,kind){ return new THREE.MeshStandardMaterial({color,...surfaceFinish(kind)}); }
+/* Projecció en metres abans de fusionar peces, amb les juntes alineades entre caixes veïnes. */
+function surfaceUV(g,x=0,y=0,z=0){
+  const {position:p,normal:n,uv}=g.attributes;
+  for(let i=0;i<p.count;i++){
+    const nx=Math.abs(n.getX(i)),ny=Math.abs(n.getY(i)),nz=Math.abs(n.getZ(i));
+    if(ny>=nx&&ny>=nz) uv.setXY(i,p.getX(i)+x,p.getZ(i)+z);
+    else if(nx>nz) uv.setXY(i,p.getZ(i)+z,p.getY(i)+y);
+    else uv.setXY(i,p.getX(i)+x,p.getY(i)+y);
+  }
+}
 function archMats(){
   const L = (c,o={}) => new THREE.MeshLambertMaterial(Object.assign({color:c}, o));
-  AM.wall=L(0xEDE8DF); AM.wallIn=L(0xF6F3EE); AM.facade=L(0xE7DCCB); AM.facade2=L(0xC98F6B); AM.slab=L(0xD9D5CE); AM.roof=L(0xC9C4BB);
-  AM.edge=L(0xB9B2A6); AM.plinth=L(0xA8A39A);
+  const F=archFinish;
+  AM.wall=F(0xEDE8DF,'plaster'); AM.wallIn=L(0xF6F3EE); AM.facade=F(0xE7DCCB,'plaster'); AM.facade2=F(0xC98F6B,'plaster'); AM.slab=F(0xD9D5CE,'concrete'); AM.roof=F(0xC9C4BB,'concrete');
+  AM.edge=F(0xB9B2A6,'concrete'); AM.plinth=F(0xA8A39A,'concrete');
   AM.glass=L(0x8FB3CF,{transparent:true, opacity:0.42, depthWrite:false}); AM.glassRail=L(0xA9C9DC,{transparent:true, opacity:0.32, depthWrite:false});
   AM.frame=L(0x4A4F55); AM.rail=L(0x5B6168); AM.stair=L(0xCFCAC2); AM.stairEdge=L(0xB2ABA0); AM.furn=L(0xC8B79E); AM.furn2=L(0x9DB4C8); AM.furn2b=L(0xB9CBDA); AM.furn3=L(0x7E9A6E);
-  AM.ground=L(0xC9D8B8); AM.side=L(0xCFCCC6); AM.street=L(0x8E9196); AM.soil=L(0x8B6B4A); AM.found=L(0xB8B2A8);
-  AM.park=L(0x9EA2A6); AM.line=L(0xF4F4F0); AM.lineY=L(0xE8C547); AM.concrete=L(0xB7B5B0); AM.door=L(0x9A7A58); AM.doorM=L(0x8E979F); AM.liftDoor=L(0xA9B1B8);
+  AM.ground=F(0xB2C59C,'grass'); AM.side=F(0xCFCCC6,'pavers'); AM.street=F(0x8E9196,'asphalt'); AM.soil=F(0x8B6B4A,'asphalt'); AM.found=F(0xB8B2A8,'concrete');
+  AM.park=F(0x9EA2A6,'concrete'); AM.line=L(0xF4F4F0); AM.lineY=L(0xE8C547); AM.concrete=F(0xB7B5B0,'concrete'); AM.door=F(0x9A7A58,'wood'); AM.doorM=L(0x8E979F); AM.liftDoor=L(0xA9B1B8);
   AM.car1=L(0x3F6FB5); AM.car2=L(0xB8433A); AM.car3=L(0xD9D9D4); AM.car4=L(0x3E4348); AM.tyre=L(0x222222);
   AM.carV=new THREE.MeshPhongMaterial({vertexColors:true, shininess:40, specular:0x1E1E1E});   // cotxes (colors per vèrtex)
-  AM.shop=L(0xEFE6D2); AM.shelf=L(0xB98B5E); AM.awning=L(0x2F8A5B); AM.tile=L(0xD8CDBB); AM.lobby=L(0xE2DBD0);
+  AM.shop=F(0xEFE6D2,'plaster'); AM.shelf=F(0xB98B5E,'wood'); AM.awning=L(0x2F8A5B); AM.tile=L(0xD8CDBB); AM.lobby=F(0xE2DBD0,'tile'); AM.shopFloor=F(0xD8CDBB,'tile');
   AM.ref=new THREE.LineBasicMaterial({color:0x5D6B7A});
-  AM.list=[AM.wall,AM.wallIn,AM.facade,AM.facade2,AM.slab,AM.roof,AM.edge,AM.plinth,AM.frame,AM.rail,AM.stair,AM.stairEdge,AM.furn,AM.furn2,AM.furn2b,AM.furn3,AM.found,AM.park,AM.concrete,AM.door,AM.doorM,AM.liftDoor,AM.shop,AM.shelf,AM.tile,AM.lobby,AM.car1,AM.car2,AM.car3,AM.car4,AM.tyre,AM.carV,AM.line,AM.lineY,AM.awning];
+  AM.list=[AM.wall,AM.wallIn,AM.facade,AM.facade2,AM.slab,AM.roof,AM.edge,AM.plinth,AM.frame,AM.rail,AM.stair,AM.stairEdge,AM.furn,AM.furn2,AM.furn2b,AM.furn3,AM.found,AM.park,AM.concrete,AM.door,AM.doorM,AM.liftDoor,AM.shop,AM.shelf,AM.tile,AM.lobby,AM.shopFloor,AM.car1,AM.car2,AM.car3,AM.car4,AM.tyre,AM.carV,AM.line,AM.lineY,AM.awning];
 }
 
 /* ---------- cua de caixes d'arquitectura: es fusionen per material i etiquetes ---------- */
@@ -2012,15 +2070,14 @@ function aBox(w,h,d,x,y,z,mat,o={}){
   if(w<=0.0005||h<=0.0005||d<=0.0005) return null;
   const e=0.0015*(1+(archN++%6));
   const g=new THREE.BoxGeometry(w+2*e,h+2*e,d+2*e); g.translate(x,y,z);
-  const flags=Object.assign({}, o); const key=(mat.uuid)+'|'+JSON.stringify(flags);
-  if(!ARCHQ.has(key)) ARCHQ.set(key,{mat,flags,geos:[]});
-  ARCHQ.get(key).geos.push(g.toNonIndexed()); g.dispose();
+  const flags=Object.assign({}, o); aGeo(g,mat,flags); g.dispose();
   if(mat!==AM.line && mat!==AM.lineY && !o.noColl) COLL.push({x0:x-w/2,x1:x+w/2,y0:y-h/2,y1:y+h/2,z0:z-d/2,z1:z+d/2,f:flags});
   return null;
 }
 function aBoxB(x0,x1,y0,y1,z0,z1,mat,o){ return aBox(Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0),(x0+x1)/2,(y0+y1)/2,(z0+z1)/2,mat,o); }
 /* geometria qualsevol a la cua d'arquitectura (es fusiona per material, com aBox) */
 function aGeo(g, mat, o={}){
+  if(mat.bumpMap) surfaceUV(g);
   const key=mat.uuid+'|'+JSON.stringify(o);
   if(!ARCHQ.has(key)) ARCHQ.set(key,{mat,flags:Object.assign({},o),geos:[]});
   ARCHQ.get(key).geos.push(g.index ? g.toNonIndexed() : g);
@@ -2440,7 +2497,7 @@ function buildBasement(){
   // rampa d'accés (a cel obert entre la vorera i el soterrani)
   const R=B.ramp, len=R.z1-R.z0, ang=Math.atan2(3,len);
   { const g=new THREE.BoxGeometry(R.x1-R.x0, 0.25, Math.hypot(len,3)); g.rotateX(-ang); g.translate((R.x0+R.x1)/2,-1.5-0.125/Math.cos(ang),(R.z0+R.z1)/2);
-    const m=new THREE.Mesh(g,AM.concrete); addArch(m,{floor:f, ramp:true}); }
+    surfaceUV(g); const m=new THREE.Mesh(g,AM.concrete); addArch(m,{floor:f, ramp:true}); }
   for(let i=0;i<12;i++){ const z=R.z1-0.6-i*1.4; const yy=-3*(R.z1-z)/len; aBoxB(R.x0+0.3,R.x1-0.3,yy-0.01,yy+0.02,z-0.06,z+0.06,AM.lineY,ow); }
   WB(8,8.3,-3,0.1,R.z0,R.z1,AM.concrete,ow); WB(12.1,12.4,-3,0.1,R.z0,R.z1,AM.concrete,ow);
   for(const x of [8.15,12.25]){ WB(x-0.03,x+0.03,0.9,0.95,R.z0,R.z1,AM.rail,{floor:f}); for(let z=R.z0;z<=R.z1;z+=1.5) WB(x-0.02,x+0.02,0.1,0.92,z-0.02,z+0.02,AM.rail,{floor:f}); }
@@ -2453,7 +2510,7 @@ function buildGroundFloor(){
   const f=0, y=0, H=BLD.H, o={floor:0};
   slabHoles(BLD.x0,BLD.x1,BLD.z0,BLD.z1,y-0.2,y,[[BLD.stair.x0,BLD.stair.x1,BLD.stair.z0,BLD.stair.z1],[BLD.lift.x0,BLD.lift.x1,BLD.lift.z0,BLD.lift.z1]],AM.slab,{floor:0,slab:true});
   aBoxB(-2,5.6,y,y+0.01,-2.4,BLD.stair.z0,AM.lobby,o); aBoxB(2,5.6,y,y+0.01,BLD.stair.z0,4.75,AM.lobby,o);   // paviment del vestíbul
-  aBoxB(-7.75,-2.2,y,y+0.01,-14.75,4.75,AM.tile,o);                                                      // paviment de la botiga
+  aBoxB(-7.75,-2.2,y,y+0.01,-14.75,4.75,AM.shopFloor,o);                                                 // paviment de la botiga
   const F={floor:0, facade:true, fside:'front'}, Fb={floor:0, facade:true, fside:'back'}, Fs={floor:0, facade:true, fside:'side'};
   // façana principal: aparador i porta de la botiga, finestra de l'escala, porta del vestíbul i finestra del local de serveis
   wallOps(WB,'x',BLD.x0,BLD.x1,4.75,5,y,y+H,[[-7.4,-3.75,0.45,2.45],[-3.55,-2.6,0,2.4,'door'],[-1.6,-0.4,1.0,2.3],[2.7,4.1,0,2.4,'door'],[6.2,7.3,1.2,2.2]],AM.plinth,F,F);
@@ -2726,20 +2783,16 @@ const RM={};                          // paràmetres de materials físics
 const RG={sprites:[], halos:[], spot:null, fill:null, lumGlow:[]};
 
 function canvasTex(w,h,draw,srgb=true){ const c=document.createElement('canvas'); c.width=w; c.height=h; const g=c.getContext('2d'); draw(g,w,h); const t=new THREE.CanvasTexture(c); if(srgb) t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; }
-function noiseTex(n,amp,base){ return canvasTex(n,n,(g,w,h)=>{ const id=g.createImageData(w,h); for(let i=0;i<w*h;i++){ const v=base+(Math.random()-0.5)*amp; id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=v; id.data[i*4+3]=255; } g.putImageData(id,0,0); },false); }
 function ritsMats(){
-  const plaster=noiseTex(256,90,128); plaster.wrapS=plaster.wrapT=THREE.RepeatWrapping; plaster.repeat.set(3,3);
-  const floorN=noiseTex(128,26,200); floorN.wrapS=floorN.wrapT=THREE.RepeatWrapping; floorN.repeat.set(4,4); floorN.colorSpace=THREE.SRGBColorSpace;
   const gy=canvasTex(64,8,(g)=>{ for(let i=0;i<4;i++){ g.fillStyle=i%2?'#E8C71A':'#2E9B3F'; g.beginPath(); g.moveTo(i*16,0); g.lineTo(i*16+16,0); g.lineTo(i*16+12,8); g.lineTo(i*16-4,8); g.fill(); } g.fillStyle='#2E9B3F'; g.beginPath(); g.moveTo(60,8); g.lineTo(64,8); g.lineTo(64,0); g.fill(); });
   gy.wrapS=gy.wrapT=THREE.RepeatWrapping; gy.repeat.set(4,1);
   Object.assign(RM,{
-    plaster:{roughness:0.94, metalness:0, bumpMap:plaster, bumpScale:0.9},
-    floor:{roughness:0.82, metalness:0, map:floorN},
+    plaster:surfaceFinish('plaster'), floor:surfaceFinish('tile'),
     paint:{roughness:0.5, metalness:0.1}, steel:{roughness:0.45, metalness:0.35},
     galv:{roughness:0.5, metalness:0.3}, zamak:{roughness:0.45, metalness:0.3}, zamakDark:{roughness:0.55, metalness:0.2},
     nickel:{roughness:0.3, metalness:0.5}, copper:{roughness:0.35, metalness:0.5},
     pvc:{roughness:0.55, metalness:0}, pe:{roughness:0.4, metalness:0}, plastic:{roughness:0.6, metalness:0}, rubber:{roughness:0.8, metalness:0},
-    corr:{roughness:0.58, metalness:0, side:THREE.DoubleSide}, gy:{roughness:0.5, metalness:0, map:gy}, concrete:{roughness:0.9, metalness:0, map:floorN}
+    corr:{roughness:0.48, metalness:0, side:THREE.DoubleSide}, gy:{roughness:0.5, metalness:0, map:gy}, concrete:surfaceFinish('concrete')
   });
 }
 /* ---------- aparellatge modular de carril DIN (quadres elèctrics) ----------
@@ -2783,7 +2836,10 @@ function dinDevice(el,kind,zc,yc,o={}){
 /* ---------- primitives ---------- */
 function rMesh(el, geo, color, mat, o={}){ return ictMesh(geo, color, el, Object.assign({std:RM[mat]||mat, rits:true}, o)); }
 function rBox(el,x0,x1,y0,y1,z0,z1,color,mat,o={}){
-  const m=rMesh(el,new THREE.BoxGeometry(Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0)),color,mat,o); m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
+  const x=(x0+x1)/2,y=(y0+y1)/2,z=(z0+z1)/2;
+  const g=new THREE.BoxGeometry(Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0));
+  if((RM[mat]||mat).bumpMap) surfaceUV(g,x,y,z);
+  const m=rMesh(el,g,color,mat,o); m.position.set(x,y,z);
   if(o.pick) G.pick.push(m); return m;
 }
 const UP=new THREE.Vector3(0,1,0);
@@ -2821,96 +2877,136 @@ function boxHalo(m,color,pad=0.008){
 }
 /* cable del RITS amb aspecte real (color fix) */
 function rCable(key, el, pts, color, mat, o={}){
-  pts=P(pts); const D=CBL.rg6, r=o.r ?? D.d/2, R=o.R ?? D.rb, Sm=pathSamples(polyCurve(pts,0,R,{key,rb:D.rb}));   // coaxial RG-6 a mida real
+  const D=CBL.rg6, r=o.r ?? D.d/2, R=o.R ?? D.rb;
+  const sample=p=>pathSamples(polyCurve(P(p),0,R,{key,rb:D.rb}));
+  const duct=pts.findIndex(p=>p.T);
+  let Sm;
+  if(duct<0) Sm=sample(pts);
+  else {
+    const inside=pts[duct], last=inside.P.length-1, segments=[];
+    if(duct>0) segments.push(sample([...pts.slice(0,duct),inside.P[0]]));
+    segments.push(inside);
+    if(duct<pts.length-1) segments.push(sample([inside.P[last],...pts.slice(duct+1)]));
+    Sm={P:[],T:[],L:[]};
+    for(const part of segments){ const length=Sm.L[Sm.L.length-1]??0;
+      for(let i=Sm.P.length?1:0;i<part.P.length;i++){
+        Sm.P.push(part.P[i]); Sm.T.push(part.T[i]); Sm.L.push(length+part.L[i]);
+      }
+    }
+  }
   const m=ictMesh(sweepGeo(Sm,r,10,0,Math.PI*2,null,true), color, el, {std:RM[mat], cable:key, fixedColor:true, rits:true, tram:o.tram||EL[el].tram||'capt', tech:o.tech||'coax', svc:o.svc||EL[el].svc, cast:true});
   addProxy(m, sweepGeo(Sm, o.pr ?? 0.016, 5));
   if(o.halo!==false) halo(m, sweepGeo(Sm, r+0.003, 8), o.hc ?? RFN.capt);
-  G.cables[key]={key, el, pts, mesh:m, from:o.from||null, to:o.to||null, via:o.via||null, sm:Sm, r};
+  G.cables[key]={key, el, pts:Sm.P, mesh:m, from:o.from||null, to:o.to||null, via:o.via||null, sm:Sm, r};
   if(SCOPE) SCOPE.keys.push(key);
   return m;
 }
 /* camí pseudocable (recorregut del senyal dins d'un equip; sense malla) */
 function pathOnly(key, el, pts){ G.cables[key]={key, el, pts:P(pts), mesh:null}; if(SCOPE) SCOPE.keys.push(key); }
 
-/* ---------- marcs de transport paral·lel ---------- */
-function frameTable(curve, L, ds=0.004){
-  const n=Math.max(2,Math.ceil(L/ds)), Pp=[],T=[],N=[],B=[];
-  for(let i=0;i<=n;i++){ const u=i/n; Pp.push(curve.getPointAt(u)); T.push(curve.getTangentAt(u).normalize()); }
-  let n0 = Math.abs(T[0].y)<0.9 ? V(0,1,0) : V(1,0,0); n0.sub(T[0].clone().multiplyScalar(n0.dot(T[0]))).normalize();
-  N[0]=n0; B[0]=T[0].clone().cross(n0);
-  for(let i=1;i<=n;i++){
-    const ax=T[i-1].clone().cross(T[i]); let nn=N[i-1].clone();
-    if(ax.length()>1e-8){ ax.normalize(); nn.applyAxisAngle(ax, Math.acos(THREE.MathUtils.clamp(T[i-1].dot(T[i]),-1,1))); }
-    nn.sub(T[i].clone().multiplyScalar(nn.dot(T[i]))).normalize(); N[i]=nn; B[i]=T[i].clone().cross(nn);
-  }
-  return {n, L, ds:L/n, P:Pp, T, N, B, at(s){ const i=THREE.MathUtils.clamp(Math.round(s/this.ds),0,this.n); return i; }};
+/* Eix i marcs del corrugat. A cada arc circular el marc gira amb la tangent; als trams rectes es conserva. */
+function ductFrames(path){
+  const first=path.curves[0].getTangent(0);
+  const ref=Math.abs(first.y)<0.9?V(0,1,0):V(1,0,0);
+  let normal=ref.addScaledVector(first,-ref.dot(first)).normalize(), L=0;
+  const spans=path.curves.map(c=>{
+    const start=L, len=c.getLength(), N0=normal;
+    const axis=c instanceof Arc3?c.a.clone().cross(c.b).normalize():null;
+    const at=t=>{ const P=c.getPoint(t), T=c.getTangent(t), N=N0.clone();
+      if(axis) N.applyAxisAngle(axis,t*c.ang);
+      return {P,T,N,B:T.clone().cross(N)}; };
+    L+=len; normal=at(1).N;
+    return {start,len,steps:axis?Math.ceil(c.ang/(Math.PI/36)):1,at};
+  });
+  const at=s=>{ const part=spans.find(p=>s<=p.start+p.len)||spans[spans.length-1];
+    return part.at(THREE.MathUtils.clamp((s-part.start)/part.len,0,1)); };
+  return {spans,L,at};
 }
-/* recorregut d'un cable dins d'un tub: segueix la mateixa corba amb un desplaçament */
-function insidePath(ft, s0, s1, dn, db){
-  const out=[]; const i0=ft.at(s0), i1=ft.at(s1), st=Math.max(1,Math.round(0.02/ft.ds));
-  for(let i=i0;i<=i1;i+=st) out.push(ft.P[i].clone().addScaledVector(ft.N[i],dn).addScaledVector(ft.B[i],db||0));
-  const l=ft.P[i1].clone().addScaledVector(ft.N[i1],dn).addScaledVector(ft.B[i1],db||0);
-  if(out[out.length-1].distanceTo(l)>1e-4) out.push(l); return out;
+/* El cable manté el seu lloc a la secció del tub durant tot el recorregut. */
+function insidePath({ft},dn,db=0){
+  const P=[],T=[],L=[];
+  for(const span of ft.spans) for(let i=P.length?1:0;i<=span.steps;i++){
+    const {P:p,T:t,N,B}=span.at(i/span.steps);
+    P.push(p.addScaledVector(N,dn).addScaledVector(B,db)); T.push(t);
+    L.push(P.length===1?0:L[L.length-1]+p.distanceTo(P[P.length-2]));
+  }
+  return {P,T,L};
 }
 /* ---------- tub corrugat: superfície amb anelles, gruix de paret i boques obertes ---------- */
-function corrShell(ft, s0, s1, r, ri, pitch, amp, ang, kind){
-  // ang(i) → [a0,a1] per anella; kind: 'full' | 'half'
-  const pos=[], nor=[], idx=[]; const radial = kind==='full'?14:8;
-  const ds=pitch/4; const ns=Math.max(1,Math.ceil((s1-s0)/ds));
-  const rad=s=> r - amp*(0.5-0.5*Math.cos(2*Math.PI*s/pitch));
-  const drad=s=> -amp*0.5*Math.sin(2*Math.PI*s/pitch)*2*Math.PI/pitch;
-  const ring=(s,rr,sign,dr)=>{ const i=ft.at(s); const [a0,a1]=ang(i); const Pp=ft.P[i], T=ft.T[i], N=ft.N[i], B=ft.B[i]; const base=pos.length/3;
-    for(let j=0;j<=radial;j++){ const a=a0+(a1-a0)*j/radial, c=Math.cos(a), sn=Math.sin(a);
-      const d=N.clone().multiplyScalar(c).addScaledVector(B,sn); const p=Pp.clone().addScaledVector(d,rr);
-      pos.push(p.x,p.y,p.z); const nn = sign>0 ? d.clone().addScaledVector(T,-dr).normalize() : d.clone().multiplyScalar(-1); nor.push(nn.x,nn.y,nn.z); }
-    return base; };
-  const strip=(rows)=>{ for(let k=0;k<rows.length-1;k++){ const a=rows[k], b=rows[k+1]; for(let j=0;j<radial;j++){ idx.push(a+j,b+j,a+j+1, a+j+1,b+j,b+j+1); } } };
-  const outer=[], inner=[];
-  for(let k=0;k<=ns;k++){ const s=s0+(s1-s0)*k/ns; outer.push(ring(s,rad(s),1,drad(s))); }
-  const nsi=Math.max(1,Math.ceil((s1-s0)/0.03));
-  for(let k=0;k<=nsi;k++){ const s=s0+(s1-s0)*k/nsi; inner.push(ring(s,ri,-1,0)); }
-  strip(outer); strip(inner);
-  if(kind==='half'){ // cares del tall: unió paret exterior-interior a les dues vores longitudinals
-    for(const jj of [0,radial]) for(let k=0;k<nsi;k++){
-      const sA=s0+(s1-s0)*k/nsi, sB=s0+(s1-s0)*(k+1)/nsi; const base=pos.length/3;
-      for(const s of [sA,sB]){ const i=ft.at(s); const [a0,a1]=ang(i); const a=jj?a1:a0; const d=ft.N[i].clone().multiplyScalar(Math.cos(a)).addScaledVector(ft.B[i],Math.sin(a));
-        const tn=ft.T[i].clone().cross(d).multiplyScalar(jj?1:-1);
-        for(const rr of [ri, r-amp*0.5]){ const p=ft.P[i].clone().addScaledVector(d,rr); pos.push(p.x,p.y,p.z); nor.push(tn.x,tn.y,tn.z); } }
-      idx.push(base,base+2,base+1, base+1,base+2,base+3);
+function corrShell(ft, s0, s1, ri, profile, ang, half){
+  const pos=[], nor=[], idx=[], radial=half?9:18;
+  const ds=profile.pitch/4, ns=Math.max(1,Math.ceil((s1-s0)/ds));
+  const ring=(s,rr,sign,dr)=>{ const [a0,a1]=ang(s), {P,T,N,B}=ft.at(s), base=pos.length/3;
+    for(let j=0;j<=radial;j++){
+      const a=a0+(a1-a0)*j/radial, d=N.clone().multiplyScalar(Math.cos(a)).addScaledVector(B,Math.sin(a));
+      const p=P.clone().addScaledVector(d,rr), nn=d.multiplyScalar(sign).addScaledVector(T,-dr).normalize();
+      pos.push(p.x,p.y,p.z); nor.push(nn.x,nn.y,nn.z);
     }
+    return base;
+  };
+  const strip=(rows,inward)=>{ for(let k=0;k<rows.length-1;k++){
+    const a=rows[k], b=rows[k+1];
+    for(let j=0;j<radial;j++) inward ? idx.push(a+j,b+j,a+j+1,a+j+1,b+j,b+j+1) : idx.push(a+j,a+j+1,b+j,a+j+1,b+j+1,b+j);
+  } };
+  const outer=[], inner=[];
+  for(let k=0;k<=ns;k++){ const s=s0+(s1-s0)*k/ns; outer.push(ring(s,profile.radius(s),1,profile.slope(s))); }
+  // L'interior és llis: més anells als colzes, només als extrems dels trams rectes.
+  inner.push(ring(s0,ri,-1,0));
+  for(const {start,len,steps} of ft.spans) for(let k=1;k<=steps;k++){
+    const s=start+len*k/steps;
+    if(s>s0+1e-6&&s<s1-1e-6) inner.push(ring(s,ri,-1,0));
+  }
+  inner.push(ring(s1,ri,-1,0));
+  strip(outer,false); strip(inner,true);
+  if(half) for(const edge of [0,1]) for(let k=0;k<ns;k++){
+    const base=pos.length/3;
+    for(const s of [s0+(s1-s0)*k/ns,s0+(s1-s0)*(k+1)/ns]){
+      const {P,T,N,B}=ft.at(s), a=ang(s)[edge];
+      const d=N.multiplyScalar(Math.cos(a)).addScaledVector(B,Math.sin(a));
+      const tn=T.clone().cross(d).multiplyScalar(edge?1:-1);
+      for(const rr of [ri,profile.radius(s)]){
+        const p=P.clone().addScaledVector(d,rr); pos.push(p.x,p.y,p.z); nor.push(tn.x,tn.y,tn.z);
+      }
+    }
+    if(edge) idx.push(base,base+2,base+1,base+1,base+2,base+3);
+    else idx.push(base,base+1,base+2,base+1,base+3,base+2);
   }
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); g.setIndex(idx); return g;
 }
 function annulus(ft, s, r, ri, a0, a1, sign){
-  const i=ft.at(s), pos=[], nor=[], idx=[], n=24, T=ft.T[i].clone().multiplyScalar(sign);
-  for(let j=0;j<=n;j++){ const a=a0+(a1-a0)*j/n; const d=ft.N[i].clone().multiplyScalar(Math.cos(a)).addScaledVector(ft.B[i],Math.sin(a));
-    for(const rr of [ri,r]){ const p=ft.P[i].clone().addScaledVector(d,rr); pos.push(p.x,p.y,p.z); nor.push(T.x,T.y,T.z); } }
-  for(let j=0;j<n;j++){ const b=j*2; idx.push(b,b+1,b+2, b+1,b+3,b+2); }
+  const {P,T,N,B}=ft.at(s), pos=[], nor=[], idx=[], n=24;
+  T.multiplyScalar(sign);
+  for(let j=0;j<=n;j++){ const a=a0+(a1-a0)*j/n; const d=N.clone().multiplyScalar(Math.cos(a)).addScaledVector(B,Math.sin(a));
+    for(const rr of [ri,r]){ const p=P.clone().addScaledVector(d,rr); pos.push(p.x,p.y,p.z); nor.push(T.x,T.y,T.z); } }
+  for(let j=0;j<n;j++){ const b=j*2;
+    if(sign>0) idx.push(b,b+1,b+2,b+1,b+3,b+2); else idx.push(b,b+2,b+1,b+1,b+2,b+3);
+  }
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); g.setIndex(idx); return g;
 }
 function corrTube(el, pts, r, o={}){
-  pts=P(pts); const cr=o.cr??0.09; const curve=polyCurve(pts,cr); const L=curve.getLength(); const ft=frameTable(curve,L);
+  pts=P(pts); const R=o.R??0.09, path=polyCurve(pts,0,R), ft=ductFrames(path), L=ft.L;
   const ri=r*0.80, pitch=o.pitch||0.016, amp=r*0.13, col=o.color??0x202225;
+  const w=2*Math.PI/pitch;
+  const profile={pitch,radius:s=>r-amp*0.5*(1-Math.cos(w*s)),slope:s=>-amp*0.5*w*Math.sin(w*s)};
   const full=()=>[0,Math.PI*2];
   const mk=(geo,extra)=>{ const m=rMesh(el,geo,col,'corr',Object.assign({corr:true, cast:true},extra)); G.pick.push(m); return m; };
-  const pieces=[];
   const cut=o.cut, cd=o.cutDir?o.cutDir.clone().normalize():V(0,0,1);
-  const phi=i=>Math.atan2(cd.dot(ft.B[i]), cd.dot(ft.N[i]));
+  const phi=s=>{ const {N,B}=ft.at(s); return Math.atan2(cd.dot(B),cd.dot(N)); };
+  const back=s=>[phi(s)+Math.PI/2,phi(s)+Math.PI*1.5], front=s=>[phi(s)-Math.PI/2,phi(s)+Math.PI/2];
+  const shell=(s0,s1,ang=full,half=false)=>corrShell(ft,s0,s1,ri,profile,ang,half);
+  const aligned=s=>{ const a=phi(s)-Math.PI/2; return ()=>[a,a+Math.PI*2]; };
+  const first=mk(shell(0,cut?cut[0]:L,cut?aligned(cut[0]):full));
   if(cut){
-    pieces.push(mk(corrShell(ft,0,cut[0],r,ri,pitch,amp,full,'full')));
-    pieces.push(mk(corrShell(ft,cut[0],cut[1],r,ri,pitch,amp,i=>[phi(i)+Math.PI/2,phi(i)+Math.PI*1.5],'half')));
-    pieces.push(mk(corrShell(ft,cut[0],cut[1],r,ri,pitch,amp,i=>[phi(i)-Math.PI/2,phi(i)+Math.PI/2],'half'),{corrPiece:'openHalf'}));
-    pieces.push(mk(corrShell(ft,cut[1],L,r,ri,pitch,amp,full,'full')));
-    // cares del tall transversal (visibles en obrir el tram)
-    const i0=ft.at(cut[0]), i1=ft.at(cut[1]);
-    mk(annulus(ft,cut[0],r-amp*0.5,ri,phi(i0)-Math.PI/2,phi(i0)+Math.PI/2,1),{corrPiece:'cutEdge'});
-    mk(annulus(ft,cut[1],r-amp*0.5,ri,phi(i1)-Math.PI/2,phi(i1)+Math.PI/2,-1),{corrPiece:'cutEdge'});
-  } else pieces.push(mk(corrShell(ft,0,L,r,ri,pitch,amp,full,'full')));
-  // boques obertes: anell de paret a cada extrem
-  if(o.mouth0!==false) mk(annulus(ft,0,r,ri,0,Math.PI*2,-1));
-  if(o.mouth1!==false) mk(annulus(ft,L,r,ri,0,Math.PI*2,1));
-  halo(pieces[0], tubeGeo(pts, r*1.28, 12, cr), RFN.tube);
-  return {ft, L, curve};
+    mk(shell(cut[0],cut[1],back,true));
+    mk(shell(cut[0],cut[1],front,true),{corrPiece:'openHalf'});
+    mk(shell(cut[1],L,aligned(cut[1])));
+    mk(annulus(ft,cut[0],profile.radius(cut[0]),ri,...front(cut[0]),1),{corrPiece:'cutEdge'});
+    mk(annulus(ft,cut[1],profile.radius(cut[1]),ri,...front(cut[1]),-1),{corrPiece:'cutEdge'});
+  }
+  if(o.mouth0!==false) mk(annulus(ft,0,profile.radius(0),ri,...full(),-1));
+  if(o.mouth1!==false) mk(annulus(ft,L,profile.radius(L),ri,...full(),1));
+  halo(first,sweepGeo(pathSamples(path),r*1.28,12),RFN.tube);
+  return {ft,L};
 }
 /* brida de subjecció d'un tub o cable a una superfície */
 function clampAt(el, p, t, n, r, o={}){
@@ -3024,11 +3120,16 @@ function symSprite(el, pos, text, color, sc=0.26){
    RECINTE: parets, terra, sostre, porta, safata, terra, electricitat
    ===================================================================== */
 const RITS_EXIT={}, RITS_OPEN=[];
+const RF_WALL={y:16.95,z:-3.50,r:0.055};
 function polyR(el, pts, r, color, mat, o={}){ pts=P(pts); const m=rMesh(el, rTubeGeo(pts,r,o.radial||10,o.cr??0.04,undefined,undefined,true), color, mat, Object.assign({cast:true},o)); if(o.pick!==false) addProxy(m, rTubeGeo(pts,Math.max(r*2,0.02),5,o.cr??0.04)); if(o.hc!==undefined) halo(m, rTubeGeo(pts,r+0.005,8,o.cr??0.04), o.hc); return m; }
 function buildRITSRoom(){
   const W=0xE3E6E8, pk={cast:true, pick:true};
   rBox('rits',RI.x0,RI.x1,15.0,RI.y0,RI.z0,RI.z1,0x92999E,'floor',{pick:true});
-  rBox('rits',-0.46,-0.34,15.0,17.6,-4.99,-2.36,W,'plaster',pk);
+  const wall=new THREE.Shape(); wall.moveTo(-4.99,15); wall.lineTo(-2.36,15); wall.lineTo(-2.36,17.6); wall.lineTo(-4.99,17.6); wall.closePath();
+  const hole=new THREE.Path(); hole.absarc(RF_WALL.z,RF_WALL.y,RF_WALL.r,0,Math.PI*2,true); wall.holes.push(hole);
+  const wallGeo=new THREE.ExtrudeGeometry(wall,{depth:0.12,bevelEnabled:false,curveSegments:16});
+  wallGeo.rotateY(-Math.PI/2).translate(-0.34,0,0); surfaceUV(wallGeo);
+  G.pick.push(rMesh('rits',wallGeo,W,'plaster',pk));
   rBox('rits',3.34,3.46,15.0,17.6,-4.99,-2.36,W,'plaster',pk);
   rBox('rits',-0.34,3.34,15.0,17.6,-4.99,-4.73,W,'plaster',pk);
   const F=Object.assign({ritsPart:'front'},pk);
@@ -3199,7 +3300,7 @@ function buildRITSEntry(){
      el 1 porta TDT, DAB i FM; el 2, les dues sortides de l'LNB. Des del peu de la torre fins al passamurs. */
   const ER=0.020, EZ=[TZ-0.025,TZ+0.025];
   const ext=z=>[[MX,15.62,z],[MX,15.82,z],[MX+0.18,15.82,z],[MX+0.18,15.06,z],[-0.62,15.06,z],[-0.62,16.95,z],[-0.40,16.95,z]];
-  const ET=EZ.map(z=>corrTube('canal_enllac_sup',ext(z),ER,{cut:[2.70,3.30],cutDir:V(0,1,0.35),cr:0.085,mouth1:false})); RFT.ext=ET[0];
+  const ET=EZ.map(z=>corrTube('canal_enllac_sup',ext(z),ER,{cut:[2.70,3.30],cutDir:V(0,1,0.35),R:0.085,mouth1:false}));
   for(const z of EZ){
     for(const x of [-3.45,-2.75,-2.0,-1.25]) clampAt('canal_enllac_sup',V(x,15.06,z),V(1,0,0),V(0,1,0),ER);
     for(const y of [15.5,16.2]) clampAt('canal_enllac_sup',V(-0.62,y,z),V(0,1,0),V(1,0,0),ER,{stand:0.16});
@@ -3208,53 +3309,63 @@ function buildRITSEntry(){
   rBox('canal_enllac_sup',MX+0.14,MX+0.22,15.0,15.012,TZ+0.03,TZ+0.11,0xA7ADB2,'galv');
   for(const [z,d] of [[EZ[1],0.045],[EZ[0],0.05]]) clampAt('canal_enllac_sup',V(MX+0.18,15.62,z),V(0,1,0),V(0,0,-1),ER,{stand:d});   // el tub 1 es lliga al 2
   /* passamurs a través de la paret esquerra */
-  const sl=rCyl('reg_enllac_sup',0.05,0.20,V(-0.40,16.95,-3.5),V(1,0,0),0xC7CBCF,'pvc',{open:true,seg:24,cast:true,pick:true}); sl.material.side=THREE.DoubleSide;
-  rCyl('reg_enllac_sup',0.075,0.012,V(-0.466,16.95,-3.5),V(1,0,0),0xC7CBCF,'pvc',{seg:24});
-  rCyl('reg_enllac_sup',0.052,0.006,V(-0.498,16.95,-3.5),V(1,0,0),0x2B2B2B,'rubber',{open:true,seg:24}).material.side=THREE.DoubleSide;
+  const {y:sy,z:sz,r:sr}=RF_WALL;
+  const sl=rCyl('reg_enllac_sup',sr-0.001,0.14,V(-0.403,sy,sz),V(1,0,0),0xC7CBCF,'pvc',{open:true,seg:32,cast:true,pick:true}); sl.material.side=THREE.DoubleSide;
+  const flange=new THREE.RingGeometry(sr-0.001,0.075,32).rotateY(-Math.PI/2).translate(-0.471,sy,sz);
+  rMesh('reg_enllac_sup',flange,0xC7CBCF,{...RM.pvc,side:THREE.DoubleSide});
   /* registre d'enllaç interior amb tapa */
   const RC=0xD5D9DC, R='reg_enllac_sup';
-  rBox(R,-0.34,-0.205,17.095,17.10,-3.70,-3.40,RC,'plastic',{pick:true,cast:true}); rBox(R,-0.34,-0.205,16.80,16.805,-3.70,-3.40,RC,'plastic',{pick:true,cast:true});
-  rBox(R,-0.34,-0.205,16.805,17.095,-3.70,-3.695,RC,'plastic',{pick:true,cast:true}); rBox(R,-0.34,-0.205,16.805,17.095,-3.405,-3.40,RC,'plastic',{pick:true,cast:true});
-  const lid=rBox(R,-0.205,-0.199,16.795,17.105,-3.705,-3.395,0xC9CED2,'plastic',{lidOf:R,pick:true,cast:true}); G.lids.push(lid);
-  for(const [y,z] of [[16.82,-3.68],[16.82,-3.42],[17.08,-3.68],[17.08,-3.42]]) rCyl(R,0.006,0.004,V(-0.197,y,z),V(1,0,0),0x8A9096,'steel',{lidOf:R});
+  const rear=-3.74;
+  rBox(R,-0.34,-0.205,17.095,17.10,rear,-3.40,RC,'plastic',{pick:true,cast:true});
+  /* La base deixa el pas lliure just sobre el corrugat interior. */
+  rBox(R,-0.34,-0.307,16.80,16.805,rear,-3.40,RC,'plastic',{pick:true,cast:true});
+  rBox(R,-0.233,-0.205,16.80,16.805,rear,-3.40,RC,'plastic',{pick:true,cast:true});
+  for(const [a,b] of [[rear,-3.721],[-3.647,-3.40]]) rBox(R,-0.307,-0.233,16.80,16.805,a,b,RC,'plastic',{pick:true,cast:true});
+  rBox(R,-0.34,-0.205,16.805,17.095,rear,rear+0.005,RC,'plastic',{pick:true,cast:true}); rBox(R,-0.34,-0.205,16.805,17.095,-3.405,-3.40,RC,'plastic',{pick:true,cast:true});
+  const lid=rBox(R,-0.205,-0.199,16.795,17.105,rear-0.005,-3.395,0xC9CED2,'plastic',{lidOf:R,pick:true,cast:true}); G.lids.push(lid);
+  for(const y of [16.82,17.08]) for(const z of [rear+0.02,-3.42]) rCyl(R,0.006,0.004,V(-0.197,y,z),V(1,0,0),0x8A9096,'steel',{lidOf:R});
   rPlane(R,0.22,0.03,V(-0.1985,17.05,-3.55),V(1,0,0),textTex(['Registre d\'enllaç superior'],{w:512,h:70,size:34,bg:'#ECEFF1'}),{lidOf:R});
   rBox(R,-0.33,-0.30,16.83,17.07,-3.585,-3.515,0x9EA3A8,'plastic');      // suport de les unions
-  /* quatre coaxials exteriors: antena → torre → gassa de goteig → boca → tub → registre */
+  /* cinc coaxials exteriors: antena → torre → gassa de degoteig → boca → tub → registre */
   const SV=[['tdt','cab_capt','capt_mast','capt_tube','antena','TDT'],['dab','cab_dab','dab_mast','dab_tube','antena_dab','DAB'],['fm','cab_fm','fm_mast','fm_tube','antena_fm','FM'],['sat','cab_sat','sat_1','sat_2','lnb','SAT A'],['sat2','cab_sat2','satb_1','satb_2','lnb','SAT B']];
-  /* corrugat interior del RITS: cinc cables en anell, separats 72° */
+  /* Cinc carrils al corrugat interior. El superior s'aparta del coaxial que passa per sota seu. */
   const RING=[0,1,2,3,4].map(i=>{ const a=(90+72*i)*Math.PI/180; return [0.016*Math.cos(a),0.016*Math.sin(a)]; });
+  RING[0]=[-0.018,0.015];
   /* tubs d'enllaç (Ø40, Ø interior 32 mm): 3 cables a 120° al tub 1 i 2 cables al tub 2; [tub, dn, db] */
   const OFFE={tdt:[0,0,0.0055], fm:[0,-0.0048,-0.0028], dab:[0,0.0048,-0.0028], sat:[1,-0.005,0], sat2:[1,0.005,0]};
   const inT={};
-  for(const [k,el,k1,,from] of SV){ const [ti,dn,db]=OFFE[k]; const zb=ANT.ZB[k], zc=EZ[ti];
-    const pts=[...ANT.cab[k], [TX+0.24,dn>0?15.35:15.375,zb], [MX+dn-0.07,dn>0?15.35:15.375,zc-db], [MX+dn,15.47,zc-db], [MX+dn,15.62,zc-db]];
-    rCable(k1,el,pts,PE,'pe',{from,to:'canal_enllac_sup',cr:0.035});
-    inT[k]=insidePath(ET[ti].ft,0,ET[ti].L,dn,db); }
+  for(const [k,el,k1,,from] of SV){ const [ti,dn,db]=OFFE[k];
+    const bore=inT[k]=insidePath(ET[ti],dn,db), p=bore.P[0];
+    const h={tdt:15.37,dab:15.33,fm:15.40,sat:15.39,sat2:15.35}[k];
+    rCable(k1,el,[...ANT.cab[k],[TX+0.30,h,ANT.ZB[k]],[p.x,h,p.z],p],PE,'pe',{from,to:'canal_enllac_sup',R:0.055});
+  }
   /* unions F‑F: s'assignen per ordre d'arribada (de dalt a baix) perquè els cables no es creuin */
   const UY=[17.05,17.00,16.95,16.90,16.85];
-  const ord=SV.map(x=>x[0]).sort((a,b)=>{ const A=inT[a][inT[a].length-1], B=inT[b][inT[b].length-1]; return (B.y-A.y)||(A.z-B.z); });
-  const OFFI=RING;   // (dn,db) dins el corrugat interior, de la unió superior a la inferior
-  RFT.cinStart={}; RFT.cinOff={}; RFT.ffY={};
+  const ord=SV.map(x=>x[0]).sort((a,b)=>{ const A=inT[a].P.at(-1), B=inT[b].P.at(-1); return (B.y-A.y)||(A.z-B.z); });
+  /* La boca superior deixa un tram recte vertical abans del primer colze. */
+  const cin=[[-0.27,16.785,-3.684],[-0.27,16.67,-3.684],[-0.27,16.67,-4.64],[1.40,16.67,-4.64],[1.40,16.57,-4.64]];
+  RFT.cin=corrTube('rits_corr_in',cin,0.035,{cut:[1.90,2.50],cutDir:V(0,0.3,1),R:0.07});
+  RFT.cinRoute={}; RFT.ffY={};
   ord.forEach((k,r)=>{ const [,el,,k2]=SV.find(x=>x[0]===k); const y=UY[r];
-    const U='rits_ff', uc=V(-0.27,y,-3.55);
+    const U='rits_ff', uc=V(-0.25,y,-3.55);
     rHex(U,0.00675,0.015,uc,V(0,0,1),NI,'nickel',{pick:true});
     for(const s of [1,-1]) rCyl(U,0.00475,0.006,uc.clone().add(V(0,0,s*0.0105)),V(0,0,1),NI,'nickel');
     const tipE=uc.clone().add(V(0,0,0.0135)), tipI=uc.clone().add(V(0,0,-0.0135));
     const cE=fMaleFree(U,tipE,V(0,0,1)), cI=fMaleFree(U,tipI,V(0,0,-1));
-        rCable(k2,el,[...inT[k],[-0.27,y,-3.47],cE],PE,'pe',{from:'canal_enllac_sup',to:'rits_ff',via:'canal_enllac_sup',cr:0.02});
-    const [dn,db]=OFFI[r], zI=-3.681+0.0125*r, xI=-0.27+dn;
-    RFT.cinStart[k]=[cI,[-0.27,y,zI],[xI,16.80,-3.65+db]]; RFT.cinOff[k]=[dn,db]; RFT.ffY[k]=y;   // surt recte de la unió, gira avall i entra al corrugat
+    const extEnd=inT[k].P.at(-1), front=-3.45;
+    rCable(k2,el,[inT[k],[-0.352,extEnd.y,extEnd.z],[-0.318,y,front],[uc.x,y,front],cE],PE,'pe',
+      {from:'canal_enllac_sup',to:'rits_ff',via:'canal_enllac_sup'});
+    const bore=insidePath(RFT.cin,...RING[r]), p=bore.P[0];
+    RFT.cinRoute[k]=[cI,[cI.x,y,cI.z-0.018],[p.x,y,p.z],bore];
+    RFT.ffY[k]=y;
   });
-  cableTag('cab_capt',V(-0.285,RFT.ffY.tdt,-3.44),V(0,1,0),'Antena TDT',V(1,0,0));
-  /* tub corrugat d'entrada a la capçalera */
-  const cin=[[-0.27,16.795,-3.65],[-0.27,16.70,-3.65],[-0.27,16.70,-4.64],[1.40,16.70,-4.64],[1.40,16.60,-4.64]];
-  RFT.cin=corrTube('rits_corr_in',cin,0.035,{cut:[1.90,2.50],cutDir:V(0,0.3,1),cr:0.07});
-  for(const z of [-3.95,-4.35]) clampAt('rits_corr_in',V(-0.27,16.70,z),V(0,0,1),V(1,0,0),0.035,{stand:0.07});
-  for(const x of [0.45,1.25]) clampAt('rits_corr_in',V(x,16.70,-4.64),V(1,0,0),V(0,0,1),0.035,{stand:0.09});
+  cableTag('cab_capt',V(-0.265,RFT.ffY.tdt,-3.44),V(0,1,0),'Antena TDT',V(1,0,0));
+  for(const z of [-3.95,-4.35]) clampAt('rits_corr_in',V(-0.27,16.67,z),V(0,0,1),V(1,0,0),0.035,{stand:0.07});
+  for(const x of [0.45,1.25]) clampAt('rits_corr_in',V(x,16.67,-4.64),V(1,0,0),V(0,0,1),0.035,{stand:0.09});
   symSprite('rits_corr_in',V(0.20,16.80,-4.55),'〰 RF entrada','#8D5A1A');
   /* tub corrugat de sortida cap a la canalització principal */
   const cout=[[2.30,15.45,RZ],[2.30,15.30,RZ],[RX.rtv,15.30,RZ],[RX.rtv,14.95,RZ]];   // continua el tub de RTV de la principal (Ø50)
-  RFT.cout=corrTube('rits_corr_out',cout,RPR,{cut:[0.55,1.15],cutDir:V(0,0.3,1),cr:0.08,mouth1:false});
+  RFT.cout=corrTube('rits_corr_out',cout,RPR,{cut:[0.55,1.15],cutDir:V(0,0.3,1),R:0.08,mouth1:false});
   for(const x of [1.85,Math.max(1.0,RX.rtv+0.15)]) clampAt('rits_corr_out',V(x,15.30,RZ),V(1,0,0),V(0,0,1),RPR,{stand:0.17});
   clampAt('rits_corr_out',V(2.30,15.40,RZ),V(0,1,0),V(0,0,1),RPR,{stand:0.17});
   symSprite('rits_corr_out',V(1.45,15.45,-4.50),'〰 RF distribució','#1E4FAE');
@@ -3263,7 +3374,8 @@ function buildRITSEntry(){
     corrTube('canal_principal',[[x,14.95,RZ],[x,15.30,RZ]],RPR,{mouth1:false,mouth0:false});
     if(!RITS_OPEN.includes(k)) rCyl('canal_principal',RPR+0.006,0.03,V(x,15.31,RZ),UP,0x2B2B2B,'rubber'); }
   /* sortida dels dos cables de distribució al final del tub (els cables es fan amb cada capçalera) */
-  for(const [c,dn] of [['a',-0.012],['b',0.012]]){ const inP=insidePath(RFT.cout.ft,0,RFT.cout.L,dn,0); RITS_EXIT[c]=inP[inP.length-1].clone(); }
+  RFT.out={a:insidePath(RFT.cout,-0.012),b:insidePath(RFT.cout,0.012)};
+  for(const c of ['a','b']) RITS_EXIT[c]=RFT.out[c].P.at(-1).clone();
 }
 
 /* =====================================================================
@@ -3392,8 +3504,11 @@ function buildMix740710(cx,cy){
 }
 function buildCapVariant(v){
   SCOPE=VAR;
-  const ftI=RFT.cin.ft, LI=RFT.cin.L, Z=V(0,0,1), DN=V(0,-1,0);
-  const IN={}; for(const k of ['tdt','dab','fm','sat','sat2']) IN[k]=[...RFT.cinStart[k],...insidePath(ftI,0,LI,RFT.cinOff[k][0],RFT.cinOff[k][1])];
+  const Z=V(0,0,1), DN=V(0,-1,0);
+  const IN=Object.fromEntries(Object.entries(RFT.cinRoute).map(([k,route])=>{
+    const {P,T}=route.at(-1), straight=v==='A'&&k==='sat'?0.095:0.053;
+    return [k,[...route,P.at(-1).clone().addScaledVector(T.at(-1),straight)]];
+  }));
   const inner=IN.tdt;
   /* port d'entrada d'un amplificador de FI: femella sempre (sense parabòlica queda lliure) + connector del cable (opcional) */
   const satPort=(el,cel,p,dir)=>{ fFemale(el,p,dir,{open:true}); return fMale(cel,p.clone().addScaledVector(dir,0.006),dir,cel); };
@@ -3459,12 +3574,13 @@ function buildCapVariant(v){
     const I={}, O={}; for(const [k,x] of ins) I[k]=V(x,y1,zc); for(const [k,x] of outs) O[k]=V(x,y0,zc);
     return {I,O,earth:V(x0+W-0.01,y1-0.01,ZP+0.03)}; };
   /* cable de distribució dins del RITS: de la sortida fins al tub corrugat de sortida */
-  const bajant=(c,start,via,from)=>{ const dn=c==='a'?-0.012:0.012; const inP=insidePath(RFT.cout.ft,0,RFT.cout.L,dn,0);
-    rCable(`xd_rtv_${c}_r`,'xd_rtv',[start,...via,[2.30+dn,15.52,RZ],...inP],c==='a'?WH:PE,'pvc',{from,to:'canal_principal',via:'rits_corr_out',tram:'dist',hc:RFN.dist,cr:0.03});
-    cableTag('xd_rtv',V(2.30+dn,15.505,RZ+0.002),V(c==='a'?-1:1,0,0),c==='a'?'Distribució 1':'Distribució 2'); };
+  const bajant=(c,start,via,from)=>{ const bore=RFT.out[c], p=bore.P[0];
+    rCable(`xd_rtv_${c}_r`,'xd_rtv',[start,...via,[p.x,15.55,p.z],bore],c==='a'?WH:PE,'pvc',
+      {from,to:'canal_principal',via:'rits_corr_out',tram:'dist',hc:RFN.dist});
+    cableTag('xd_rtv',V(p.x,15.505,RZ+0.002),V(c==='a'?-1:1,0,0),c==='a'?'Distribució 1':'Distribució 2'); };
   const jump=(key,pts,from,to)=>rCable(key,'cap_jump',pts,WH,'pvc',{from,to,cr:0.02});
   /* arribada d'un cable a un connector frontal (des de dalt i per davant) */
-  const arrive=(p,yTop)=>[[p.x,yTop,p.z+0.04],[p.x,p.y,p.z+0.04],p];   // 4 cm rectes davant del connector i corba de 33 mm
+  const arrive=(p,yTop,depth=0.04)=>[[p.x,yTop,p.z+depth],[p.x,p.y,p.z+depth],p];   // tram frontal per a una corba de 33 mm
 
   if(v==='A'){
     /* ---- centraleta programable amb FI (AVANT 12 PRO SAT, 532204): 201 × 120 × 42 mm ---- */
@@ -3501,12 +3617,12 @@ function buildCapVariant(v){
     const pl=euroPlug('rits_cordo',0.70,16.06);
     cord('rits_cordo',[[pw.x,pw.y-0.019,pw.z],[pw.x,15.93,pw.z],[pw.x,15.93,-4.706],[0.70,15.93,-4.706],[0.70,15.95,-4.672],pl]);
     const top=(p)=>[[p.x,16.42,p.z],p];
-    rCable('capt_in','cab_capt_int',[...inner,[1.42,16.52,-4.66],...top(inEnd)],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
+    rCable('capt_in','cab_capt_int',[...inner,...top(inEnd)],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in'});
     cableTag('cab_capt_int',V(inEnd.x,16.40,inEnd.z),V(-1,0,0),'TDT → entrada 1');
-    rCable('dab_in','cab_dab_int',[...IN.dab,[1.44,16.52,-4.66],...top(dabEnd)],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
-    rCable('fm_in','cab_fm_int',[...IN.fm,[1.36,16.50,-4.63],[1.33,16.42,-4.64],[1.33,16.20,-4.66],[1.44,16.19,zc+0.02],[fmEnd.x,16.20,zc+0.005],fmEnd],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
-    cableTag('cab_fm_int',V(1.33,16.30,-4.64),V(-1,0,0),'FM → entrada FM');
-    rCable('sat_in','cab_sat_int',[...IN.sat,[1.50,16.52,-4.66],...top(satEnd)],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in',cr:0.02});
+    rCable('dab_in','cab_dab_int',[...IN.dab,...top(dabEnd)],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in'});
+    rCable('fm_in','cab_fm_int',[...IN.fm,[1.31,16.42,-4.606],[1.31,16.15,-4.655],[fmEnd.x,16.15,fmEnd.z],fmEnd],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in'});
+    cableTag('cab_fm_int',V(1.31,16.30,-4.628),V(-1,0,0),'FM → entrada FM');
+    rCable('sat_in','cab_sat_int',[...IN.sat,[1.49,16.445,-4.625],[satEnd.x,16.405,satEnd.z],satEnd],WH,'pvc',{from:'rits_ff',to:'cap_avant',via:'rits_corr_in'});
     cableTag('cab_sat_int',V(satEnd.x,16.40,satEnd.z),V(1,0,0),'SAT A → entrada SAT');
     /* segon amplificador de FI amb la seva font */
     rail(1.605,1.73);
@@ -3523,11 +3639,11 @@ function buildCapVariant(v){
     const mT=fMale('cap_mix',mx.I.terr,UP), mS=fMale('cap_mix',mx.I.sat,UP), mO=fMale('cap_mix',mx.O.out,DN);
     jump('cap_jump',[tvEnd,[tvEnd.x,16.17,zc],[1.55,16.05,-4.68],[2.20,15.86,-4.68],[mT.x,15.80,mT.z],mT],'cap_avant','cap_mix');
     cableTag('cap_jump',V(1.90,15.955,-4.68),V(0,-1,0),'TV → TERR',V(1,0,0),'cap_jump');
-    jump('cap_jump_fi',[fiOut,[fiOut.x,fiOut.y,fiOut.z+0.04],[fiOut.x,16.04,-4.57],[2.30,15.92,-4.62],[mS.x,15.80,mS.z],mS],'cap_fi_2','cap_mix');
+    jump('cap_jump_fi',[fiOut,[fiOut.x,fiOut.y,fiOut.z+0.05],[fiOut.x,16.04,fiOut.z+0.05],[2.30,15.92,-4.62],[mS.x,15.80,mS.z],mS],'cap_fi_2','cap_mix');
     cableTag('cap_jump',V(2.12,15.95,-4.60),V(0,-1,0),'FI 2 → SAT',V(1,0,-0.3).normalize(),'cap_jump_fi');
     /* cables de distribució: 1 directe de la centraleta (TV+SAT), 2 del mesclador */
-    bajant('a',tsEnd,[[tsEnd.x,16.15,zc],[1.66,15.60,-4.66],[2.20,15.56,-4.66],[2.27,15.55,-4.64]],'cap_avant');
-    bajant('b',mO,[[mO.x,mO.y-0.03,mO.z],[2.312,15.555,-4.645]],'cap_mix');
+    bajant('a',tsEnd,[[tsEnd.x,16.18,tsEnd.z],[1.61,15.92,-4.59],[2.16,15.58,RZ]],'cap_avant');
+    bajant('b',mO,[[mO.x,mO.y-0.035,mO.z]],'cap_mix');
     { const ea=ap('terra',null);                                                         // born de terra de la centraleta
       if(ea) bond([[0.35,17.164,-4.700],[0.35,16.90,-4.688],[ea.x,16.90,-4.688],[ea.x,16.37,-4.700],[ea.x,ea.y+0.006,ea.z+0.003],[ea.x,ea.y+0.003,ea.z+0.001]]);
       else bond([[0.35,17.164,-4.700],[0.35,16.90,-4.688],[1.534,16.90,-4.688],[1.534,16.40,-4.688],[1.534,16.38,ZP+0.044],[1.534,16.295,ZP+0.044],[1.534,16.288,ZP+0.040]]); }
@@ -3570,19 +3686,19 @@ function buildCapVariant(v){
     const flb=rBox(FL,fp.x-0.0165,fp.x+0.0165,fy-0.0115,fy+0.0115,fp.z+0.012,fp.z+0.061,0xC0C5C9,'zamak',{pick:true,cast:true}); boxHalo(flb,RFN.eq);
     rPlane(FL,0.03,0.02,V(fp.x,fy,fp.z+0.0612),Z,textTex(['LTE/5G','403201','≤694 MHz'],{w:150,h:100,fs:[30,24,22],bold:[true],bg:'#C0C5C9',fg:'#263238'}));
     const fOut=fMale(FL,fp.clone().addScaledVector(Z,0.061),Z);
-    rCable('capt_in','cab_capt_int',[...inner,[1.42,16.56,-4.62],[fOut.x,16.42,-4.56],[fOut.x,fOut.y+0.012,fOut.z+0.03],[fOut.x,fOut.y,fOut.z+0.012],fOut],WH,'pvc',{from:'rits_ff',to:'cap_filtre',via:'rits_corr_in',cr:0.02});
+    rCable('capt_in','cab_capt_int',[...inner,[1.46,16.424,-4.59],...arrive(fOut,16.375)],WH,'pvc',{from:'rits_ff',to:'cap_filtre',via:'rits_corr_in'});
     cableTag('cab_capt_int',V(fOut.x,16.40,-4.56),V(-1,0,0),'TDT → filtre → TDT 1',V(0,1,0));
     /* DAB i FM: entrada pròpia des de la seva antena */
     const dEnd=fMale('cap_t12_dab',M[12].ports.in1,Z), mEnd=fMale('cap_t12_fm',M[13].ports.in1,Z);
     fLoad('cap_t12_dab',M[12].ports.in2,Z,true); fLoad('cap_t12_fm',M[13].ports.in2,Z,true);
-    rCable('dab_in','cab_dab_int',[...IN.dab,[1.50,16.55,-4.60],...arrive(dEnd,16.43)],WH,'pvc',{from:'rits_ff',to:'cap_t12_dab',via:'rits_corr_in',cr:0.02});
-    rCable('fm_in','cab_fm_int',[...IN.fm,[1.52,16.535,-4.60],...arrive(mEnd,16.41)],WH,'pvc',{from:'rits_ff',to:'cap_t12_fm',via:'rits_corr_in',cr:0.02});
+    rCable('dab_in','cab_dab_int',[...IN.dab,[1.52,16.46,-4.56],...arrive(dEnd,16.37)],WH,'pvc',{from:'rits_ff',to:'cap_t12_dab',via:'rits_corr_in'});
+    rCable('fm_in','cab_fm_int',[...IN.fm,[1.51,16.47,-4.66],...arrive(mEnd,16.39)],WH,'pvc',{from:'rits_ff',to:'cap_t12_fm',via:'rits_corr_in'});
     cableTag('cab_dab_int',V(dEnd.x,16.36,dEnd.z+0.03),V(-1,0,0),'DAB',V(0,1,0));
     cableTag('cab_fm_int',V(mEnd.x,16.36,mEnd.z+0.03),V(1,0,0),'FM',V(0,1,0));
     /* amplificadors de FI: entrada des de l'LNB (si hi ha parabòlica) */
     const aIn=satPort('cap_fi_1','cab_sat_int',M[0].ports.in1,Z), bIn=satPort('cap_fi_2','cab_sat2_int',M[1].ports.in1,Z);
-    rCable('sat_in','cab_sat_int',[...IN.sat,[1.30,16.585,-4.60],...arrive(aIn,16.42)],WH,'pvc',{from:'rits_ff',to:'cap_fi_1',via:'rits_corr_in',cr:0.02});
-    rCable('satb_in','cab_sat2_int',[...IN.sat2,[1.32,16.60,-4.58],...arrive(bIn,16.40)],WH,'pvc',{from:'rits_ff',to:'cap_fi_2',via:'rits_corr_in',cr:0.02});
+    rCable('sat_in','cab_sat_int',[...IN.sat,[1.32,16.46,-4.57],...arrive(aIn,16.39)],WH,'pvc',{from:'rits_ff',to:'cap_fi_1',via:'rits_corr_in'});
+    rCable('satb_in','cab_sat2_int',[...IN.sat2,[1.35,16.43,-4.506],...arrive(bIn,16.36,0.075)],WH,'pvc',{from:'rits_ff',to:'cap_fi_2',via:'rits_corr_in'});
     cableTag('cab_sat_int',V(aIn.x,16.41,aIn.z+0.03),V(-1,0,0),'SAT A',V(0,1,0));
     cableTag('cab_sat2_int',V(bIn.x,16.39,bIn.z+0.03),V(1,0,0),'SAT B',V(0,1,0));
     const aOut=fMale('cap_fi_1',M[0].ports.out1,Z), bOut=fMale('cap_fi_2',M[1].ports.out1,Z);
@@ -3591,14 +3707,14 @@ function buildCapVariant(v){
     const mp=(p,dir)=>fMale('cap_mix',p.clone().addScaledVector(dir,-0.006),dir);      // connector F mascle roscat al port femella
     const mT=mp(mx.I.ter,UP), mA=mp(mx.I.sa,UP), mB=mp(mx.I.sb,UP);
     const oA=mp(mx.O.a,DN), oB=mp(mx.O.b,DN);
-    jump('cap_jump',[gOut,[gOut.x,gOut.y,gOut.z+0.04],[gOut.x,16.06,-4.58],[2.20,15.92,-4.64],[mT.x,15.80,mT.z],mT],'cap_t12_fm','cap_mix');
+    jump('cap_jump',[gOut,[gOut.x,gOut.y,gOut.z+0.05],[gOut.x,16.06,gOut.z+0.05],[2.20,15.92,-4.64],[mT.x,15.80,mT.z],mT],'cap_t12_fm','cap_mix');
     cableTag('cap_jump',V(2.13,15.94,-4.63),V(0,-1,0),'MATV → TER',V(1,0,-0.3).normalize(),'cap_jump');
-    jump('cap_jump_fia',[aOut,[aOut.x,aOut.y,aOut.z+0.04],[aOut.x,16.07,-4.575],[1.60,16.04,-4.60],[2.20,15.95,-4.64],[mA.x,15.80,mA.z],mA],'cap_fi_1','cap_mix');
-    jump('cap_jump_fib',[bOut,[bOut.x,bOut.y,bOut.z+0.04],[bOut.x,16.055,-4.585],[1.62,16.025,-4.62],[2.25,15.935,-4.66],[mB.x,15.80,mB.z],mB],'cap_fi_2','cap_mix');
+    jump('cap_jump_fia',[aOut,[aOut.x,aOut.y,aOut.z+0.05],[aOut.x,16.07,aOut.z+0.05],[1.60,16.04,-4.60],[2.20,15.95,-4.64],[mA.x,15.80,mA.z],mA],'cap_fi_1','cap_mix');
+    jump('cap_jump_fib',[bOut,[bOut.x,bOut.y,bOut.z+0.05],[bOut.x,16.055,bOut.z+0.05],[1.62,16.025,-4.62],[2.25,15.935,-4.66],[mB.x,15.80,mB.z],mB],'cap_fi_2','cap_mix');
     cableTag('cap_jump',V(1.56,16.045,-4.60),V(0,-1,0),'FI 1 → SAT/A',V(1,0,0),'cap_jump_fia');
     /* cables de distribució: SAT/A + TER → cable 1 (blanc), SAT/B + TER → cable 2 (negre) */
-    bajant('a',oA,[[oA.x,oA.y-0.025,oA.z],[2.288,15.55,-4.66]],'cap_mix');
-    bajant('b',oB,[[oB.x,oB.y-0.025,oB.z],[2.312,15.55,-4.66]],'cap_mix');
+    bajant('a',oA,[[oA.x,oA.y-0.035,oA.z]],'cap_mix');
+    bajant('b',oB,[[oB.x,oB.y-0.035,oB.z]],'cap_mix');
     bond([[0.35,17.164,-4.700],[0.35,16.90,-4.686],[2.04,16.90,-4.686],[2.04,16.29,-4.70],[2.04,16.277,ZB+0.004]]);
     /* connexió equipotencial: terminal d'anella sota el cargol de fixació dret del mesclador */
     bond([[0.20,17.164,-4.700],[0.20,15.58,-4.700],[2.42,15.58,-4.700],[2.42,15.68,-4.700],[2.36,15.696,ZP+0.006],[mx.screwR.x+0.003,mx.screwR.y,ZP+0.0068]]);
@@ -3933,7 +4049,7 @@ function buildAntennas(){
     tdt:[tdtOut,[dx,yT-0.12,bz],[TX+0.0,yT-0.17,TZ+0.048],[TX+0.031,yT-0.20,TZ+0.031],[sT.x,yT-0.235,sT.z],[sT.x,21.32,sT.z]],
     dab:[dabOut,[fx,yD-0.14,TZ-0.024],[TX-0.30,yD-0.14,TZ-0.024],[TX-0.05,yD-0.14,TZ-0.036],[TX,yD-0.16,TZ-0.045],[TX+0.016,yD-0.19,TZ-0.036],[sD.x,yD-0.22,sD.z],[sD.x,21.32,sD.z]],
     fm:[fmOut,[TX+0.03,yF-0.11,TZ+0.10],[BX-0.035,21.30,ZB.fm+0.012]],
-    sat:[satOut, armEnd.clone().addScaledVector(lnbDown,-0.03).addScaledVector(lnbAx,0.04), A0.clone().add(V(0,-0.032,0)).addScaledVector(d,-0.02), V(stub.x,15.556,stub.z).addScaledVector(d,0.03), V(stub.x,15.50,stub.z).addScaledVector(d,0.03), V(TX+0.02,15.50,TZ-0.215), V(TX+0.135,15.50,TZ-0.165), V(TX+0.15,15.47,TZ-0.07)]
+    sat:[satOut, armEnd.clone().addScaledVector(lnbDown,-0.03).addScaledVector(lnbAx,0.04), A0.clone().add(V(0,-0.032,0)).addScaledVector(d,-0.02), V(stub.x,15.60,stub.z).addScaledVector(d,0.03), V(stub.x,15.49,stub.z).addScaledVector(d,0.03), V(TX+0.02,15.50,TZ-0.215), V(TX+0.135,15.50,TZ-0.165), V(TX+0.15,15.47,TZ-0.07)]
   };
   for(const k of ['tdt','dab','fm']) ANT.cab[k].push([BX,21.06,ZB[k]],[BX,15.62,ZB[k]],[BX,15.50,ZB[k]]);
   /* sortida B de l'LNB: el segon cable va paral·lel al primer */

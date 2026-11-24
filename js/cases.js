@@ -52,12 +52,13 @@ function aRotX(w,h,d,a,c,mat,o){ const g=new THREE.BoxGeometry(w,h,d); g.rotateX
 /* ---------- materials propis ---------- */
 function casesMats(){
   const L = (c,o={}) => new THREE.MeshLambertMaterial(Object.assign({color:c}, o));
+  const F=archFinish;
   Object.assign(AM, {
-    rend:[L(0xEFE4D2),L(0xE8D6BE),L(0xF1E8DA),L(0xE6D2B8)],        // arrebossat de cada casa (tons càlids)
-    stone:L(0xB4AA9B), roofT:L(0xB4593A), roofD:L(0x9C4A31), ridge:L(0x8E4430), fascia:L(0xF2EEE6),
-    shut:L(0x58775A), shut2:L(0x7A5A3E), sill:L(0xD9D3C7), lamp:L(0xFFF3C4,{emissive:0x8A7A40}),
-    lawn:L(0xA8C487), lawn2:L(0x9BBB7C), hedge:L(0x5F8A4A), tree:L(0x6E9A52), trunk:L(0x6B4F36), pave:L(0xD7D0C2), gravel:L(0xC9C3B6),
-    asph:L(0x6A6D72), kerb:L(0xBEBAB2), soilT:L(0x6E4F35), wood:L(0xA77D55), metal:L(0x55595E), glassD:L(0x5C7184,{transparent:true, opacity:0.55, depthWrite:false}),
+    rend:[0xEFE4D2,0xE8D6BE,0xF1E8DA,0xE6D2B8].map(c=>F(c,'plaster')),        // arrebossat de cada casa (tons càlids)
+    stone:F(0xB4AA9B,'concrete'), roofT:F(0xB4593A,'clay'), roofD:F(0x9C4A31,'clay'), ridge:F(0x8E4430,'clay'), fascia:L(0xF2EEE6),
+    shut:F(0x58775A,'wood'), shut2:F(0x7A5A3E,'wood'), sill:L(0xD9D3C7), lamp:L(0xFFF3C4,{emissive:0x8A7A40}),
+    lawn:F(0xA8C487,'grass'), lawn2:F(0x9BBB7C,'grass'), hedge:L(0x5F8A4A), tree:L(0x6E9A52), trunk:L(0x6B4F36), pave:F(0xD7D0C2,'pavers'), gravel:F(0xC9C3B6,'asphalt'),
+    asph:F(0x6A6D72,'asphalt'), kerb:F(0xBEBAB2,'concrete'), soilT:F(0x6E4F35,'asphalt'), wood:F(0xA77D55,'wood'), metal:L(0x55595E), glassD:L(0x5C7184,{transparent:true, opacity:0.55, depthWrite:false}),
     neon:L(0xF7FAFF,{emissive:0x9AA3AA}), red:L(0xC23B2E), car5:L(0x2F6E5E), car6:L(0xE1D7C2)
   });
   AM.list.push(AM.soil, AM.ground, AM.side, AM.street, AM.lawn, AM.lawn2, AM.gravel, AM.asph, AM.kerb, AM.glassD, ...AM.rend, AM.stone, AM.roofT, AM.roofD, AM.ridge, AM.fascia, AM.shut, AM.shut2, AM.sill, AM.lamp, AM.hedge, AM.tree, AM.trunk,
@@ -447,9 +448,9 @@ function buildMainC(){
   const z0=RITU.z+RX.rtv, W={};
   for(const c of ['a','b']){ const ex=RITS_EXIT[c].clone().applyMatrix4(RITSM); W[c]=[ex.x-XDROP(), c==='a'?0.005:-0.005, ex.z-z0]; }
   const rsIn = (i,c) => { const P=RSP[i][c].in, w=W[c], oy=w[1], oz=-w[2], zc=0.075+oz, x=P.x;
-    return [[-RSD.w/2+DINS,ML.rtv+oy,zc],[x,ML.rtv+oy,zc],[x,-0.075,zc],[x,P.y-0.02,0.034],[x,P.y,P.z]].map(p=>A3(rsW(i,...p))); };
+    return [[-RSD.w/2+DINS,ML.rtv+oy,zc],[x,ML.rtv+oy,zc],[x,-0.050,zc],[x,P.y-0.02,0.034],[x,P.y,P.z]].map(p=>A3(rsW(i,...p))); };
   const rsOut = i => c => { const P=RSP[i][c].out, w=W[c], oy=w[1], oz=-w[2], zc=0.075+oz, x=P.x;
-    return [[x,P.y,P.z],[x,P.y-0.02,0.034],[x,-0.075,zc],[x,ML.rtv+oy,zc],[RSD.w/2-DINS,ML.rtv+oy,zc]].map(p=>A3(rsW(i,...p))); };
+    return [[x,P.y,P.z],[x,P.y-0.02,0.034],[x,-0.050,zc],[x,ML.rtv+oy,zc],[RSD.w/2-DINS,ML.rtv+oy,zc]].map(p=>A3(rsW(i,...p))); };
   for(const c of ['a','b']){
     const w=W[c], tp=inTube(mainPath('rtv'),w,RM);
     cable(`xd_rtv_${c}_2`,'xd_rtv',[...tp.slice(0,-1),...rsIn(2,c)],{from:'cap_mix', to:'deriv_2', via:'canal_principal', R:CBL.rg6.rb});
@@ -527,12 +528,13 @@ function buildHouseICT(u){
   for(const c of ['a','b']){
     const tn=(c==='a')===(sd>0)?'t2':'t1', P=RSP[i][c][tn], ln=LANE[c][tn], zp = ln.col>0 ? 0.034 : 0.055, w=Wc[c], wl=[-w[0],w[1],-w[2]];
     const tx=sd*TOPX.rtv+wl[0], top=RSD.h/2-DINS;
-    const rs=[[P.x,P.y,P.z],[P.x,ln.y,zp],[ln.col,ln.y,zp],[ln.col,0.40,zp],[tx,0.44,0.075+wl[2]],[tx,top,0.075+wl[2]]].map(p=>A3(rsW(i,...p)));
+    const lift=c==='a'?[0.387,0.449]:[0.33,0.41];  // primer passa el cable del carril del fons
+    const rs=[[P.x,P.y,P.z],[P.x,ln.y,zp],[ln.col,ln.y,zp],[ln.col,lift[0],zp],[tx,lift[1],0.075+wl[2]],[tx,top,0.075+wl[2]]].map(p=>A3(rsW(i,...p)));
     const tp=inTubeR(csPathC(u,'rtv'),w,RCS);
     const PR=pauRtvPos(u), E=PR.at(c==='a'?'in':'inc').add(V(0,0.004-FC_LENGTH,0)), yu=E.y-0.06;
     const far=Math.abs(PR.at(c==='a'?'in':'inc').x-X(-2.76)) > Math.abs(PR.at(c==='a'?'inc':'in').x-X(-2.76)), zf=E.z+sz*(far?0.084:0.068);
-    const tail=[V(X(-2.76),HRTR.rtv+w[1],zf),V(E.x,HRTR.rtv+w[1],zf),V(E.x,yu,zf),V(E.x,yu,E.z),V(E.x,E.y,E.z)].map(L);
-    cable(`xs_rtv_${c}_${id}`,`xs_rtv_${id}`,[...rs,...tp.slice(1),...tail],{tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${i}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
+    const tail=[V(X(-2.91),HRTR.rtv+w[1],zf),V(E.x,HRTR.rtv+w[1],zf),V(E.x,yu,zf),V(E.x,yu,E.z),V(E.x,E.y,E.z)].map(L);
+    cable(`xs_rtv_${c}_${id}`,`xs_rtv_${id}`,[...rs,...tp.slice(1),pastMouth(tp,0.060),...tail],{tram:'disp',tech:'coax',svc:'rtv',from:`deriv_${i}`, to:`pau_rtv_${id}`, via:`cs_${id}`});
   }
   /* fibra: escomesa des del premsaestopes de dalt de la caixa de segregació, per davant de tot, fins al tub de parells i fibra;
      al RTR, entra al PAU de fibra pel pretallat lateral més proper, amb un passacables de goma */
@@ -541,14 +543,14 @@ function buildHouseICT(u){
     const tp=inTubeR(csPathC(u,'all'),w,RCS);
     const pf=pauFoPos(u), ed=pf.at('entrada_d'), ee=pf.at('entrada_e'), en=Math.abs(ed.x-X(-2.96))<Math.abs(ee.x-X(-2.96))?ed:ee, out=Math.sign(X(-2.96)-en.x);
     withRoot(PG[pairOf(u)],()=>rCyl(`pau_fo_${id}`,0.0036,0.003,V(en.x+out*0.001,en.y,en.z),V(1,0,0),0x2A2D31,'rubber',{r2:0.0036}));
-    const h=HRTR.all+w[1], tail=[V(X(-2.76),h,Z(-4.67)),V(X(-2.96),h,Z(-4.67)),V(X(-2.96),en.y,Z(-4.67)),V(X(-2.96),en.y,en.z),V(en.x-out*0.008,en.y,en.z)].map(L);
-    cable(`xs_fo_${id}`,`xs_fo_${id}`,[...rs,...tp.slice(1),...tail],{tram:'disp',tech:'fo',svc:'fo',from:`cseg_${i}`, to:`pau_fo_${id}`, via:`cs_${id}`}); }
+    const h=HRTR.all+w[1], tail=[V(X(-2.96),h,Z(-4.67)),V(X(-2.96),en.y,Z(-4.67)),V(X(-2.96),en.y,en.z),V(en.x-out*0.008,en.y,en.z)].map(L);
+    cable(`xs_fo_${id}`,`xs_fo_${id}`,[...rs,...tp.slice(1),pastMouth(tp,0.05),...tail],{tram:'disp',tech:'fo',svc:'fo',from:`cseg_${i}`, to:`pau_fo_${id}`, via:`cs_${id}`}); }
   /* parells: escomesa de 2 parells des de la regleta (parells 1–2 cap a l'esquerra, 3–4 cap a la dreta) fins a la roseta */
   { const w=[0.004,0.004,0.004], wl=[-0.004,0.004,-0.004], kx=krX(0,sd>0?3.5:1.5), tx=sd*TOPX.all+wl[0], top=RSD.h/2-DINS;
     const rs=[[kx,0.33+0.014,0.06],[kx,0.39,0.065],[tx,0.43,0.075+wl[2]],[tx,top,0.075+wl[2]]].map(p=>A3(rsW(i,...p)));
     const tp=inTubeR(csPathC(u,'all'),w,RCS), pp=X(-2.86);
-    const h=HRTR.all+w[1], tail=[V(X(-2.76),h,Z(-4.675)),V(pp,h,Z(-4.675)),V(pp,1.64,Z(-4.70)),V(pp,1.69,Z(-4.701))].map(L);
-    cable(`xs_pt_${id}`,`xs_pt_${id}`,[...rs,...tp.slice(1),...tail],{tram:'disp',tech:'pt',svc:'pt',from:`bucle_${i}`, to:`pau_pt_${id}`, via:`cs_${id}`}); }
+    const h=HRTR.all+w[1], tail=[V(pp,h,Z(-4.675)),V(pp,1.64,Z(-4.70)),V(pp,1.69,Z(-4.701))].map(L);
+    cable(`xs_pt_${id}`,`xs_pt_${id}`,[...rs,...tp.slice(1),pastMouth(tp,0.04),...tail],{tram:'disp',tech:'pt',svc:'pt',from:`bucle_${i}`, to:`pau_pt_${id}`, via:`cs_${id}`}); }
   withRoot(PG[pairOf(u)],()=>buildInterior(u));
 }
 /* ---------- referències (mode «Només ICT») i etiquetes de cases, estàncies i zones ---------- */

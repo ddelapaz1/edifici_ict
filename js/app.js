@@ -831,12 +831,38 @@ function rj45Coupler(el,x,y,z){
   iBox(el,0.0165,0.03,0.0145,x,y,z,0x2A2D31,{pick:false});
   for(const s of [-1,1]) iBox(el,0.0125,0.0012,0.0085,x,y+s*0.0151,z,0x0E0F10,{pick:false});
 }
-/* rectangle arrodonit extrudit (centrat), per a caixes de plàstic */
-function rrectGeo(w,h,d,r,bev,holes){ const s=new THREE.Shape(), x=-w/2+bev, y=-h/2+bev, W=w-2*bev, H=h-2*bev, R=Math.max(0.0005,r-bev);
+/* rectangle arrodonit extrudit (centrat), per a caixes de plàstic i mobiliari */
+function rrectGeo(w,h,d,r,bev,holes,seg){
+  bev=Math.min(bev,w*0.24,h*0.24,d*0.24);
+  const s=new THREE.Shape(), x=-w/2+bev, y=-h/2+bev, W=w-2*bev, H=h-2*bev, R=Math.max(0.0005,Math.min(r-bev,W*0.48,H*0.48));
   s.moveTo(x+R,y); s.lineTo(x+W-R,y); s.quadraticCurveTo(x+W,y,x+W,y+R); s.lineTo(x+W,y+H-R); s.quadraticCurveTo(x+W,y+H,x+W-R,y+H);
   s.lineTo(x+R,y+H); s.quadraticCurveTo(x,y+H,x,y+H-R); s.lineTo(x,y+R); s.quadraticCurveTo(x,y,x+R,y);
   for(const [hx,hy,hr] of holes||[]){ const h=new THREE.Path(); h.absarc(hx,hy,hr+bev,0,Math.PI*2,true); s.holes.push(h); }   // forats passants (el bisell els arrodoneix)
-  const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.0005,d-2*bev), bevelEnabled:bev>0, bevelThickness:bev, bevelSize:bev, bevelSegments:3, curveSegments:holes?28:6}); g.center(); return g; }
+  const bs=seg?seg[0]:3, cs=seg?seg[1]:(holes?28:6);
+  const g=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.0005,d-2*bev), bevelEnabled:bev>0, bevelThickness:bev, bevelSize:bev, bevelSegments:bs, curveSegments:cs}); g.center(); return g; }
+let PC_SCR_TEX=null, TV_SCR_TEX=null;
+function pcScreenTex(){ return PC_SCR_TEX ||= canvasTex(320,200,(g,w,h)=>{
+  const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,'#0F1D30'); gr.addColorStop(1,'#1B3252'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+  g.fillStyle='#141C26'; g.fillRect(26,20,185,132); g.fillStyle='#23344A'; g.fillRect(26,20,185,16);
+  for(let i=0;i<3;i++){ g.fillStyle=['#E06C75','#E5C07B','#98C379'][i]; g.beginPath(); g.arc(36+i*10,28,3,0,Math.PI*2); g.fill(); }
+  g.fillStyle='#56B6C2'; g.fillRect(36,48,68,6); g.fillStyle='#98C379'; g.fillRect(36,62,110,5);
+  g.fillStyle='#61AFEF'; g.fillRect(46,74,92,5); g.fillStyle='#C678DD'; g.fillRect(46,86,76,5);
+  g.fillStyle='#ABB2BF'; g.fillRect(36,98,130,5); g.fillRect(36,110,85,5); g.fillStyle='#61AFEF'; g.fillRect(36,124,52,5);
+  g.fillStyle='#192638'; g.fillRect(222,30,74,104); g.strokeStyle='#3B82F6'; g.lineWidth=2; g.beginPath(); g.moveTo(230,116); g.lineTo(246,96); g.lineTo(260,104); g.lineTo(276,72); g.lineTo(288,80); g.stroke();
+  g.fillStyle='rgba(10,14,20,0.85)'; g.fillRect(0,h-18,w,18);
+  g.fillStyle='#3B82F6'; g.fillRect(10,h-13,10,8); g.fillStyle='#94A3B8'; g.fillRect(28,h-11,22,4); g.fillRect(56,h-11,22,4); g.fillRect(w-34,h-11,24,4);
+}); }
+function tvScreenTex(){ return TV_SCR_TEX ||= canvasTex(384,216,(g,w,h)=>{
+  const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#0C1829'); gr.addColorStop(0.55,'#1E3A5F'); gr.addColorStop(0.75,'#3E5C76'); gr.addColorStop(1,'#101923');
+  g.fillStyle=gr; g.fillRect(0,0,w,h);
+  g.fillStyle='#1A2E44'; g.beginPath(); g.moveTo(0,156); g.lineTo(68,108); g.lineTo(132,138); g.lineTo(214,88); g.lineTo(298,134); g.lineTo(352,102); g.lineTo(w,128); g.lineTo(w,h); g.lineTo(0,h); g.fill();
+  g.fillStyle='#122030'; g.beginPath(); g.moveTo(0,168); g.lineTo(95,128); g.lineTo(180,152); g.lineTo(276,118); g.lineTo(w,148); g.lineTo(w,h); g.lineTo(0,h); g.fill();
+  g.fillStyle='rgba(255,214,138,0.28)'; g.beginPath(); g.arc(285,62,28,0,Math.PI*2); g.fill();
+  g.fillStyle='rgba(255,235,180,0.85)'; g.beginPath(); g.arc(285,62,12,0,Math.PI*2); g.fill();
+  g.fillStyle='rgba(12,16,24,0.68)'; g.fillRect(18,h-42,w-36,28);
+  g.fillStyle='#38BDF8'; g.fillRect(28,h-34,34,12); g.fillStyle='#E2E8F0'; g.fillRect(72,h-33,96,5); g.fillStyle='#94A3B8'; g.fillRect(72,h-24,62,4);
+  for(let i=0;i<3;i++){ g.fillStyle=i===0?'#38BDF8':'rgba(255,255,255,0.22)'; g.fillRect(w-108+i*28,h-34,22,12); }
+}); }
 /* ---------- base d'accés terminal (BAT) ----------
    Placa blanca quadrada amb els connectors, com les preses comercials: RJ45 simple o doble, RTV (TV mascle + SAT femella,
    serigrafiats), coaxial de TBA (CATV, sense serigrafia) i òptica (allotjament quadrat amb l'adaptador SC/APC).
@@ -1044,9 +1070,39 @@ function buildInterior(u){
         /* adaptador SC/APC simplex a mida real al centre de la roseta; el latiguillo de l'ONT hi va endollat */
         FO_BAT=scPlug(`ont_${U}`,scAdapter(`bat_${pid}`,fo,N.clone().negate(),S,true),N,S); } }
   });
-  /* equips de l'usuari a la sala: ONT i encaminador al costat de la presa òptica */
-  iBox(`ont_${U}`,0.26,0.2,0.1,X(-6.16),y+1.07,Z(-1.62),0xFAFAFA); iBox(`ont_${U}`,0.03,0.03,0.01,X(-6.22),y+1.1,Z(-1.565),0x2E9E5B,{pick:false});
-  iBox(`router_${U}`,0.3,0.08,0.2,X(-5.86),y+1.01,Z(-1.62),0x30363D); iCyl(`router_${U}`,0.012,0.22,X(-5.97),y+1.16,Z(-1.7),0x30363D,'y',{pick:false}); iCyl(`router_${U}`,0.012,0.22,X(-5.75),y+1.16,Z(-1.7),0x30363D,'y',{pick:false});
+  /* equips de l'usuari a la sala: ONT i encaminador al costat de la presa òptica (fusionats en una sola malla per equip) */
+  const devM=(cx,cy,cz)=>new THREE.Matrix4().makeBasis(V(sz,0,0),V(0,1,0),V(0,0,sz)).setPosition(cx,cy,cz);
+  const devBuild=(el,M,fn,px)=>{
+    const parts=[];
+    const T=(x,y,z,rx,ry,rz)=>{ const m=M.clone().multiply(new THREE.Matrix4().makeTranslation(x,y,z));
+      if(rx) m.multiply(new THREE.Matrix4().makeRotationX(rx)); if(ry) m.multiply(new THREE.Matrix4().makeRotationY(ry)); if(rz) m.multiply(new THREE.Matrix4().makeRotationZ(rz)); return m; };
+    const box=(w,h,d,x,y,z,c,rx,ry,rz)=>parts.push([new THREE.BoxGeometry(w,h,d),T(x,y,z,rx,ry,rz),c]);
+    const rr=(w,h,d,r,b,x,y,z,c,rx,ry,rz)=>parts.push([rrectGeo(w,h,d,r,b,null,[2,4]),T(x,y,z,rx,ry,rz),c]);
+    const cyl=(r,h,x,y,z,c,seg=14,r2=r,rx,ry,rz)=>parts.push([new THREE.CylinderGeometry(r2,r,h,seg),T(x,y,z,rx,ry,rz),c]);
+    fn({box,rr,cyl,T,parts});
+    const m=ictMesh(mergeParts(parts),0xFFFFFF,el,{std:{roughness:0.46,metalness:0.12,vertexColors:true}});
+    for(const [w,h,d,x,y,z] of px){ const g=new THREE.BoxGeometry(w,h,d); g.applyMatrix4(T(x,y,z)); addProxy(m,g); }
+    return m;
+  };
+  /* ONT: xassís blanc arrodonit, base de peu, franja de ventilació i 4 LED d'estat */
+  devBuild(`ont_${U}`,devM(X(-6.16),y+0.97,Z(-1.62)),({box,rr})=>{
+    rr(0.24,0.18,0.085,0.012,0.004,0,0.10,0,0xF4F5F7);
+    box(0.20,0.014,0.095,0,0.007,0,0xDCDFE4);
+    box(0.22,0.005,0.088,0,0.165,0,0xE2E5EA);
+    box(0.09,0.016,0.003,-0.04,0.135,0.043,0xE6E9EE);
+    for(let i=0;i<4;i++) box(0.008,0.005,0.004,-0.068+i*0.018,0.135,0.044,i===2?0x2783DE:0x2E9E5B);
+  },[[0.26,0.22,0.14,0,0.10,0]]);
+  /* Encaminador Wi-Fi: cos fosc bisellat, frontal inclinat amb LEDs i 3 antenes articulades */
+  devBuild(`router_${U}`,devM(X(-5.86),y+0.97,Z(-1.62)),({box,rr,cyl})=>{
+    rr(0.28,0.052,0.18,0.01,0.004,0,0.032,0,0x2A2F36);
+    box(0.26,0.008,0.16,0,0.004,0,0x1B1E22);
+    box(0.24,0.012,0.006,0,0.032,0.089,0x1A1D21);
+    for(let i=0;i<5;i++) box(0.009,0.004,0.004,-0.06+i*0.022,0.032,0.092,i<3?0x35B8F0:0x2E9E5B);
+    for(const ax of [-0.10,0,0.10]){
+      cyl(0.008,0.018,ax,0.045,-0.085,0x22262B,10);
+      rr(0.014,0.20,0.007,0.004,0.0015,ax,0.145,-0.09,0x262B31,-0.12);
+    }
+  },[[0.30,0.24,0.22,0,0.12,0]]);
   /* latiguillo SC/APC: surt de la presa òptica, puja per davant del prestatge (cantell a z −1,48) i entra al port òptic
      del frontal de l'ONT, arran del prestatge */
   { const zf=Z(-1.465), ot=scPlug(`ont_${U}`,V(X(-6.12),y+0.983,Z(-1.58)),V(0,0,sz),V(1,0,0)), b=FO_BAT;
@@ -1058,8 +1114,19 @@ function buildInterior(u){
     return [pl.clone().addScaledVector(q.n,-0.006).toArray(),pl.clone().addScaledVector(q.n,0.03).toArray()]; };   // 3 cm rectes abans de corbar
   { const [pl,out]=plugRJ(`router_${U}`,near(`bat_dat_sala_${U}`,X(-6.25),'rj45'));
     cable(`patch_ret_${U}`,`router_${U}`,[[X(-5.86),y+0.98,Z(-1.52)],[X(-6.02),y+0.75,Z(-1.5)],[pl[0],y+0.5,out[2]],out,pl],{tram:'usr',tech:'pt',svc:'pt', from:`router_${U}`, to:`bat_dat_sala_${U}`}); }
-  /* equips terminals */
-  iBox(`tv_${U}`,1.1,0.62,0.06,X(-7.1),y+0.85,Z(-1.35),0x22262B); iBox(`tv_${U}`,0.2,0.3,0.12,X(-7.1),y+0.55,Z(-1.35),0x22262B,{pick:false});
+  /* Televisor 50" (112 × 64 cm): marc ultrafí, cos posterior escalonat, pedestal d'alumini i pantalla amb imatge */
+  { const el=`tv_${U}`, tx=X(-7.1), tz=Z(-1.35);
+    devBuild(el,devM(tx,y+0.45,tz),({box,rr})=>{
+      rr(0.38,0.18,0.012,0.016,0.003,0,0.006,0.01,0x353B42,Math.PI/2);                            // base del pedestal arrodonida en planta
+      rr(0.085,0.15,0.028,0.006,0.003,0,0.085,-0.012,0x2C3138);                                   // coll del suport
+      rr(1.12,0.64,0.018,0.008,0.003,0,0.43,0,0x1B1E23);                                          // marc ultrafí
+      box(1.10,0.014,0.020,0,0.115,0.001,0x252A30);                                               // vora inferior
+      box(0.018,0.005,0.004,0,0.112,0.012,0x2E9E5B);                                              // LED d'estat
+      rr(0.76,0.34,0.028,0.012,0.005,0,0.31,-0.020,0x22262C);                                     // electrònica posterior
+      box(0.14,0.06,0.008,0.18,0.22,-0.035,0x14171B);                                             // panell de connectors posterior
+    },[[1.14,0.75,0.20,0,0.38,0]]);
+    rPlane(el,1.085,0.598,V(tx,y+0.885,tz+sz*0.0096),V(0,0,sz),tvScreenTex(),{std:{roughness:0.18,metalness:0.05,map:tvScreenTex()}});
+  }
   /* connector IEC femella acodat (90°): el tram estret (Ø9,2 mm) entra sencer dins de la boca TV fins al graó del cos;
      colze amb el caputxó gris cap avall. El cable comença dins del caputxó (no se'n veu l'extrem), baixa, fa una corba
      davant de la paret i puja fins al televisor */
@@ -1073,9 +1140,46 @@ function buildInterior(u){
     rCyl(el,0.0062,0.016,e.clone().add(V(0,-0.0178,0)),UP,BOOT,'plastic',{seg:28,r2:0.0071});     // caputxó
     const st=e.clone().add(V(0,-0.02,0)), lo=st.clone().addScaledVector(q.n,0.09);
     cable(`tv_patch_${U}`,el,[st.toArray(),[st.x,y+0.22,st.z],[lo.x,y+0.22,lo.z],[X(-7.0),y+0.5,Z(-1.5)],[X(-7.05),y+0.6,Z(-1.4)]],{tram:'usr',tech:'coax',svc:'rtv', from:`bat_rtv_sala_${U}`, to:el}); }
-  iBox(`pc_${U}`,0.5,0.32,0.04,X(-2.75),y+0.9,Z(2.2),0x22262B); iBox(`pc_${U}`,0.08,0.06,0.12,X(-2.75),y+0.75,Z(2.22),0x22262B,{pick:false}); iBox(`pc_${U}`,0.2,0.45,0.42,X(-2.55),y+0.23,Z(2.3),0x3A3F45);
+  /* Ordinador de sobretaula: monitor 24" amb peu ergonòmic, pantalla, teclat, ratolí i torre ATX detallada sota la taula */
+  { const el=`pc_${U}`, mx0=X(-2.78), mz0=Z(2.19), tx=X(-2.54), tz=Z(2.27);
+    devBuild(el,devM(mx0,y+0.72,mz0),({box,rr,cyl})=>{
+      /* monitor 24" (54 × 32 cm) amb suport inclinat i base bisellada */
+      rr(0.21,0.155,0.009,0.016,0.0025,0,0.0045,0.02,0x2A2F36,Math.PI/2);                         // base arrodonida en planta
+      rr(0.044,0.17,0.022,0.005,0.002,0,0.095,-0.025,0x333942,-0.12);                             // columna del suport
+      rr(0.11,0.09,0.018,0.006,0.002,0,0.235,-0.018,0x252A30);                                    // muntura VESA
+      rr(0.54,0.32,0.016,0.007,0.0025,0,0.245,0,0x1B1E23);                                        // carcassa pantalla
+      box(0.53,0.012,0.018,0,0.092,0.001,0x252A30);                                               // vora inferior
+      box(0.008,0.003,0.003,0.22,0.091,0.010,0x2E9E5B);                                           // LED
+      rr(0.32,0.15,0.014,0.008,0.003,0,0.21,-0.013,0x23272D);                                     // cos posterior
+      /* teclat compacte i ratolí sobre el taulell (enfront del monitor) */
+      const kbX=-0.03*sz*XS(u);                                                                   // lleugerament centrat davant del monitor
+      rr(0.33,0.118,0.012,0.008,0.0025,kbX,0.007,0.18,0x262B31,Math.PI/2+0.06);                   // cos del teclat
+      box(0.215,0.005,0.072,kbX-0.042,0.014,0.178,0x16191D,0.06);                                 // bloc alfanumèric
+      box(0.062,0.005,0.072,kbX+0.112,0.014,0.178,0x16191D,0.06);                                 // bloc numèric/fletxes
+      box(0.11,0.006,0.014,kbX-0.042,0.014,0.216,0x1D2127,0.06);                                  // barra espaiadora
+      const msX=kbX+0.215;
+      rr(0.060,0.102,0.024,0.028,0.008,msX,0.012,0.185,0x23282E,Math.PI/2);                       // ratolí ergonòmic arrodonit en planta
+      cyl(0.004,0.012,msX,0.024,0.162,0x3E4650,10,0.004,0,0,Math.PI/2);                           // rodeta
+    },[[0.56,0.42,0.32,0,0.21,0.08]]);
+    rPlane(el,0.516,0.290,V(mx0,y+0.971,mz0+sz*0.0086),V(0,0,sz),pcScreenTex(),{std:{roughness:0.2,metalness:0.05,map:pcScreenTex()}});
+    /* torre ATX (21 × 45 × 43 cm) sota la taula: peus, frontal ventilat, LED, ports USB, lateral fumat i panell posterior */
+    devBuild(el,devM(tx,y,tz),({box,rr,cyl})=>{
+      for(const fx of [-0.075,0.075]) for(const fz of [-0.165,0.165]) cyl(0.014,0.016,fx,0.008,fz,0x171A1E,10);   // peus antivibració
+      rr(0.21,0.44,0.43,0.008,0.003,0,0.236,0,0x2B3037);                                          // xassís principal
+      rr(0.196,0.424,0.014,0.006,0.002,0,0.236,0.215,0x21252B);                                   // frontal
+      for(let k=0;k<7;k++) box(0.145,0.008,0.006,0,0.075+k*0.026,0.222,0x15181C);                 // reixeta frontal
+      box(0.006,0.34,0.005,0.082,0.236,0.222,0x2FA4E7);                                           // franja LED frontal
+      cyl(0.008,0.004,0,0.415,0.222,0x35B8F0,12,0.008,Math.PI/2);                                 // botó d'encesa
+      for(const ux of [-0.042,-0.024]) box(0.011,0.005,0.004,ux,0.415,0.222,0x1565C0);            // ports USB 3.0
+      box(0.006,0.36,0.34,-0.104,0.24,0.01,0x18202A);                                             // lateral fumat
+      for(const sy of [0.075,0.405]) for(const sz2 of [-0.145,0.165]) cyl(0.004,0.005,-0.107,sy,sz2,0x7A828C,8,0.004,0,0,Math.PI/2);
+      box(0.16,0.09,0.006,0,0.075,-0.216,0x1A1D22);                                               // font d'alimentació posterior
+      cyl(0.052,0.004,0,0.355,-0.216,0x1A1D22,16,0.052,Math.PI/2);                                // ventilador posterior
+      box(0.045,0.14,0.006,-0.055,0.24,-0.216,0x3C434C);                                          // panell I/O posterior (RJ45)
+    },[[0.23,0.46,0.45,0,0.23,0]]);
+  }
   { const [pl,out]=plugRJ(`pc_${U}`,near(`bat_dat_d1_${U}`,X(-3.44),'rj45'));
-    cable(`pc_patch_${U}`,`pc_${U}`,[pl,out,[out[0],y+0.1,Z(1.95)],[X(-2.65),y+0.15,Z(2.2)]],{tram:'usr',tech:'pt',svc:'pt', from:`bat_dat_d1_${U}`, to:`pc_${U}`}); }
+    cable(`pc_patch_${U}`,`pc_${U}`,[pl,out,[out[0],y+0.1,Z(1.95)],[X(-2.54),y+0.16,Z(2.06)]],{tram:'usr',tech:'pt',svc:'pt', from:`bat_dat_d1_${U}`, to:`pc_${U}`}); }
 }
 
 /* ===================================================================
@@ -2930,81 +3034,150 @@ function buildPartitions(u){
   W(-7.75,-6.0,3.2-t,3.2+t); W(-6.0-t,-6.0+t,3.2,3.4); W(-6.0-t,-6.0+t,4.1,4.75);
   B(-2.2,-2.0,y,y+0.012,-3.4,-2.5,AM.edge,o);                          // llindar
 }
-/* mobiliari (disposició A). Formes senzilles fusionades per material (cua d'arquitectura): no afegeixen malles.
+/* mobiliari (disposició A). Peces bisellades i arrodonides fusionades per material (cua d'arquitectura): no afegeixen malles.
    El 2n A en té més (menjador, armaris, planta, balcó). */
 function buildFurniture(u){
   const y2=yb(u.f), o={floor:u.f,unit:u.id};
   const F=(x0,x1,y0,y1,z0,z1,m)=>UB(u,x0,x1,y2+y0,y2+y1,z0,z1,m,o);                                       // caixa
-  const D=(x0,x1,y0,y1,z0,z1,m)=>UG(u,new THREE.BoxGeometry(1,1,1),x0,x1,y2+y0,y2+y1,z0,z1,m,o);           // caixa sense inflar: peces petites i cossos amb detalls a la cara
-  const C=(x0,x1,y0,y1,z0,z1,m,rt=1,seg=20)=>UG(u,new THREE.CylinderGeometry(0.5*rt,0.5,1,seg),x0,x1,y2+y0,y2+y1,z0,z1,m,o);   // cilindre el·líptic; rt: radi de dalt relatiu
+  const D=(x0,x1,y0,y1,z0,z1,m)=>UG(u,new THREE.BoxGeometry(1,1,1),x0,x1,y2+y0,y2+y1,z0,z1,m,o);           // caixa sense inflar
+  const C=(x0,x1,y0,y1,z0,z1,m,rt=1,seg=18)=>UG(u,new THREE.CylinderGeometry(0.5*rt,0.5,1,seg),x0,x1,y2+y0,y2+y1,z0,z1,m,o);   // cilindre el·líptic; rt: radi de dalt relatiu
   const E=(x0,x1,y0,y1,z0,z1,m)=>UG(u,new THREE.SphereGeometry(0.5,16,10),x0,x1,y2+y0,y2+y1,z0,z1,m,o);    // el·lipsoide
-  const legs=(x0,x1,z0,z1,h,m,s=0.04)=>{ for(const x of [x0,x1-s]) for(const z of [z0,z1-s]) F(x,x+s,0,h,z,z+s,m); };
-  const table=(x0,x1,z0,z1,h,m)=>{ F(x0,x1,h-0.03,h,z0,z1,m); legs(x0+0.03,x1-0.03,z0+0.03,z1-0.03,h-0.03,m); };
-  const chair=(cx,cz,dx,dz,m)=>{ F(cx-0.21,cx+0.21,0.43,0.47,cz-0.21,cz+0.21,m); legs(cx-0.2,cx+0.2,cz-0.2,cz+0.2,0.43,m,0.03);   // respatller cap a (dx, dz)
-    const bx=cx+dx*0.19, bz=cz+dz*0.19; F(dx?bx-0.02:cx-0.21, dx?bx+0.02:cx+0.21, 0.47,0.88, dz?bz-0.02:cz-0.21, dz?bz+0.02:cz+0.21, m); };
-  const lamp=(cx,cz,y0)=>{ C(cx-0.06,cx+0.06,y0,y0+0.02,cz-0.06,cz+0.06,AM.frame); C(cx-0.01,cx+0.01,y0+0.02,y0+0.22,cz-0.01,cz+0.01,AM.frame,1,8);
-    C(cx-0.1,cx+0.1,y0+0.2,y0+0.36,cz-0.1,cz+0.1,AM.tile,0.7); };
+  /* caixa bisellada/arrodonida en coordenades reals (funciona igual en habitatges reflectits i cases girades) */
+  const RB=(x0,x1,y0,y1,z0,z1,m,r=0.02,bev=r*0.55)=>{
+    const a=UXZ(u,x0,z0), b=UXZ(u,x1,z1), sx=Math.abs(b.x-a.x), sy=y1-y0, sz=Math.abs(b.z-a.z);
+    if(sx<1e-3||sy<1e-3||sz<1e-3) return;
+    const bv=Math.min(bev,sx*0.24,sy*0.24,sz*0.24), rr=Math.min(Math.max(r,bv+0.001),sx*0.45,sy*0.45);
+    const g=rrectGeo(sx,sy,sz,rr,bv,null,[2,4]); g.translate((a.x+b.x)/2,y2+(y0+y1)/2,(a.z+b.z)/2); aGeo(g,m,o);
+  };
+  const legs=(x0,x1,z0,z1,h,m,s=0.036,rt=1.3)=>{ for(const x of [x0,x1-s]) for(const z of [z0,z1-s]) C(x,x+s,0,h,z,z+s,m,rt,10); };
+  const table=(x0,x1,z0,z1,h,m,lm=AM.frame)=>{
+    RB(x0,x1,h-0.032,h,z0,z1,m,0.018,0.008);
+    D(x0+0.04,x1-0.04,h-0.062,h-0.032,z0+0.04,z1-0.04,lm);
+    legs(x0+0.04,x1-0.04,z0+0.04,z1-0.04,h-0.032,lm,0.032,1.25);
+  };
+  const chair=(cx,cz,dx,dz,m)=>{
+    RB(cx-0.21,cx+0.21,0.43,0.475,cz-0.21,cz+0.21,m,0.022,0.01);
+    legs(cx-0.19,cx+0.19,cz-0.19,cz+0.19,0.43,AM.frame,0.024,1.2);
+    const bx=cx+dx*0.185, bz=cz+dz*0.185;
+    for(const s of [-0.155,0.155]){
+      const px=dx?bx:cx+s, pz=dz?bz:cz+s;
+      C(px-0.012,px+0.012,0.47,0.84,pz-0.012,pz+0.012,AM.frame,1,8);
+    }
+    RB(dx?bx-0.018:cx-0.20, dx?bx+0.018:cx+0.20, 0.68,0.88, dz?bz-0.018:cz-0.20, dz?bz+0.018:cz+0.20, m, 0.022, 0.009);
+  };
+  const lamp=(cx,cz,y0)=>{
+    C(cx-0.068,cx+0.068,y0,y0+0.022,cz-0.068,cz+0.068,AM.frame,0.85,16);
+    C(cx-0.012,cx+0.012,y0+0.02,y0+0.21,cz-0.012,cz+0.012,AM.liftDoor,1,10);
+    C(cx-0.105,cx+0.105,y0+0.19,y0+0.36,cz-0.105,cz+0.105,AM.tile,0.72,18);
+    C(cx-0.035,cx+0.035,y0+0.355,y0+0.365,cz-0.035,cz+0.035,AM.frame,1,12);
+  };
+  /* tauleta de nit amb potes, sobre bisellat i 2 calaixos (frontal cap a face: '+x', '-x', '+z', '-z') */
+  const nightstand=(x0,x1,z0,z1,face)=>{
+    legs(x0+0.025,x1-0.025,z0+0.025,z1-0.025,0.08,AM.frame,0.024,1.2);
+    RB(x0,x1,0.08,0.43,z0,z1,AM.shelf,0.01,0.005);
+    RB(x0-0.01,x1+0.01,0.43,0.455,z0-0.01,z1+0.01,AM.shelf,0.012,0.006);
+    for(const y of [0.10,0.265]){
+      if(face==='+x'){ D(x1-0.005,x1+0.010,y,y+0.145,z0+0.02,z1-0.02,AM.shelf); D(x1+0.010,x1+0.020,y+0.065,y+0.08,z0+0.13,z1-0.13,AM.liftDoor); }
+      else if(face==='-z'){ D(x0+0.02,x1-0.02,y,y+0.145,z0-0.010,z0+0.005,AM.shelf); D(x0+0.13,x1-0.13,y+0.065,y+0.08,z0-0.020,z0-0.010,AM.liftDoor); }
+    }
+  };
   /* llit: capçal a l'extrem 'head' ('x0' o 'z1'); a: distància des del capçal, b: de través */
   const bed=(x0,x1,z0,z1,head)=>{ const hx=head==='x0', L=hx?x1-x0:z1-z0, W=hx?z1-z0:x1-x0;
     const R=(a0,a1,b0,b1)=>hx ? [x0+a0,x0+a1,z0+b0,z0+b1] : [x0+b0,x0+b1,z1-a1,z1-a0];
     const B=(a0,a1,y0,y1,b0,b1,m,f=F)=>{ const [p,q,r,t]=R(a0,a1,b0,b1); f(p,q,y0,y1,r,t,m); };
-    B(-0.05,0,0,0.95,-0.03,W+0.03,AM.shelf);                                              // capçal
-    B(0,L,0.1,0.3,0,W,AM.shelf); for(const a of [0.05,L-0.1]) for(const b of [0.05,W-0.1]) B(a,a+0.05,0,0.1,b,b+0.05,AM.frame);   // somier i potes
-    B(0.02,L-0.02,0.3,0.5,0.02,W-0.02,AM.wallIn);                                          // matalàs
-    B(0.6,L,0.5,0.54,0,W,AM.furn2); B(L,L+0.02,0.3,0.54,0,W,AM.furn2);                      // edredó
-    B(0.6,L,0.3,0.54,-0.02,0,AM.furn2); B(0.6,L,0.3,0.54,W,W+0.02,AM.furn2);
-    const n=W>1.2?2:1, w=(W-0.1)/n; for(let i=0;i<n;i++) B(0.08,0.48,0.47,0.63,0.08+i*w,0.02+(i+1)*w,AM.wallIn,E);   // coixins
+    B(-0.06,0.01,0.06,0.96,-0.04,W+0.04,AM.shelf,RB);                                     // capçal bisellat
+    B(0.005,0.035,0.42,0.90,0.04,W-0.04,AM.furn2b,RB);                                    // encoixinat del capçal
+    B(0,L,0.12,0.31,0,W,AM.shelf,RB);                                                     // bastidor del somier
+    for(const a of [0.06,L-0.10]) for(const b of [0.06,W-0.10]) B(a,a+0.04,0,0.12,b,b+0.04,AM.frame,C);   // potes cilíndriques
+    B(0.02,L-0.02,0.30,0.50,0.02,W-0.02,AM.wallIn,(p,q,ya,yb,r,t,m)=>RB(p,q,ya,yb,r,t,m,0.045,0.03));    // matalàs arrodonit
+    B(0.56,L+0.02,0.46,0.555,-0.02,W+0.02,AM.furn2,(p,q,ya,yb,r,t,m)=>RB(p,q,ya,yb,r,t,m,0.04,0.028));   // edredó tou
+    B(0.48,0.68,0.48,0.56,-0.015,W+0.015,AM.furn2b,(p,q,ya,yb,r,t,m)=>RB(p,q,ya,yb,r,t,m,0.03,0.02));     // doblec superior
+    B(0.58,L+0.02,0.32,0.52,-0.025,0.02,AM.furn2,RB); B(0.58,L+0.02,0.32,0.52,W-0.02,W+0.025,AM.furn2,RB); B(L-0.02,L+0.025,0.32,0.52,-0.02,W+0.02,AM.furn2,RB);
+    const n=W>1.2?2:1, w=(W-0.12)/n; for(let i=0;i<n;i++) B(0.07,0.46,0.48,0.64,0.07+i*w,0.03+(i+1)*w,AM.wallIn,E);   // coixins bombats
   };
-  // SALA: sofà de tres places (respatller cap a +z) davant de la TV
-  F(-7.6,-6.0,0.1,0.4,1.0,2.0,AM.furn2); legs(-7.58,-6.02,1.02,1.98,0.1,AM.frame);
-  F(-7.6,-6.0,0.4,0.85,1.78,2.0,AM.furn2); F(-7.6,-7.42,0.4,0.62,1.0,1.78,AM.furn2); F(-6.18,-6.0,0.4,0.62,1.0,1.78,AM.furn2);   // respatller i braços
-  for(const [a,b] of [[-7.42,-6.8],[-6.8,-6.18]]){ F(a+0.01,b-0.01,0.4,0.52,1.02,1.76,AM.furn2b); F(a+0.01,b-0.01,0.52,0.82,1.64,1.78,AM.furn2b); }   // coixins
-  D(-7.6,-6.6,0.06,0.45,-1.5,-1.15,AM.furn); F(-7.58,-6.62,0,0.06,-1.48,-1.2,AM.frame);   // moble TV
-  D(-7.104,-7.096,0.08,0.43,-1.152,-1.146,AM.frame); for(const x of [-7.15,-7.05]) D(x-0.04,x+0.04,0.36,0.375,-1.15,-1.13,AM.liftDoor);
-  F(-6.35,-5.65,0.93,0.97,-1.75,-1.48,AM.furn);                                          // prestatge de l'ONT
-  table(-7.35,-6.75,0.1,0.6,0.4,AM.furn);                                                // tauleta de centre
-  // CUINA: mobles baixos al llarg de la paret (frontal a z = -4.17), nevera, campana i mobles alts
-  F(-7.7,-5.25,0,0.1,-4.7,-4.22,AM.frame); D(-7.7,-5.25,0.1,0.86,-4.7,-4.17,AM.wallIn); D(-7.72,-5.23,0.86,0.9,-4.72,-4.13,AM.stair);
+  // SALA: sofà de tres places (respatller cap a +z) davant de la TV, amb coixins arrodonits i potes còniques
+  legs(-7.56,-6.04,1.04,1.96,0.11,AM.frame,0.034,1.35);
+  RB(-7.6,-6.0,0.11,0.35,1.0,2.0,AM.furn2,0.03,0.018);
+  RB(-7.6,-6.0,0.34,0.84,1.76,2.0,AM.furn2,0.045,0.028);                                   // respatller
+  RB(-7.6,-7.41,0.34,0.63,1.0,1.82,AM.furn2,0.04,0.025); RB(-6.19,-6.0,0.34,0.63,1.0,1.82,AM.furn2,0.04,0.025);   // reposabraços
+  for(let i=0;i<3;i++){ const a=-7.41+i*0.406, b=a+0.398;
+    RB(a,b,0.34,0.49,1.01,1.76,AM.furn2b,0.045,0.03);                                     // 3 coixins de seient
+    RB(a,b,0.49,0.82,1.60,1.78,AM.furn2b,0.05,0.032); }                                   // 3 coixins de respatller
+  E(-7.38,-7.16,0.48,0.70,1.42,1.62,AM.wallIn); E(-6.44,-6.22,0.48,0.70,1.42,1.62,AM.wallIn);   // coixins decoratius
+  /* moble TV: sobre bisellat, portes laterals, forat central amb prestatge i potes fines */
+  legs(-7.56,-6.64,-1.47,-1.18,0.09,AM.frame,0.028,1.3);
+  RB(-7.6,-6.6,0.09,0.43,-1.5,-1.16,AM.furn,0.01,0.005);
+  RB(-7.61,-6.59,0.425,0.45,-1.51,-1.14,AM.furn,0.012,0.006);                             // sobre
+  D(-7.28,-6.92,0.12,0.40,-1.47,-1.155,AM.frame); D(-7.28,-6.92,0.25,0.27,-1.46,-1.16,AM.furn);   // forat central + prestatge
+  for(const x of [-7.44,-6.76]){ D(x-0.14,x+0.14,0.12,0.40,-1.162,-1.150,AM.furn); D(x-0.045,x+0.045,0.355,0.37,-1.15,-1.132,AM.liftDoor); }
+  /* prestatge de l'ONT/encaminador amb esquadres metàl·liques */
+  RB(-6.35,-5.65,0.935,0.97,-1.75,-1.48,AM.furn,0.008,0.004);
+  for(const x of [-6.25,-5.75]){ D(x-0.012,x+0.012,0.83,0.935,-1.75,-1.73,AM.frame); D(x-0.012,x+0.012,0.915,0.935,-1.75,-1.55,AM.frame); }
+  /* tauleta de centre amb prestatge inferior */
+  table(-7.35,-6.75,0.1,0.6,0.4,AM.furn,AM.frame); RB(-7.31,-6.79,0.14,0.165,0.14,0.56,AM.furn,0.01,0.005);
+  // CUINA: mobles baixos, taulell bisellat, forn integrat, aigüera, campana, mobles alts i nevera
+  F(-7.7,-5.25,0,0.1,-4.7,-4.22,AM.frame); D(-7.7,-5.25,0.1,0.86,-4.7,-4.17,AM.wallIn); RB(-7.72,-5.23,0.86,0.9,-4.72,-4.12,AM.stair,0.01,0.005);
   for(const x of [-7.1,-6.5,-5.9]) D(x-0.004,x+0.004,0.12,0.84,-4.172,-4.164,AM.frame);
-  for(const x of [-7.4,-6.8,-6.2,-5.57]) D(x-0.08,x+0.08,0.76,0.775,-4.17,-4.15,AM.liftDoor);   // tiradors
+  for(const x of [-7.4,-6.8,-5.57]) D(x-0.08,x+0.08,0.76,0.775,-4.17,-4.15,AM.liftDoor);  // tiradors
+  /* forn integrat sota la placa de cocció */
+  D(-6.2,-5.6,0.20,0.78,-4.172,-4.158,AM.frame); D(-6.15,-5.65,0.30,0.62,-4.16,-4.152,AM.car4);
+  D(-6.14,-5.66,0.65,0.67,-4.158,-4.132,AM.liftDoor);                                     // tirador del forn
+  for(const kx of [-6.08,-5.90,-5.72]) C(kx-0.018,kx+0.018,0.71,0.745,-4.16,-4.142,AM.liftDoor,1,10);
   D(-7.3,-6.8,0.9,0.906,-4.62,-4.25,AM.liftDoor); D(-7.26,-6.84,0.906,0.908,-4.58,-4.29,AM.frame);   // aigüera
   C(-7.07,-7.03,0.9,1.14,-4.68,-4.64,AM.liftDoor,1,10); D(-7.06,-7.04,1.12,1.14,-4.66,-4.48,AM.liftDoor);   // aixeta
-  D(-6.2,-5.6,0.9,0.912,-4.65,-4.2,AM.frame);                                             // placa de cocció
-  for(const [x,z] of [[-6.05,-4.3],[-5.75,-4.3],[-6.05,-4.55],[-5.75,-4.55]]) C(x-0.08,x+0.08,0.912,0.915,z-0.08,z+0.08,AM.car4,1,16);
-  F(-6.25,-5.55,1.55,1.68,-4.7,-4.25,AM.liftDoor); F(-6.0,-5.8,1.68,2.78,-4.7,-4.52,AM.liftDoor);   // campana
-  D(-7.7,-6.3,1.45,2.15,-4.7,-4.38,AM.wallIn); D(-7.004,-6.996,1.47,2.13,-4.382,-4.374,AM.frame);   // mobles alts
+  RB(-6.2,-5.6,0.9,0.912,-4.65,-4.2,AM.frame,0.006,0.003);                                // placa de cocció
+  for(const [x,z] of [[-6.05,-4.3],[-5.75,-4.3],[-6.05,-4.55],[-5.75,-4.55]]){ C(x-0.08,x+0.08,0.912,0.915,z-0.08,z+0.08,AM.car4,1,16); C(x-0.05,x+0.05,0.915,0.917,z-0.05,z+0.05,AM.frame,1,12); }
+  RB(-6.25,-5.55,1.55,1.68,-4.7,-4.25,AM.liftDoor,0.01,0.005); F(-6.0,-5.8,1.68,2.78,-4.7,-4.52,AM.liftDoor);   // campana
+  RB(-7.7,-6.3,1.45,2.15,-4.7,-4.38,AM.wallIn,0.008,0.004); D(-7.004,-6.996,1.47,2.13,-4.382,-4.374,AM.frame);   // mobles alts
   for(const x of [-7.06,-6.94]) D(x-0.006,x+0.006,1.5,1.62,-4.38,-4.36,AM.liftDoor);
-  D(-5.2,-4.55,0,1.85,-4.7,-4.1,AM.liftDoor); D(-5.2,-4.55,1.195,1.205,-4.102,-4.096,AM.frame);   // nevera
-  for(const [y0,y1] of [[0.85,1.1],[1.3,1.55]]) D(-4.64,-4.62,y0,y1,-4.1,-4.07,AM.frame);
+  RB(-5.2,-4.55,0,1.85,-4.7,-4.1,AM.liftDoor,0.015,0.008); D(-5.2,-4.55,1.195,1.205,-4.102,-4.095,AM.frame);   // nevera
+  for(const [y0,y1] of [[0.85,1.1],[1.3,1.55]]) C(-4.64,-4.615,y0,y1,-4.1,-4.07,AM.frame,1,8);
   // BANY: plat de dutxa amb mampara, vàter i lavabo amb moble i mirall
-  D(-7.72,-6.95,0,0.04,3.28,4.04,AM.wallIn); C(-7.36,-7.3,0.04,0.044,3.63,3.69,AM.frame,1,12);
+  RB(-7.72,-6.95,0,0.04,3.28,4.04,AM.wallIn,0.012,0.006); C(-7.36,-7.3,0.04,0.044,3.63,3.69,AM.frame,1,12);
   D(-7.7,-7.0,0.04,1.95,4.03,4.045,AM.glass); D(-7.7,-7.0,1.95,1.965,4.025,4.05,AM.liftDoor);
   D(-7.745,-7.72,0.95,1.95,3.65,3.67,AM.liftDoor); D(-7.745,-7.6,1.95,1.965,3.65,3.67,AM.liftDoor); C(-7.68,-7.52,1.93,1.95,3.58,3.74,AM.liftDoor,1,16);
   D(-7.745,-7.7,1.0,1.08,3.6,3.72,AM.liftDoor);                                           // aixeta de la dutxa
-  C(-7.55,-7.25,0,0.38,4.2,4.6,AM.wallIn,1.25); C(-7.57,-7.23,0.38,0.41,4.17,4.6,AM.wallIn);   // vàter
-  F(-7.58,-7.22,0.41,0.8,4.56,4.72,AM.wallIn); C(-7.42,-7.38,0.8,0.806,4.62,4.66,AM.liftDoor,1,10);   // cisterna i polsador
-  D(-6.9,-6.4,0.15,0.78,4.38,4.72,AM.shelf); D(-6.88,-6.42,0.6,0.61,4.375,4.38,AM.frame);   // moble del lavabo
-  D(-6.92,-6.38,0.78,0.84,4.36,4.72,AM.wallIn); C(-6.8,-6.5,0.84,0.846,4.42,4.64,AM.tile,1,20);
+  C(-7.55,-7.25,0,0.38,4.2,4.6,AM.wallIn,1.25); C(-7.57,-7.23,0.38,0.415,4.17,4.6,AM.wallIn);   // vàter
+  RB(-7.58,-7.22,0.41,0.8,4.56,4.72,AM.wallIn,0.015,0.008); C(-7.42,-7.38,0.8,0.808,4.62,4.66,AM.liftDoor,1,10);
+  RB(-6.9,-6.4,0.16,0.78,4.38,4.72,AM.shelf,0.01,0.005); D(-6.88,-6.42,0.50,0.51,4.375,4.38,AM.frame);
+  for(const y of [0.34,0.66]) D(-6.72,-6.58,y,y+0.014,4.365,4.38,AM.liftDoor);            // tiradors lavabo
+  RB(-6.92,-6.38,0.78,0.84,4.36,4.72,AM.wallIn,0.012,0.006); C(-6.8,-6.5,0.84,0.846,4.42,4.64,AM.tile,1,20);
   C(-6.665,-6.635,0.84,1.0,4.66,4.69,AM.liftDoor,1,8); D(-6.66,-6.64,0.97,0.99,4.58,4.68,AM.liftDoor);
-  D(-6.85,-6.45,1.0,1.45,4.72,4.735,AM.glassRail);                                         // mirall
-  // DORMITORI 1: llit doble, tauleta de nit amb llum, calaixera sota la finestra i taula de l'ordinador
+  D(-6.86,-6.44,0.99,1.46,4.715,4.725,AM.frame); D(-6.85,-6.45,1.0,1.45,4.725,4.735,AM.glassRail);   // mirall emmarcat
+  // DORMITORI 1: llit doble, tauleta de nit detallada, calaixera i escriptori de l'ordinador amb estructura metàl·lica i calaix
   bed(-4.35,-2.45,2.95,4.35,'x0');
-  F(-4.35,-3.95,0,0.45,2.5,2.9,AM.shelf); lamp(-4.15,2.7,0.45);
-  D(-3.5,-2.7,0,0.75,4.4,4.72,AM.shelf); for(const y of [0.27,0.51]) D(-3.48,-2.72,y-0.004,y+0.004,4.395,4.4,AM.frame);
-  for(const y of [0.15,0.39,0.63]) D(-3.16,-3.04,y-0.01,y+0.01,4.38,4.395,AM.liftDoor);
-  F(-3.3,-2.3,0.68,0.72,2.05,2.5,AM.furn); legs(-3.29,-2.31,2.06,2.49,0.68,AM.furn,0.05);
-  // DORMITORI 2: llit (capçal a l'envà del dormitori 1) i tauleta
+  nightstand(-4.35,-3.95,2.5,2.9,'+x'); lamp(-4.15,2.7,0.455);
+  legs(-3.47,-2.73,4.43,4.69,0.08,AM.frame,0.025,1.2);
+  RB(-3.5,-2.7,0.08,0.73,4.4,4.72,AM.shelf,0.01,0.005); RB(-3.51,-2.69,0.73,0.755,4.39,4.73,AM.shelf,0.012,0.006);
+  for(const y of [0.30,0.52]) D(-3.48,-2.72,y-0.004,y+0.004,4.394,4.4,AM.frame);
+  for(const y of [0.19,0.41,0.63]) D(-3.17,-3.03,y-0.009,y+0.009,4.375,4.395,AM.liftDoor);
+  /* escriptori de l'ordinador: sobre bisellat, bastidor metàl·lic fosc, potes fines i calaix esquerre (lliure a la dreta per a la torre) */
+  RB(-3.3,-2.3,0.688,0.72,2.05,2.50,AM.furn,0.015,0.006);
+  D(-3.26,-2.34,0.66,0.688,2.08,2.47,AM.frame);                                           // bastidor sota el taulell
+  legs(-3.27,-2.33,2.08,2.47,0.688,AM.frame,0.030,1.15);                                  // potes metàl·liques
+  D(-3.26,-2.34,0.16,0.185,2.085,2.11,AM.frame);                                          // travesser posterior
+  RB(-3.24,-2.80,0.55,0.66,2.10,2.46,AM.furn,0.008,0.004);                                // calaix sota el costat esquerre
+  D(-3.08,-2.96,0.60,0.614,2.46,2.478,AM.liftDoor);                                       // tirador del calaix
+  /* tamboret/seient compacte semientrat a l'esquerra de l'escriptori (no tapa la torre del PC) */
+  C(-3.12,-2.84,0.41,0.455,2.34,2.60,AM.furn2,0.95,16);
+  C(-2.995,-2.965,0.06,0.41,2.455,2.485,AM.frame,1,10);
+  C(-3.14,-2.82,0.02,0.06,2.32,2.62,AM.frame,0.45,14);
+  // DORMITORI 2: llit (capçal a l'envà del dormitori 1) i tauleta de nit detallada
   bed(-3.55,-2.25,-0.35,1.55,'z1');
-  F(-4.05,-3.65,0,0.45,1.1,1.5,AM.shelf); lamp(-3.85,1.3,0.45);
-  F(-3.0,-2.3,0,0.02,-3.3,-2.6,AM.furn3);                                               // estora del rebedor
+  nightstand(-4.05,-3.65,1.1,1.5,'-z'); lamp(-3.85,1.3,0.455);
+  RB(-3.0,-2.3,0,0.018,-3.3,-2.6,AM.furn3,0.02,0.006);                                    // estora del rebedor
   if(u.id==='2A'){
-    table(-6.0,-5.0,-0.25,0.65,0.76,AM.furn); chair(-5.5,-0.5,0,-1,AM.furn); chair(-5.5,0.9,0,1,AM.furn);   // menjador
-    C(-7.68,-7.38,0,0.35,2.3,2.6,AM.facade2,1.2); E(-7.73,-7.3,0.3,1.25,2.22,2.68,AM.furn3);   // planta
-    D(-3.6,-2.4,0,2.0,-2.1,-1.6,AM.shelf); D(-3.004,-2.996,0.02,1.98,-1.6,-1.594,AM.frame);   // armari del dormitori 2
-    for(const x of [-3.06,-2.94]) D(x-0.01,x+0.01,0.9,1.2,-1.594,-1.574,AM.liftDoor);
-    F(-4.3,-4.0,0,1.6,-4.7,-4.4,AM.shelf);                                                // penjador del rebedor
-    F(-7.0,-5.6,0,0.02,0.0,2.4,AM.awning);                                                // catifa
-    C(-7.2,-6.6,0.7,0.73,5.4,6.0,AM.furn); C(-6.92,-6.88,0,0.7,5.68,5.72,AM.frame,1,10);   // taula rodona del balcó
+    table(-6.0,-5.0,-0.25,0.65,0.76,AM.furn,AM.frame); chair(-5.5,-0.52,0,-1,AM.furn); chair(-5.5,0.92,0,1,AM.furn);   // menjador
+    /* planta amb test cònic i fulles escalonades */
+    C(-7.68,-7.38,0,0.34,2.3,2.6,AM.facade2,1.22,16); C(-7.70,-7.36,0.32,0.36,2.28,2.62,AM.facade2,1.02,16);
+    C(-7.66,-7.40,0.32,0.35,2.32,2.58,AM.frame,1,12);
+    for(const [dx,dz,y0,y1,rx,rz] of [[0,0,0.36,1.18,0.16,0.16],[-0.11,0.08,0.34,0.92,0.15,0.12],[0.10,-0.09,0.35,0.96,0.14,0.14],[0.08,0.11,0.36,0.85,0.13,0.13],[-0.09,-0.10,0.36,0.88,0.13,0.14]])
+      E(-7.53+dx-rx,-7.53+dx+rx,y0,y1,2.45+dz-rz,2.45+dz+rz,AM.furn3);
+    RB(-3.6,-2.4,0,2.0,-2.1,-1.6,AM.shelf,0.01,0.005); D(-3.004,-2.996,0.02,1.98,-1.6,-1.594,AM.frame);   // armari del dormitori 2
+    for(const x of [-3.06,-2.94]) C(x-0.01,x+0.01,0.9,1.2,-1.594,-1.572,AM.liftDoor,1,8);
+    C(-4.18,-4.12,0,1.65,-4.58,-4.52,AM.shelf,0.8,10); C(-4.28,-4.02,0,0.03,-4.68,-4.42,AM.frame,0.9,14);   // penjador del rebedor
+    RB(-7.0,-5.6,0,0.018,0.0,2.4,AM.awning,0.03,0.006);                                   // catifa
+    C(-7.2,-6.6,0.7,0.73,5.4,6.0,AM.furn,1,24); C(-6.925,-6.875,0.04,0.7,5.675,5.725,AM.frame,1,12); C(-7.08,-6.72,0,0.04,5.52,5.88,AM.frame,0.7,16);   // taula rodona del balcó
     chair(-7.45,5.7,-1,0,AM.furn); chair(-6.35,5.7,1,0,AM.furn);
   }
 }

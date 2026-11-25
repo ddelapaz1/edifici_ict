@@ -404,7 +404,8 @@ function buildRSC(i, C){
       if(MODELS.deriv2?.scene){
         const ms=placeModel('deriv2',el,xc,yd,0.025);
         for(const [txt,dx,dy,w] of [[`${TAPC[i].db}dB`,0,-0.0033,0.0072],[`${TAPC[i].ref}/F 2D`,0.017,-0.0003,0.0186]]){
-          const tm=rPlane(el,w,0.0026,V(xc+dx,yd+dy,0.025+0.0186),V(0,0,1),tapText(txt,Math.round(w*20000),52)); tm.material.alphaTest=0.5; }
+          const tm=rPlane(el,w,0.0026,V(xc+dx,yd+dy,0.025+0.0186),V(0,0,1),tapText(txt,Math.round(w*20000),52),{decal:true});
+          tm.material.transparent=true; tm.material.depthWrite=false; tm.material.alphaTest=0.01; tm.renderOrder=1; }
         addProxy(ms[0],new THREE.BoxGeometry(0.10,0.12,0.08).translate(xc,yd,0.034));
       } else iBox(el,0.074,0.054,0.018,xc,yd,0.034,0xD7DCE2);
       for(const name of ['in','t1','t2','out']){

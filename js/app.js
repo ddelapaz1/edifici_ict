@@ -317,7 +317,8 @@ function ctoBox(y0, o){
   rPlane(el,0.12,0.036,V(x0+wm*0.46,y0+h*0.33,zf+0.001),V(0,0,1),textTex([o.num],{w:320,h:96,size:64,bold:[true],border:'#1A1A1A',bw:3}));
   rBox(el,xs+ws-0.033,xs+ws-0.013,y0+0.015,y0+0.035,zf,zf+0.0015,o.tag,'plastic');
   rBox(el,x0+0.015,x0+0.035,y0+0.015,y0+0.035,zf,zf+0.0015,o.tag,'plastic');
-  rPlane(el,0.03,0.026,V(xs+ws/2,y1-0.038,zf+0.001),V(0,0,1),LASER_TEX||(LASER_TEX=laserTex())).material.alphaTest=0.5;
+  const lm=rPlane(el,0.03,0.026,V(xs+ws/2,y1-0.038,zf+0.001),V(0,0,1),LASER_TEX||(LASER_TEX=laserTex()),{decal:true});
+  lm.material.transparent=true; lm.material.depthWrite=false; lm.material.alphaTest=0.01; lm.renderOrder=1;
   /* premsaestopes: dos al costat esquerre (cables d'operador o de distribució) i un a la base del compartiment lateral per latiguillo */
   const gland=(pos,dir,r=0.008)=>{ const d=dir.clone().normalize();
     rHex(el,r+0.004,0.006,pos.clone().addScaledVector(d,0.003),d,0xC9CED2,'plastic');
@@ -575,7 +576,8 @@ function buildICT(){
         const ms=placeModel('deriv',`deriv_${f}`,DER[c],y+1.55,-4.715);
         /* valor de derivació i referència d'aquesta planta, a la posició que tenen a la serigrafia del plànol */
         for(const [txt,dx,dy,w] of [[`${TAPF[f].db}dB`,-0.0276,-0.0033,0.0072],[`${TAPF[f].ref}/F 4D`,0.0314,-0.0003,0.0186]]){
-          const tm=rPlane(`deriv_${f}`,w,0.0026,V(DER[c]+dx,y+1.55+dy,-4.715+0.0186),V(0,0,1),tapText(txt,Math.round(w*20000),52)); tm.material.alphaTest=0.5; }
+          const tm=rPlane(`deriv_${f}`,w,0.0026,V(DER[c]+dx,y+1.55+dy,-4.715+0.0186),V(0,0,1),tapText(txt,Math.round(w*20000),52),{decal:true});
+          tm.material.transparent=true; tm.material.depthWrite=false; tm.material.alphaTest=0.01; tm.renderOrder=1; }
         const pg=new THREE.BoxGeometry(0.14,0.12,0.08); pg.translate(DER[c],y+1.55,-4.706);
         addProxy(ms[0],pg);
         if(f===1){
@@ -1217,7 +1219,7 @@ const _glowClear=new THREE.Color(0x000000), _glowPrevCol=new THREE.Color();
 function collectSelMeshes(id, out){
   let found=false;
   for(const m of (G.byEl[id]||[])){
-    if(!m.visible || !m.geometry || m.userData.proxy || m.userData.halo) continue;
+    if(!m.visible || !m.geometry || m.userData.proxy || m.userData.halo || m.userData.decal) continue;
     out.push(m); found=true;
   }
   if(!found && EL[id] && (EL[id].children||[]).length){
@@ -1397,7 +1399,7 @@ function frameEl(id){
   const cl=c.clone().applyMatrix4(RITSI.copy(RITSM).invert());   // centre en coordenades del RITS
   if(inRits(id) && r<1.6 && cl.x>-0.4 && cl.x<3.4 && cl.z<-2.4 && cl.y>15){   // dins del RITS: des de l'espai de treball
     dir = cl.x>3.05 ? V(-1,0.4,0.25) : cl.x<-0.1 ? V(1,0.4,0.25) : V(THREE.MathUtils.clamp((1.5-cl.x)/4,-0.3,0.3),0.42,1);
-    dir.transformDirection(RITSM); dist=THREE.MathUtils.clamp(r*2.4+0.45, 0.55, 2.0);
+    dir.transformDirection(RITSM); dist=THREE.MathUtils.clamp(r*2.2+0.2, 0.25, 2.0);
     if(!S.ritsRoof && !S.ritsFront){ S.ritsRoof=true; applyVisibility(); }
   } else if(inRits(id) && id!=='rits' && id!=='rits_porta'){
     if(!S.ritsRoof && !S.ritsFront){ S.ritsRoof=true; applyVisibility(); }
@@ -1829,11 +1831,11 @@ function bestView(id){
   const fixed=CFG.viewOf?.(id); if(fixed) return fixed;   // vista fixa que dona el model (p. ex. dins d'un registre)
   const b=elBox(id)||elBox(id,false); if(!b) return null;
   let c=b.getCenter(new THREE.Vector3()); const sz=b.getSize(new THREE.Vector3());
-  let r=Math.max(sz.length()/2,0.22);
+  let r=Math.max(sz.length()/2,0.08);
   const cabs=Object.values(G.cables).filter(k=>k.el===id && k.mesh && k.mesh.visible && k.pts.length>1);
   if(cabs.length){ const cb=cabs.reduce((a,k)=>polyLen(k.pts)>polyLen(a.pts)?k:a); c=pathPoint(cb.pts,0.5).applyMatrix4(cb.mesh.matrixWorld); r=Math.min(r,1.6); }
   const vis=visArea(), vf0=camera.fov*Math.PI/180, vf=2*Math.atan(Math.tan(vf0/2)*vis.y), hf=2*Math.atan(Math.tan(vf0/2)*camera.aspect*vis.x), fit=Math.min(vf,hf);
-  const want=THREE.MathUtils.clamp(r/Math.sin(fit/2)*1.25, (EL[id]?.rs ? 0.65 : 0.9), 45);
+  const want=THREE.MathUtils.clamp(r/Math.sin(fit/2)*1.25, r<0.2 ? 0.22 : (EL[id]?.rs ? 0.55 : 0.75), 45);
   /* eix més prim: cara frontal de registres, preses i plaques */
   const dims=[sz.x,sz.y,sz.z], k=dims.indexOf(Math.min(...dims)), others=dims.filter((_,i)=>i!==k);
   const thin = dims[k] < 0.5*Math.min(...others) && k!==1;
@@ -1865,7 +1867,7 @@ function bestView(id){
       _rc.set(c,d); _rc.near=0; _rc.far=want;
       const h=_rc.intersectObjects(blockers,false)[0];
       const dist=h?h.distance*0.9:want;
-      if((h&&dist<r*1.15+0.15)||dist<0.45) continue;
+      if((h&&dist<r*1.15+0.06)||dist<0.12) continue;
       if(h) score-=0.6*(1-dist/want);
       if(!best||score>best.score||(score===best.score&&order<best.order)) best={score,d,dist,order};
     }
@@ -1893,7 +1895,7 @@ function navTo(id){
   if(!v && S.layers.facana){ S.layers.facana=false; syncControls(); applyVisibility(); v=bestView(id); }
   if(!v && EL[id].unit && S.mode!=='habitatge'){ const u=UNIT(EL[id].unit); S.floor=u.f; S.unitSide=u.s; S.mode='habitatge'; syncControls(); applyVisibility(); v=bestView(id); }
   if(v) flyTo(v.p,v.t); else frameEl(id);
-  controls.minDistance=0.3;
+  controls.minDistance=0.06;
   navUI();
 }
 function navBack(){
@@ -1908,7 +1910,7 @@ function navBack(){
   flyTo(s.p,s.t); navUI(); announce('Vista anterior recuperada.');
 }
 function setNav(on){
-  NAV.on=on; if(!on && controls) controls.minDistance=0.6;
+  NAV.on=on; if(controls) controls.minDistance=0.06;
   navUI(); syncControls();
   announce(on ? 'Navegació interactiva activada: un clic selecciona un element i hi apropa la càmera.' : 'Navegació interactiva desactivada: un clic només selecciona.');
 }
@@ -2119,12 +2121,12 @@ function initGL(){
   $('#view3d').prepend(renderer.domElement);
   renderer.shadowMap.enabled=false; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate=false;
   scene=new THREE.Scene(); scene.background=new THREE.Color(0xEEF2F6); scene.matrixWorldAutoUpdate=false;   // ho fa cullBegin()
-  camera=new THREE.PerspectiveCamera(42,1,0.05,400);
+  camera=new THREE.PerspectiveCamera(42,1,0.01,400);
   scene.add(new THREE.HemisphereLight(0xffffff,0xB8B4AC,2.1));
   const dl=new THREE.DirectionalLight(0xffffff,1.9); dl.position.set(18,30,22); scene.add(dl);
   const dl2=new THREE.DirectionalLight(0xffffff,0.7); dl2.position.set(-20,10,-15); scene.add(dl2);
   controls=new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping=true; controls.dampingFactor=0.12; controls.minDistance=0.3; controls.maxDistance=80; controls.zoomToCursor=true; controls.zoomSpeed=1.1; controls.rotateSpeed=0.8;
+  controls.enableDamping=true; controls.dampingFactor=0.12; controls.minDistance=0.06; controls.maxDistance=80; controls.zoomToCursor=true; controls.zoomSpeed=1.1; controls.rotateSpeed=0.8;
   controls.maxPolarAngle=Math.PI*0.495; controls.screenSpacePanning=true;
   controls.addEventListener('change',()=>{ const t=controls.target, K=CFG.clamp; t.x=THREE.MathUtils.clamp(t.x,...K.x); t.y=THREE.MathUtils.clamp(t.y,...K.y); t.z=THREE.MathUtils.clamp(t.z,...K.z); invalidate(); });
   controls.addEventListener('start',()=>{ camAnim=null; });
@@ -4384,7 +4386,10 @@ function placeModel(k, el, x, y, z, recolor={}, rot=0){
   tpl.traverse(n=>{ if(!n.isMesh) return; const mt=n.material, nm=mt.name||'';
     if(recolor[nm]===null) return;
     const col = recolor[nm] ?? mt.color.getHex();
-    const m=ictMesh(n.geometry,col,el,{std:{roughness:mt.roughness??0.6, metalness:mt.metalness??0, side:mt.side, map:mt.map||null, alphaTest:mt.alphaTest||0}, cast:!mt.alphaTest, sharedGeometry:true});
+    const isDecal = !!(mt.alphaTest && mt.map);
+    if(mt.map && renderer) mt.map.anisotropy=Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    const m=ictMesh(n.geometry,col,el,{std:{roughness:mt.roughness??0.6, metalness:mt.metalness??0, side:mt.side, map:mt.map||null, alphaTest:isDecal?0.01:(mt.alphaTest||0)}, cast:!mt.alphaTest, sharedGeometry:true, decal:isDecal});
+    if(isDecal){ m.material.transparent=true; m.material.depthWrite=false; m.material.polygonOffset=true; m.material.polygonOffsetFactor=-1; m.material.polygonOffsetUnits=-1; m.renderOrder=1; }
     m.matrixAutoUpdate=false; m.matrix.multiplyMatrices(T,n.matrixWorld); m.matrixWorldNeedsUpdate=true;
     out.push(m);
   });

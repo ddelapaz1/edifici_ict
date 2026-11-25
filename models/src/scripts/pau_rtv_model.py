@@ -24,22 +24,22 @@ def link(o,m):
 def apply_all(o):
     bpy.context.view_layer.objects.active=o
     for md in list(o.modifiers): bpy.ops.object.modifier_apply(modifier=md.name)
-def bevel(o,w,seg=2): md=o.modifiers.new('b','BEVEL'); md.width=w; md.segments=seg; md.limit_method='ANGLE'; apply_all(o); return o
+def bevel(o,w,seg=1): md=o.modifiers.new('b','BEVEL'); md.width=w; md.segments=seg; md.limit_method='ANGLE'; apply_all(o); return o
 def box(name,x0,x1,y0,y1,z0,z1,m=None):
     bpy.ops.mesh.primitive_cube_add(); o=bpy.context.object; o.name=name
     o.dimensions=(abs(x1-x0),abs(y1-y0),abs(z1-z0)); o.location=((x0+x1)/2,(y0+y1)/2,(z0+z1)/2); bpy.ops.object.transform_apply(scale=True)
     return link(o,m) if m else o
 def stadium(name,x0,x1,z0,z1,y0,y1,m=None):
     """placa amb els extrems arrodonits (radi = mitja amplada menor)"""
-    o=box(name,x0,x1,y0,y1,z0,z1); md=o.modifiers.new('r','BEVEL'); md.width=min(abs(x1-x0),abs(z1-z0))/2*0.999; md.segments=10; md.affect='EDGES'
+    o=box(name,x0,x1,y0,y1,z0,z1); md=o.modifiers.new('r','BEVEL'); md.width=min(abs(x1-x0),abs(z1-z0))/2*0.999; md.segments=5; md.affect='EDGES'
     # només les arestes paral·leles a Y (perfil frontal arrodonit)
     me=o.data; bm=bmesh.new(); bm.from_mesh(me); w=bm.edges.layers.bevel_weight.verify() if hasattr(bm.edges.layers,'bevel_weight') else None
     bm.free(); md.limit_method='ANGLE'; md.angle_limit=math.radians(89); apply_all(o)
     return link(o,m) if m else o
 def cut(t,c): md=t.modifiers.new('c','BOOLEAN'); md.operation='DIFFERENCE'; md.object=c; md.solver='EXACT'; apply_all(t); bpy.data.objects.remove(c,do_unlink=True)
-def cyl(name,x,y,z0,z1,r,m,n=32):
+def cyl(name,x,y,z0,z1,r,m,n=16):
     bpy.ops.mesh.primitive_cylinder_add(vertices=n,radius=r,depth=abs(z1-z0),location=(x,y,(z0+z1)/2)); return link(bpy.context.object,m)
-def cylY(name,x,z,y0,y1,r,m,n=32):
+def cylY(name,x,z,y0,y1,r,m,n=16):
     bpy.ops.mesh.primitive_cylinder_add(vertices=n,radius=r,depth=abs(y1-y0),location=(x,(y0+y1)/2,z),rotation=(math.pi/2,0,0)); return link(bpy.context.object,m)
 YF=-0.0175; YC=-0.009
 # --- cos, llistó superior i placa frontal
@@ -59,11 +59,11 @@ box('ranura',mm(49.3),mm(52.5),-0.0144,-0.0148,mm(-0.85),mm(-0.17),'zamak')
 PX={'in':-42.6,'inc':-25.6,'o1':-8.6,'o2':8.4,'o3':25.4,'o4':42.4}; TIP=-0.02672
 for name,x in PX.items():
     X=mm(x)
-    cyl('base',X,YC,-0.0122,-0.0142,mm(5.0),'zamak',32)
-    cyl('rosca',X,YC,-0.0142,TIP,0.00476,'metall',24)
-    for k in range(4): z=-0.0152-k*0.0026; cyl('filet',X,YC,z,z-0.0006,0.0049,'metall',24)
-    cyl('dielectric',X,YC,TIP+0.0004,TIP-0.0001,0.00175,'dielectric',20)
-    cyl('viu',X,YC,TIP+0.0005,TIP-0.0004,0.0005,'metall',10)
+    cyl('base',X,YC,-0.0122,-0.0142,mm(5.0),'zamak',16)
+    cyl('rosca',X,YC,-0.0142,TIP,0.00476,'metall',14)
+    for k in range(4): z=-0.0152-k*0.0026; cyl('filet',X,YC,z,z-0.0006,0.0049,'metall',14)
+    cyl('dielectric',X,YC,TIP+0.0004,TIP-0.0001,0.00175,'dielectric',12)
+    cyl('viu',X,YC,TIP+0.0005,TIP-0.0004,0.0005,'metall',8)
     e=bpy.data.objects.new(name,None); e.location=(X,YC,TIP); col.objects.link(e)
 e=bpy.data.objects.new('terra',None); e.location=(mm(50.9),-0.0145,mm(-0.51)); col.objects.link(e)
 # --- serigrafia

@@ -11,7 +11,7 @@ sc=bpy.context.scene
 sc.unit_settings.system='METRIC'
 sc.unit_settings.length_unit='MILLIMETERS'
 L=21.10585939695954
-N=96
+N=24
 R=6.299992996765
 AF=R*math.cos(math.pi/6)
 mat=bpy.data.materials.new('niquel'); mat.use_nodes=True
@@ -46,37 +46,22 @@ for z,cap in [(0,AF),(0.20,AF+0.16),(0.65,R),(4.04,R),(4.49,AF+0.16),(4.694113,A
     rows.append(ring(z,lambda a,c=cap:hexr(a,c)))
 for z,r in [(4.76,5.34),(5.35,5.29),(6.45,5.05),(7.094110,4.852936),(7.18,4.058819),(9.94,4.058819),(10.005872,4.411760)]:
     rows.append(ring(z,r))
-for j in range(49):
-    z=10.085872+(L-10.165872)*j/48
+for j in range(13):
+    z=10.085872+(L-10.165872)*j/12
     def knurl(a,z=z):
         t=(z-10.005872)/11.099988
-        p=abs(math.sin(24*a+12*math.pi*t)*math.sin(24*a-12*math.pi*t))
-        return 4.411760-0.22*p
+        p=abs(math.sin(12*a+6*math.pi*t)*math.sin(12*a-6*math.pi*t))
+        return 4.411760-0.18*p
     rows.append(ring(z,knurl))
 rows.append(ring(L,4.33))
 for a,b in zip(rows,rows[1:]): connect(a,b)
 
-# Forat passant i seient del cable: cap tap opac a la boca ni conductor fictici.
+# Forat passant i seient del cable: sense filets interiors ocults (redueix >90% els triangles en ~200 còpies).
 inside=[]
 for z,r in [(0,4.83),(0.20,4.72),(4.55,4.72),(4.76,3.65),(9.94,3.65),(10.005872,3.40),(L-0.15,3.40),(L,3.48)]:
     inside.append(ring(z,r))
 for a,b in zip(inside,inside[1:]): connect(a,b,True)
 connect(inside[0],rows[0]); connect(rows[-1],inside[-1])
-
-# Filet helicoidal real en geometria (pas 25,4/32 mm); detall visual, no rosca de fabricació.
-def thread(z0,z1,r,pitch,depth,width):
-    turns=(z1-z0)/pitch; steps=math.ceil(turns*48); sections=[]
-    for i in range(steps+1):
-        a=2*math.pi*turns*i/steps; z=z0+(z1-z0)*i/steps
-        ids=[]
-        for rr,dz in [(r, -width/2),(r-depth,0),(r,width/2)]:
-            ids.append(len(verts)); verts.append((rr*math.cos(a)/1000,rr*math.sin(a)/1000,(z+dz)/1000))
-        sections.append(ids)
-    for a,b in zip(sections,sections[1:]):
-        for k in range(3): faces.append((a[k],b[k],b[(k+1)%3],a[(k+1)%3]))
-    faces.append(tuple(reversed(sections[0]))); faces.append(tuple(sections[-1]))
-thread(0.45,4.20,4.723,25.4/32,0.23,0.53)
-thread(10.55,L-0.55,3.403,1.35,0.12,0.56)
 
 me=bpy.data.meshes.new('conector_f'); me.from_pydata(verts,[],faces); me.update()
 o=bpy.data.objects.new('conector_f_niquel',me); sc.collection.objects.link(o); me.materials.append(mat)

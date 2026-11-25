@@ -1229,6 +1229,7 @@ const VIEWS = {
 let camAnim=null;
 function flyTo(p,t){
   if(!sceneReady) return;
+  exitFlight();
   WHEEL.d=0;
   if(S.reduced){ camAnim=null; camera.position.copy(p); controls.target.copy(t); controls.update(); }
   else camAnim={p0:camera.position.clone(), t0:controls.target.clone(), p1:p.clone(), t1:t.clone(), s:performance.now(), d:650};
@@ -1344,15 +1345,16 @@ function pickCandidates(){
   const facade=G.arch.filter(m=>m.visible && m.userData.facade && m.material!==AM.glass && m.material!==AM.glassRail);
   return {items,facade};
 }
-function pickAt(cx,cy){
+function pickAt(cx,cy,{lookThrough=false,far=Infinity}={}){
   pickAt.dist=Infinity;
   if(!sceneReady) return null;
   const r=renderer.domElement.getBoundingClientRect();
   mouse.set(((cx-r.left)/r.width)*2-1, -((cy-r.top)/r.height)*2+1);
   ray.setFromCamera(mouse,camera);
+  ray.far=far;
   const {items,facade}=pickCache ||= pickCandidates();
   let hits=ray.intersectObjects(items,false);
-  if(hits.length&&facade.length){ const fh=ray.intersectObjects(facade,false)[0]; if(fh) hits=hits.filter(h=>h.distance<fh.distance+0.02); }
+  if(hits.length&&facade.length&&!(lookThrough&&S.mode==='transp')){ const fh=ray.intersectObjects(facade,false)[0]; if(fh) hits=hits.filter(h=>h.distance<fh.distance+0.02); }
   const cand=[];
   for(const h of hits){
     const m = h.object.userData.proxy ? h.object.parent : h.object, d=m.userData;
@@ -1380,25 +1382,27 @@ const _lr=new THREE.Raycaster();
 function leafMeshes(){ const a=[]; for(const l of LEAVES) l.piv.traverse(o=>{ if(o.isMesh && o.userData.leafKey) a.push(o); }); return a; }
 let LEAFM=null;
 /* primer impacte sobre l'arquitectura visible (inclou fulles) o sobre una fulla d'element ICT */
-function leafAt(cx,cy){
+function leafAt(cx,cy,lookThrough=false){
   if(!sceneReady) return null;
   const r=renderer.domElement.getBoundingClientRect();
   mouse.set(((cx-r.left)/r.width)*2-1, -((cy-r.top)/r.height)*2+1);
   _lr.setFromCamera(mouse,camera);
   LEAFM ||= leafMeshes();
-  const objs=[...G.arch.filter(m=>m.visible && !m.userData.sign && m.material!==AM.glass && m.material!==AM.glassRail), ...LEAFM.filter(m=>!m.userData.archLeaf && shown(m))];
+  const objs=[...G.arch.filter(m=>m.visible && !m.userData.sign && m.material!==AM.glass && m.material!==AM.glassRail &&
+    (!lookThrough||!m.material.transparent||m.userData.archLeaf)), ...LEAFM.filter(m=>!m.userData.archLeaf && shown(m))];
   const h=_lr.intersectObjects(objs,false).find(h=>shown(h.object));
   if(!h || !h.object.userData.leafKey) return h ? {wall:true, dist:h.distance} : null;
   return {leaf:LEAF_BY_KEY[h.object.userData.leafKey], dist:h.distance};
 }
-function onPointerDown(ev){ down={x:ev.clientX,y:ev.clientY,t:performance.now(),moved:false,btn:ev.button}; }
+function onPointerDown(ev){ if(!FLIGHT.enabled) down={x:ev.clientX,y:ev.clientY,t:performance.now(),moved:false,btn:ev.button}; }
 function onPointerMove(ev){
+  if(FLIGHT.enabled) return;
   if(down && Math.hypot(ev.clientX-down.x,ev.clientY-down.y)>6) down.moved=true;
   if(ev.pointerType==='touch') return;
   hoverQueued={x:ev.clientX,y:ev.clientY}; requestFrame();
 }
 function onPointerUp(ev){
-  if(!down) return; const d=down; down=null;
+  if(FLIGHT.enabled||!down) return; const d=down; down=null;
   if(d.moved || d.btn!==0 || performance.now()-d.t>600){ return; }  // ha estat un arrossegament: no es fa cap acció
   const now=performance.now(), x=ev.clientX, y=ev.clientY;
   if(pendingClick && now-pendingClick.t<DBL_MS && Math.hypot(x-pendingClick.x,y-pendingClick.y)<16){
@@ -1827,6 +1831,7 @@ function applyViewOffset(){
   const el=$('#view3d'), W=el.clientWidth, H=el.clientHeight;
   if(Math.abs(VOFF.x)<0.5 && Math.abs(VOFF.y)<0.5) camera.clearViewOffset(); else camera.setViewOffset(W,H,VOFF.x,VOFF.y,W,H);
   camera.updateProjectionMatrix();
+  flightPosition();
 }
 function openDrawer(which, open){
   const el=$('#'+which), btn=$(DRW[which]); if(!el) return;
@@ -1926,6 +1931,7 @@ function bindEvents(){
   $$('.drawerClose').forEach(b=>b.onclick=()=>{ openDrawer(b.dataset.close,false); $(DRW[b.dataset.close]).focus(); }); $('#btnLeft').onclick=()=>openDrawer('left'); $('#btnRight').onclick=()=>openDrawer('right');
   $('#helpOk').onclick=()=>{ $('#help').classList.add('hidden'); try{ localStorage.setItem('ict3d.helpSeen','1'); }catch(_){} renderer?.domElement.focus(); };
   addEventListener('keydown',e=>{ if(e.key!=='Escape' || document.querySelector('dialog[open]')) return;
+    if(pauseFlight()) return;
     if(!$('#eyePanel').classList.contains('hidden')||!$('#viewMenu').classList.contains('hidden')){ setPanel('eye',false); setPanel('views',false); return; }
     if(!$('#help').classList.contains('hidden')){ $('#help').classList.add('hidden'); return; }
     if(LEAFCHIP){ hideLeafChip(); return; }
@@ -1933,7 +1939,7 @@ function bindEvents(){
   $('#view3d').addEventListener('pointerdown',e=>{ if(e.target===renderer?.domElement && innerWidth<=760){ setPanel('eye',false); setPanel('views',false); } });
 }
 function dolly(k){
-  if(!sceneReady) return;
+  if(!sceneReady||FLIGHT.enabled) return;
   const off=camera.position.clone().sub(controls.target); const d=THREE.MathUtils.clamp(off.length()*k, controls.minDistance, controls.maxDistance);
   flyTo(controls.target.clone().add(off.setLength(d)), controls.target.clone());
 }
@@ -1979,6 +1985,7 @@ function initGL(){
   cv.addEventListener('pointerup',onPointerUp); cv.addEventListener('pointerleave',()=>{ hoverQueued=null; setHover(null); });
   cv.addEventListener('pointercancel',()=>{ down=null; hoverQueued=null; setHover(null); });
   cv.addEventListener('webglcontextrestored',()=>invalidate());
+  bindFlight(cv);
   addEventListener('resize',onResize); new ResizeObserver(onResize).observe($('#view3d'));
   return true;
 }
@@ -2043,7 +2050,9 @@ function loop(now){
     if(document.hidden) return;
     if(camAnim){ const u=THREE.MathUtils.clamp((now-camAnim.s)/camAnim.d,0,1), k=u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
       camera.position.lerpVectors(camAnim.p0,camAnim.p1,k); controls.target.lerpVectors(camAnim.t0,camAnim.t1,k); if(u>=1) camAnim=null; }
-    wheelTick(dt); const orbitMoving=controls.update();
+    let cameraMoving;
+    if(FLIGHT.enabled) cameraMoving=flightTick(dt);
+    else { wheelTick(dt); cameraMoving=controls.update(); }
     if(viewOffsetMoving()){ const k=Math.min(1,dt*10); VOFF.x+=(VOFF.tx-VOFF.x)*k; VOFF.y+=(VOFF.ty-VOFF.y)*k; if(Math.abs(VOFF.x-VOFF.tx)<=0.5) VOFF.x=VOFF.tx; if(Math.abs(VOFF.y-VOFF.ty)<=0.5) VOFF.y=VOFF.ty; applyViewOffset(); }
     const leafMoving=leavesTick(dt);
     camera.updateMatrixWorld();
@@ -2051,12 +2060,13 @@ function loop(now){
     doHover();
     const cameraChanged=!_vm.equals(camera.matrixWorld)||!_pm.equals(camera.projectionMatrix);
     if(cameraChanged){ _vm.copy(camera.matrixWorld); _pm.copy(camera.projectionMatrix); }
-    moving=orbitMoving||leafMoving||camAnim||WHEEL.d||viewOffsetMoving();
+    moving=cameraMoving||leafMoving||camAnim||WHEEL.d||viewOffsetMoving();
     if(!dirty&&!cameraChanged&&!leafMoving&&!needLabels) return;
     dirty=false;
     if(needLabels) rebuildLabels();
     placeLabels();
     try{ cullBegin(); renderer.render(scene,camera); }finally{ cullEnd(); }
+    queueFlightAim();
   }finally{
     frameRequest=0;
     if(moving||dirty) requestFrame();
@@ -2078,6 +2088,7 @@ const BLD = {x0:-8, x1:8, z0:-15, z1:5, H:2.8,
   pat:{x0:-0.2, x1:1.75, z0:-5.25, z1:-4.75},
   well:{x0:-2, x1:2, z0:-15, z1:-8},
   bas:{x0:-8, x1:12.4, z0:-22, z1:5, ramp:{x0:8.3, x1:12.1, z0:-12, z1:5}}};
+CFG.flightArea=()=>({...BLD.bas,bottom:yb(-1),roof:yb(5)});
 const XS = u => (u.s==='A'||u.s==='D') ? 1 : -1;
 const ZM = u => (u.s==='C'||u.s==='D');
 const SZ = u => ZM(u) ? -1 : 1;
@@ -4166,6 +4177,7 @@ async function init(){
   archMats(); buildArchitecture(); buildLandscape(); buildICT(); finalizeLids(); buildRefs();
   for(const m of G.arch) if(m.userData.floor===5) m.receiveShadow=true;
   sceneReady=true; controls.enabled=true; loading.hidden=true;
+  $('#btnFlight').disabled=false;
   onResize();
   const v=VIEWS.start(); camera.position.copy(v.p); controls.target.copy(v.t); controls.update();
   applyVisibility(); renderInfo();

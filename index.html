@@ -79,6 +79,7 @@
   <div id="viewMenu" class="pop hidden" role="region" aria-label="Vistes">
    <div class="pophead"><h2>Vistes</h2><button class="panelClose" data-panel="views" aria-label="Tanca el menú de vistes">×</button></div>
    <div class="vgrid">
+    <button id="btnFlight" class="full" aria-pressed="false" aria-controls="flightHUD" disabled>Vol lliure</button>
     <button data-view="complet">Edifici complet</button>
     <button data-view="oberta">Façana oberta</button>
     <button data-view="basement">Soterrani</button>
@@ -103,6 +104,11 @@
    <button id="vCenter" class="ibtn sq" aria-label="Centrar l'element seleccionat" title="Centrar l'element seleccionat" disabled>◎</button>
   </div>
   <div id="leafChip" class="ov hidden" role="status"></div>
+  <div id="flightAim" aria-hidden="true" hidden></div>
+  <div id="flightHUD" class="ov" role="region" aria-label="Vol lliure" hidden>
+   <p id="flightHint"></p>
+   <div class="flight-actions"><span id="flightTarget" hidden></span><button id="flightAction" hidden>Obrir</button><button id="flightExit">Torna a l’òrbita</button></div>
+  </div>
   <span id="statusNav" class="sr-only" aria-live="polite"></span>
   <div id="loading3d" role="status" hidden>Carregant l’escena 3D…</div>
   <div class="note ov">Model didàctic simplificat: no és un projecte d'arquitectura ni de telecomunicacions. Alguns elements estan fora d'escala.</div>
@@ -113,6 +119,7 @@
     <li><b>Clic</b> en un element: se selecciona i la càmera s'hi apropa. <b>◀</b> (o Retrocés) torna a la vista anterior.</li>
     <li><b>Doble clic</b> en una porta, armari o tapa: s'obre; un altre doble clic la tanca.</li>
     <li><b>Arrossegar</b>: girar · <b>roda o pinça</b>: zoom · <b>botó dret o dos dits</b>: desplaçar.</li>
+    <li><b>Vol lliure</b> a «Vistes»: clica el visor per mirar amb el ratolí. Fletxes i roda per volar, Espai/C per pujar i baixar, Maj per afinar, E per obrir o tancar i Esc per pausar. Al comandament, A selecciona i X obre o tanca.</li>
     <li><b>Ull</b>: què es veu i llegenda de colors · <b>Vistes</b>: plantes, habitatges i interior del RITS.</li>
    </ul>
    <button id="helpOk" class="on">D'acord</button>
@@ -147,6 +154,7 @@
 <script src="vendor/GLTFLoader.js"></script>
 <script src="js/dades.js"></script>
 <script src="js/app.js"></script>
+<script src="js/flight.js"></script>
 <script>init();</script>
 </body>
 </html>

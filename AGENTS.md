@@ -18,6 +18,7 @@ Página web estática publicada con GitHub Pages en <https://ddelapaz1.github.io
 | `css/ict.css` | Estilos de la interfaz (compartidos) | **Sí** |
 | `js/dades.js` | Datos: `UNITS`, `SERVICES`, `TRAMS`, `TECHS`, registro `EL`, `CONCEPTS`, `QUIZ`, `SIMPLIFICATIONS` | **Sí** |
 | `js/app.js` | Aplicación: geometría, interfaz, visibilidad, selección, etiquetas y arranque (`init()`) | **Sí** |
+| `js/flight.js` | Vol lliure: cámara, límites, teclado, ratón, mando y punto de mira | **Sí** |
 | `js/dades-cases.js` | Datos del modelo de casas (solo `cases.html`): casas, registros secundarios, textos del RITU | **Sí** |
 | `js/cases.js` | Construcción del modelo de casas (solo `cases.html`): sustituye `buildArchitecture`, `buildICT`… | **Sí** |
 | `vendor/three.min.js` | Three.js r160 (UMD, define el global `THREE`) | **No** |
@@ -29,7 +30,7 @@ No hay *build*, ni npm, ni módulos ES: los `<script>` son clásicos y comparten
 Cualquier archivo nuevo que necesite la web debe ir dentro del repositorio y referenciarse con **ruta relativa**
 (nada de CDN), para que funcione igual en local y en GitHub Pages.
 
-Los scripts se cargan en este orden: `vendor/*`, `js/dades.js`, (`js/dades-cases.js`), `js/app.js`, (`js/cases.js`) y, al
+Los scripts se cargan en este orden: `vendor/*`, `js/dades.js`, (`js/dades-cases.js`), `js/app.js`, `js/flight.js`, (`js/cases.js`) y, al
 final, `init()` (inline en la página). Los cambios en `js/app.js` y `js/dades.js` afectan a los dos
 modelos: compruébalos en las dos páginas.
 
@@ -90,6 +91,9 @@ Bloque «RENDIMENT» antes de `loop()` en `js/app.js`:
 - **Detalle**: no se dibujan las mallas con radio en pantalla < `OCC.px` (1 px CSS).
 - Las mallas solo se ocultan durante `renderer.render()` (`cullBegin()`/`cullEnd()`): `m.visible` sigue siendo el de
   la aplicación. `scene.matrixWorldAutoUpdate` es `false`: las matrices se actualizan en `cullBegin()`.
+- **Vol lliure**: `CFG.flightArea()` da la envolvente del conjunto en metros y `flightBounds()` añade 10 m por los
+  lados y por encima de la cubierta. `flightTick()` comparte el bucle del visor y solicita fotogramas al mover la
+  cámara. La mira sigue el centro óptico aunque un panel desplace la proyección; clic selecciona y E abre o cierra.
 
 ### Dónde está cada cosa (busca por nombre de función)
 

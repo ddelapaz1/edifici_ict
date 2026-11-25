@@ -27,6 +27,7 @@ const TANP=Math.tan(KC.pitch*Math.PI/180), Y_RIDGE=KC.yK+3*TANP;
    RITI: els registres principals de l'edifici girats +90° a la paret interior de la porta: x = RITI.x + z_RITI, z = RITI.z − x_RITI. */
 const RITU={x:19.6, z:-3.46, rot:-Math.PI/2}, RITI={x:26.83, z:-0.4, rot:Math.PI/2};
 const ARQ={x:RITI.x-4.69, z:5.3};                           // arqueta d'entrada (a la vorera, davant del RITU)
+CFG.flightArea=()=>({x0:KC.ramp.x0,x1:Math.max(KC.xc,RITI.x),z0:KC.bas.z0,z1:ARQ.z,bottom:KC.bas.y,roof:Y_RIDGE});
 
 /* ---------- grups de les parelles de cases i conversió de coordenades ---------- */
 const PG=[];

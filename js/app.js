@@ -2428,8 +2428,21 @@ function archMats(){
   AM.car1=L(0x3F6FB5); AM.car2=L(0xB8433A); AM.car3=L(0xD9D9D4); AM.car4=L(0x3E4348); AM.tyre=L(0x222222);
   AM.carV=new THREE.MeshPhongMaterial({vertexColors:true, shininess:40, specular:0x1E1E1E});   // cotxes (colors per vèrtex)
   AM.shop=F(0xEFE6D2,'plaster'); AM.shelf=F(0xB98B5E,'wood'); AM.awning=L(0x2F8A5B); AM.tile=L(0xD8CDBB); AM.lobby=F(0xE2DBD0,'tile'); AM.shopFloor=F(0xD8CDBB,'tile');
+  AM.fridgeLight=L(0xF6FAFF,{emissive:0xC8DCFF});
+  /* textura de la llauna de beguda energètica (models/llauna_monki.jpg; reserva procedural si s'obre amb file://) */
+  let canTex;
+  if(location.protocol!=='file:'){
+    canTex=new THREE.TextureLoader().load('models/llauna_monki.jpg',()=>{ if(renderer) invalidate(); });
+    canTex.colorSpace=THREE.SRGBColorSpace; canTex.anisotropy=4;
+  } else {
+    canTex=canvasTex(256,256,(g,w,h)=>{ g.fillStyle='#101215'; g.fillRect(0,0,w,h); g.fillStyle='#C5C9CE'; g.fillRect(0,0,w,40); g.fillRect(0,244,w,12);
+      g.fillStyle='#4CB2E0'; g.fillRect(0,40,w,36); g.fillStyle='#BD5121'; g.beginPath(); g.arc(w/2,132,38,0,Math.PI*2); g.fill();
+      g.fillStyle='#fff'; g.beginPath(); g.arc(w/2-15,120,12,0,Math.PI*2); g.arc(w/2+15,120,12,0,Math.PI*2); g.fill();
+      g.fillStyle='#4CB2E0'; g.font='700 22px Arial,sans-serif'; g.textAlign='center'; g.fillText('MONKI',w/2,205); g.fillStyle='#BD5121'; g.fillText('DONKY',w/2,228); });
+  }
+  AM.monkiCan=new THREE.MeshStandardMaterial({color:0xffffff, map:canTex, roughness:0.32, metalness:0.28});
   AM.ref=new THREE.LineBasicMaterial({color:0x5D6B7A});
-  AM.list=[AM.wall,AM.wallIn,AM.facade,AM.facade2,AM.slab,AM.roof,AM.edge,AM.plinth,AM.frame,AM.rail,AM.stair,AM.stairEdge,AM.furn,AM.furn2,AM.furn2b,AM.furn3,AM.found,AM.park,AM.concrete,AM.door,AM.doorM,AM.liftDoor,AM.shop,AM.shelf,AM.tile,AM.lobby,AM.shopFloor,AM.car1,AM.car2,AM.car3,AM.car4,AM.tyre,AM.carV,AM.line,AM.lineY,AM.awning];
+  AM.list=[AM.wall,AM.wallIn,AM.facade,AM.facade2,AM.slab,AM.roof,AM.edge,AM.plinth,AM.frame,AM.rail,AM.stair,AM.stairEdge,AM.furn,AM.furn2,AM.furn2b,AM.furn3,AM.found,AM.park,AM.concrete,AM.door,AM.doorM,AM.liftDoor,AM.shop,AM.shelf,AM.tile,AM.lobby,AM.shopFloor,AM.car1,AM.car2,AM.car3,AM.car4,AM.tyre,AM.carV,AM.line,AM.lineY,AM.awning,AM.fridgeLight,AM.monkiCan];
 }
 
 /* ---------- cua de caixes d'arquitectura: es fusionen per material i etiquetes ---------- */
@@ -3023,6 +3036,72 @@ function buildUnitShell(u){
   // rètol de la porta al distribuïdor
   textPlane([u.name],0.36,0.16,V(X(-1.985),y+1.65,Z(-2.25)),V(xs,0,0),{bg:'#FFFFFF',fg:'#1F3A5F',border:'#1F3A5F',px:256,flags:o});
 }
+/* llauna de beguda energètica de 500 ml (Ø66 × 168 mm, frontal a +Z) i nevera practicable plena de llaunes */
+let MONKI_CAN_GEO=null;
+function monkiCanGeo(){
+  if(MONKI_CAN_GEO) return MONKI_CAN_GEO;
+  /* perfil [radi, alçada, vTex]: base platejada, cos cilíndric amb l'etiqueta i coll/tapa platejats */
+  const prof=[[0,0,0.01],[0.025,0,0.02],[0.033,0.010,0.044],[0.033,0.148,0.842],[0.0275,0.165,0.90],[0.0285,0.168,0.94],[0.0255,0.164,0.96],[0,0.164,0.99]];
+  const pts=prof.map(([r,y])=>new THREE.Vector2(r,y));
+  const g=new THREE.LatheGeometry(pts,12);
+  const uv=g.attributes.uv, nv=prof.length;
+  for(let i=0;i<uv.count;i++) uv.setY(i, prof[i%nv][2]);
+  g.rotateY(Math.PI);                                                                     // u = 0,5 (cara del mico) cap a +Z
+  /* anella de la tapa superior */
+  const tab=new THREE.BoxGeometry(0.013,0.0022,0.021); tab.translate(0,0.1655,0.003);
+  const tuv=tab.attributes.uv; for(let i=0;i<tuv.count;i++) tuv.setXY(i,0.5,0.93);
+  MONKI_CAN_GEO=mergeGeos([g.toNonIndexed(), tab.toNonIndexed()]);
+  return MONKI_CAN_GEO;
+}
+function buildFridgeCansAndDoor(u, y2, o){
+  const canBase=monkiCanGeo();
+  const pH=UXZ(u,-5.20,-4.125), pE=UXZ(u,-4.55,-4.125), pOut=UXZ(u,-5.20,-4.00);
+  const along=pE.clone().sub(pH).normalize(), swing=pOut.clone().sub(pH).normalize();
+  const fwdAng=Math.atan2(swing.x, swing.z);                                              // orientació de la cara de la llauna cap a la cuina
+  /* 6 nivells × 6 columnes × 2 fileres = 72 llaunes dins la nevera (fusionades en una sola malla per habitatge) */
+  const shelves=[0.06,0.342,0.632,0.922,1.212,1.502];
+  for(let si=0;si<shelves.length;si++){
+    const sy=y2+shelves[si];
+    for(let ri=0;ri<2;ri++){
+      const lz=-4.54+ri*0.18;
+      for(let ci=0;ci<6;ci++){
+        const lx=-5.095+ci*0.088, p=UXZ(u,lx,lz);
+        const jit=(((si*7+ri*13+ci*5)%9)-4)*0.055;
+        const g=canBase.clone(); g.rotateY(fwdAng+jit); g.translate(p.x,sy,p.z);
+        aGeo(g, AM.monkiCan, o);
+      }
+    }
+  }
+  /* porta practicable de la nevera (obre ~112° cap a la cuina) amb 4 balcons interiors carregats de llaunes */
+  const w=pE.distanceTo(pH), h=1.83, t=0.048, piv=new THREE.Group();
+  piv.position.set(pH.x, y2+0.01, pH.z); scene.add(piv);
+  const rot0=Math.atan2(-along.z, along.x); piv.rotation.y=rot0;
+  const localZ=new THREE.Vector3().crossVectors(along, UP).normalize();
+  const outS=localZ.dot(swing)>=0 ? 1 : -1;                                               // +outS: cara exterior; −outS: interior
+  const leafFlags=Object.assign({kind:'arch', archLeaf:true}, o);
+  const mk=(geo, mat, x=0, y=0, z=0)=>{ const me=new THREE.Mesh(geo, mat); me.position.set(x,y,z); piv.add(me); ud(me, leafFlags); G.arch.push(me); return me; };
+  mk(new THREE.BoxGeometry(w, h, t), AM.liftDoor, w/2, h/2, 0);                           // fulla exterior metàl·lica
+  mk(new THREE.BoxGeometry(w-0.04, h-0.04, 0.008), AM.wallIn, w/2, h/2, -outS*(t/2+0.004));   // folre blanc interior
+  mk(new THREE.BoxGeometry(0.022, 0.48, 0.026), AM.frame, w-0.055, 1.12, outS*(t/2+0.026));   // tirador vertical exterior
+  for(const hy of [0.92, 1.32]) mk(new THREE.BoxGeometry(0.016, 0.016, 0.024), AM.frame, w-0.055, hy, outS*(t/2+0.012));
+  /* 4 balcons a l'interior de la porta + 20 llaunes que s'obren juntament amb la porta */
+  const rackGeos=[], railGeos=[], doorCans=[], rZ=-outS*(t/2+0.048);
+  const canFaceDoor=outS>0 ? Math.PI : 0;                                                 // la cara del mico mira cap endins (visible en obrir)
+  for(let ri=0;ri<4;ri++){
+    const ry=0.22+ri*0.38;
+    const base=new THREE.BoxGeometry(w-0.07, 0.012, 0.088); base.translate(w/2, ry, rZ); rackGeos.push(base.toNonIndexed());
+    const guard=new THREE.BoxGeometry(w-0.07, 0.062, 0.008); guard.translate(w/2, ry+0.036, rZ-outS*0.042); railGeos.push(guard.toNonIndexed());
+    for(let ci=0;ci<5;ci++){
+      const cx=0.095+ci*0.112, jit=(((ri*11+ci*7)%7)-3)*0.06;
+      const cg=canBase.clone(); cg.rotateY(canFaceDoor+jit); cg.translate(cx, ry+0.006, rZ);
+      doorCans.push(cg);
+    }
+  }
+  mk(mergeGeos(rackGeos), AM.wallIn); mk(mergeGeos(railGeos), AM.glass); mk(mergeGeos(doorCans), AM.monkiCan);
+  const tip=d=>{ const a=rot0+d; return {x:Math.cos(a)*w, z:-Math.sin(a)*w}; };
+  const tp=tip(1.95), ang=(tp.x*swing.x+tp.z*swing.z)>0 ? 1.95 : -1.95;
+  regLeaf({key:`nev:${u.id}`, label:`porta de la nevera ${u.del||'del '+u.name}`, piv, kind:'rot', base:rot0, open:ang, arch:true, flags:o});
+}
 /* envans interiors (tall a mitja alçada) — disposició A */
 function buildPartitions(u){
   const y=yb(u.f), h=1.1, o={floor:u.f,unit:u.id}, t=0.05, B=UWB(u);
@@ -3149,8 +3228,16 @@ function buildFurniture(u){
   RB(-6.25,-5.55,1.55,1.68,-4.7,-4.25,AM.liftDoor,0.01,0.005); F(-6.0,-5.8,1.68,2.78,-4.7,-4.52,AM.liftDoor);   // campana
   RB(-7.7,-6.3,1.45,2.15,-4.7,-4.38,AM.wallIn,0.008,0.004); D(-7.004,-6.996,1.47,2.13,-4.382,-4.374,AM.frame);   // mobles alts
   for(const x of [-7.06,-6.94]) D(x-0.006,x+0.006,1.5,1.62,-4.38,-4.36,AM.liftDoor);
-  RB(-5.2,-4.55,0,1.85,-4.7,-4.1,AM.liftDoor,0.015,0.008); D(-5.2,-4.55,1.195,1.205,-4.102,-4.095,AM.frame);   // nevera
-  for(const [y0,y1] of [[0.85,1.1],[1.3,1.55]]) C(-4.64,-4.615,y0,y1,-4.1,-4.07,AM.frame,1,8);
+  RB(-5.2,-4.55,1.81,1.85,-4.7,-4.15,AM.liftDoor,0.01,0.004);                             // nevera practicable (sostre)
+  D(-5.2,-4.55,0,0.05,-4.7,-4.15,AM.liftDoor); D(-5.2,-4.55,0.05,1.81,-4.7,-4.65,AM.liftDoor);   // base i fons
+  D(-5.2,-5.16,0.05,1.81,-4.65,-4.15,AM.liftDoor); D(-4.59,-4.55,0.05,1.81,-4.65,-4.15,AM.liftDoor);   // laterals
+  D(-5.16,-4.59,0.05,0.06,-4.65,-4.15,AM.wallIn); D(-5.16,-4.59,1.80,1.81,-4.65,-4.15,AM.wallIn);      // revestiment blanc interior
+  D(-5.16,-4.59,0.06,1.80,-4.65,-4.64,AM.wallIn); D(-5.16,-5.15,0.06,1.80,-4.64,-4.15,AM.wallIn); D(-4.60,-4.59,0.06,1.80,-4.64,-4.15,AM.wallIn);
+  D(-5.05,-4.70,1.792,1.80,-4.52,-4.34,AM.fridgeLight);                                   // llum interior LED
+  for(const sy of [0.34,0.63,0.92,1.21,1.50]){                                            // 5 prestatges de vidre
+    D(-5.15,-4.60,sy-0.008,sy,-4.64,-4.25,AM.glass); D(-5.15,-4.60,sy-0.012,sy+0.002,-4.255,-4.242,AM.wallIn);
+  }
+  buildFridgeCansAndDoor(u, y2, o);
   // BANY: plat de dutxa amb mampara, vàter i lavabo amb moble i mirall
   RB(-7.72,-6.95,0,0.04,3.28,4.04,AM.wallIn,0.012,0.006); C(-7.36,-7.3,0.04,0.044,3.63,3.69,AM.frame,1,12);
   D(-7.7,-7.0,0.04,1.95,4.03,4.045,AM.glass); D(-7.7,-7.0,1.95,1.965,4.025,4.05,AM.liftDoor);

@@ -3113,11 +3113,11 @@ function buildFurniture(u){
         AM.coixiGos=new THREE.MeshStandardMaterial({color:0xffffff, map:src.material.map||null, roughness:0.9, metalness:0});
         AM.list.push(AM.coixiGos);
       }
-      const p0=UXZ(u,-6.54,1.44), pF=UXZ(u,-6.54,1.34), pC=UXZ(u,-6.80,1.44);
+      const p0=UXZ(u,-6.56,1.38), pF=UXZ(u,-6.56,1.28), pC=UXZ(u,-6.80,1.38);
       const fwd=pF.clone().sub(p0).normalize(), right=new THREE.Vector3().crossVectors(UP,fwd).normalize();
       const flip=right.dot(pC.clone().sub(p0))<0 ? Math.PI : 0;
-      const M=new THREE.Matrix4().makeBasis(right,UP,fwd).setPosition(p0.x,y2+0.475,p0.z);
-      M.multiply(new THREE.Matrix4().makeRotationY(flip+(flip?-0.18:0.18))).multiply(new THREE.Matrix4().makeRotationX(flip?0.26:-0.26));
+      const M=new THREE.Matrix4().makeBasis(right,UP,fwd).setPosition(p0.x,y2+0.48,p0.z);
+      M.multiply(new THREE.Matrix4().makeRotationY(flip+(flip?-0.16:0.16))).multiply(new THREE.Matrix4().makeRotationX(flip?0.20:-0.20));
       const m=new THREE.Mesh(src.geometry, AM.coixiGos);
       m.matrixAutoUpdate=false; m.matrix.copy(M); m.matrixWorldNeedsUpdate=true;
       addArch(m, o);

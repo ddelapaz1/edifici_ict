@@ -105,6 +105,7 @@
   </div>
   <div id="leafChip" class="ov hidden" role="status"></div>
   <span id="statusNav" class="sr-only" aria-live="polite"></span>
+  <div id="loading3d" role="status" hidden>Carregant l’escena 3D…</div>
   <div class="note ov">Model didàctic simplificat: no és un projecte d'arquitectura ni de telecomunicacions. Alguns elements estan fora d'escala.</div>
 
   <div id="help" class="ov" role="dialog" aria-labelledby="helpT">
@@ -149,6 +150,6 @@
 <script src="js/dades-cases.js"></script>
 <script src="js/app.js"></script>
 <script src="js/cases.js"></script>
-<script>loadModels().finally(init);</script>
+<script>init();</script>
 </body>
 </html>

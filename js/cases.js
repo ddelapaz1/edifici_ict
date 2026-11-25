@@ -589,6 +589,7 @@ Object.assign(VIEWS, {
   home:    ()=>{ const u=UNIT(curUnit()||'0A'), c=UW(u,-5,0,0); return {p:V(c.x+1.5,10.5,c.z+9.5), t:V(c.x,0.2,c.z-0.3)}; }
 });
 function setView(name, opt={}){
+  if(!sceneReady){ if(renderer) pendingView=name; return; }
   if(!opt.noPush) navPush();
   if(name==='ritsIn'){ ritsInterior(); return; }
   if(name==='complet'){ S.mode='oberta'; S.layers.facana=true; S.layers.estructura=true; name='building'; }

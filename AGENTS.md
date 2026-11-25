@@ -30,7 +30,7 @@ Cualquier archivo nuevo que necesite la web debe ir dentro del repositorio y ref
 (nada de CDN), para que funcione igual en local y en GitHub Pages.
 
 Los scripts se cargan en este orden: `vendor/*`, `js/dades.js`, (`js/dades-cases.js`), `js/app.js`, (`js/cases.js`) y, al
-final, `loadModels().finally(init)` (inline en la página). Los cambios en `js/app.js` y `js/dades.js` afectan a los dos
+final, `init()` (inline en la página). Los cambios en `js/app.js` y `js/dades.js` afectan a los dos
 modelos: compruébalos en las dos páginas.
 
 1. **Datos** (`js/dades.js`): `UNITS`, `SERVICES`, `TRAMS`, `TECHS` y el registro `EL` de elementos, creados con
@@ -82,8 +82,8 @@ mallas: el edificio ya tiene unas 4.700.
 Bloque «RENDIMENT» antes de `loop()` en `js/app.js`:
 
 - **Dibujo a demanda**: `loop()` solo dibuja si la cámara se ha movido, hay una animación (vuelo, puertas y tapas,
-  zoom con la rueda) o se ha llamado a `invalidate()`. `applyMaterials()`, `onResize()`, `shadowRefresh()` y cualquier
-  evento de ratón o teclado ya lo hacen. **Si cambias la escena desde otro sitio (un temporizador, una carga
+  zoom con la rueda) o se ha llamado a `invalidate()`. `applyMaterials()`, `onResize()` y `shadowRefresh()` ya lo
+  hacen. En reposo no se solicita otro fotograma. **Si cambias la escena desde otro sitio (un temporizador, una carga
   asíncrona…), llama a `invalidate()`** o no se verá hasta que se mueva la cámara.
 - **Oclusión**: lo que cabe entero dentro de un registro (`e.lid`, menos los recintos RITI/RITS, que no son cajas
   cerradas) no se dibuja si la tapa está cerrada y la cámara fuera (`OCC`, `occClosed()`).
@@ -107,7 +107,7 @@ Bloque «RENDIMENT» antes de `loop()` en `js/app.js`:
 | PAU de RTV en la vivienda (519534) | `PRD`, `pauRtvPos()`; cables de dispersión en `buildUnit()` (bucle en U por debajo) |
 | PAU de TBA coaxial en la vivienda (519602, `div_tba_*`) | `PTD`, `pauTbaPos()`; salidas `TBAOUT`/`TBATAIL` en `buildInterior()` |
 | Fibra en la vivienda (PAU 231502, SC/APC) | `pauFoPos()`, `scQuat()`, `scAdapter()`, `scPlug()`; presa óptica en el bucle de `PRESES` de `buildInterior()` |
-| Modelos glTF | `MODELS`, `loadModels()`, `placeModel()`, `modelPoint()` (al final del segundo `<script>`) |
+| Modelos glTF | `MODELS`, `loadModel()`, `placeModel()`, `modelPoint()` (al final de `app.js`) |
 | Paisaje de fondo | `skyTexture()`, `buildMountains()`, `buildLandscape()`, `landscapeVisibility()` |
 | Antenas | `buildAntennas()` |
 | Cotxes (Tesla Model 3, Corolla, RAV4, A4 Avant; colors per vèrtex, material `AM.carV`) | `CARS`, `carBody()`, `carClass()`, `carModel(x,y,z,dir,type,mat,o)` |
@@ -186,9 +186,10 @@ después de `js/app.js` y **redefine funciones** (`buildArchitecture`, `buildLan
 
 Cómo funcionan en la web:
 
-- `MODELS` lista los archivos; `loadModels()` los carga antes de `init()`. Si un archivo falta o la página se abre con
+- `MODELS` lista los archivos. `init()` activa los paneles antes de cargar los equipos de la escena inicial. El
+  mezclador 740710 se carga al entrar en la variante B. Si un archivo falta o la página se abre con
   `file://`, cada función usa su **modelo procedural de reserva** (mantenlo siempre).
-- `placeModel(k, el, x, y, z, recolor, rot)` copia el modelo, registra cada malla al elemento `el` y devuelve las mallas
+- `placeModel(k, el, x, y, z, recolor, rot)` comparte la geometría del modelo, registra cada malla al elemento `el` y devuelve las mallas
   (añádelas a `G.pick` si deben seleccionarse). `rot`: número (giro en Y), `[x,y,z]` (Euler) o un `THREE.Quaternion`.
   `recolor` cambia colores por **nombre de material** (p. ej. `{banda: 0x1565C0}` en los T12 de FI).
 - Los **objetos vacíos** del modelo marcan puntos de anclaje y se leen con `modelPoint(k, nombre)`: puertos F

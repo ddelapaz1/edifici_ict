@@ -573,7 +573,6 @@ function buildICT(){
     for(const c of ['a','b']){
       if(MODELS.deriv?.scene){
         const ms=placeModel('deriv',`deriv_${f}`,DER[c],y+1.55,-4.715);
-        for(const m of ms) G.pick.push(m);
         /* valor de derivació i referència d'aquesta planta, a la posició que tenen a la serigrafia del plànol */
         for(const [txt,dx,dy,w] of [[`${TAPF[f].db}dB`,-0.0276,-0.0033,0.0072],[`${TAPF[f].ref}/F 4D`,0.0314,-0.0003,0.0186]]){
           const tm=rPlane(`deriv_${f}`,w,0.0026,V(DER[c]+dx,y+1.55+dy,-4.715+0.0186),V(0,0,1),tapText(txt,Math.round(w*20000),52)); tm.material.alphaTest=0.5; }
@@ -582,7 +581,7 @@ function buildICT(){
         if(f===1){
           if(MODELS.carrega?.scene){
             const mc=placeModel('carrega','deriv_1',DER[c]+0.0424,y+1.523,-4.706,{},[Math.PI,0,0]);
-            for(const m of mc) G.pick.push(m);
+            if(mc[0]) addProxy(mc[0],new THREE.BoxGeometry(0.024,0.036,0.024).translate(DER[c]+0.0424,y+1.509,-4.706));
           } else {
             iCyl('deriv_1',0.006,0.02,DER[c]+DPX.out,y+1.513,-4.706,0x222222,'y',{pick:false});
           }
@@ -933,7 +932,7 @@ function buildInterior(u){
     iBox(PT0,0.0615,0.0241,0.018,PT.PO.x,PT.PO.y-0.0002,PT.PO.z+sz*0.009,0xC2C6C9);                                         // reserva: cos de 74 × 54 × 18 mm
     for(const n of Object.keys(PTD)){ const b=PT.at(n).add(V(0,0.0145,0)); fFemale(PT0,b,V(0,-1,0)); }
   }
-  fLoad(PT0,PT.at('in').add(V(0,0.0025,0)),V(0,-1,0));
+  fLoad(PT0,PT.at('in').add(V(0,0.0025,0)),V(0,-1,0),false,PT0);
   const tOuts=['o1','o2'].map(n=>[n,X(PT.at(n).x)]).sort((a,b)=>a[1]-b[1]), TBAOUT={}, TBATAIL={};
   ['tba_sala','tba_d1'].forEach((k,i)=>{ TBAOUT[k]=tOuts[i][1]; TBATAIL[k]=coaxPlug(`xi_tba_${U}`,PT.at(tOuts[i][0]).add(V(0,0.004,0)),V(0,-1,0)); });
   let PAU_PATCH, FO_BAT;
@@ -943,14 +942,15 @@ function buildInterior(u){
     const base=ictMesh(rrectGeo(W+0.002,H+0.002,0.006,0.006,0.002),0xE9E9E3,el,{std:{roughness:0.55,metalness:0}}); base.position.set(rx,ry,Z(zb+0.003));
     const body=ictMesh(rrectGeo(W-0.008,H-0.008,0.03,0.008,0.004),0xF4F4F0,el,{std:{roughness:0.5,metalness:0}}); body.position.set(rx,ry,zm);
     addProxy(body,new THREE.BoxGeometry(0.12,0.12,0.08));
-    /* finestra de l'etiqueta i marques en relleu de la tapa */
-    iBox(el,0.042,0.011,0.002,rx,ry+0.019,Z(zf),0xE4E4DE,{pick:false});
-    iBox(el,0.022,0.008,0.0015,rx,ry+0.002,Z(zf),0xE4E4DE,{pick:false});
-    for(const dx of [-0.017,0.017]) iBox(el,0.01,0.005,0.0015,X(-2.86+dx),ry-0.013,Z(zf),0xE4E4DE,{pick:false});
-    /* boques RJ45 a la cara inferior: línia 1 (esquerra) i línia 2 (dreta) */
+    /* finestra de l'etiqueta, marques de la tapa, boques RJ45 i contactes fusionats en una sola malla */
+    const rp=[], rAdd=(w,h,d,px,py,pz,col)=>rp.push([new THREE.BoxGeometry(w,h,d),new THREE.Matrix4().makeTranslation(px,py,pz),col]);
+    rAdd(0.042,0.011,0.002,rx,ry+0.019,Z(zf),0xE4E4DE);
+    rAdd(0.022,0.008,0.0015,rx,ry+0.002,Z(zf),0xE4E4DE);
     for(const dx of [-0.017,0.017]){ const jx=X(-2.86+dx);
-      iBox(el,0.016,0.008,0.014,jx,ry-hb+0.0035,zm,0x1E2022,{pick:false});
-      for(let k=0;k<8;k++) iBox(el,0.0008,0.0008,0.006,jx-0.0049+k*0.0014,ry-hb+0.0005,zm,0xC9A13A,{pick:false}); }
+      rAdd(0.01,0.005,0.0015,jx,ry-0.013,Z(zf),0xE4E4DE);
+      rAdd(0.016,0.008,0.014,jx,ry-hb+0.0035,zm,0x1E2022);
+      for(let k=0;k<8;k++) rAdd(0.0008,0.0008,0.006,jx-0.0049+k*0.0014,ry-hb+0.0005,zm,0xC9A13A); }
+    ictMesh(mergeParts(rp),0xFFFFFF,el,{std:{roughness:0.5,metalness:0.1,vertexColors:true}});
     /* connector RJ45 a la línia 1 i cable fins al multiplexor passiu */
     const j1=X(-2.877);
     PAU_PATCH=rj45(el,V(j1,ry-hb+0.010,zm),V(0,1,0),SZV.clone());
@@ -1192,21 +1192,148 @@ function applyMaterials(){
   }
   updateSelBox(); invalidate();
 }
-let selBox=null;
+const _tmpBox=new THREE.Box3();
+function meshWorldBox(m, out){
+  const g=m.geometry; if(!g) return null;
+  if(!g.boundingBox) g.computeBoundingBox();
+  if(!g.boundingBox || g.boundingBox.isEmpty()) return null;
+  return out.copy(g.boundingBox).applyMatrix4(m.matrixWorld);
+}
 function elBox(id, onlyVisible=true){
   const b=new THREE.Box3(); let any=false;
-  for(const m of (G.byEl[id]||[])){ if(onlyVisible && !m.visible) continue; m.updateMatrixWorld(); const bb=new THREE.Box3().setFromObject(m); if(!bb.isEmpty()){ b.union(bb); any=true; } }
+  for(const m of (G.byEl[id]||[])){
+    if(onlyVisible && !m.visible) continue;
+    m.updateMatrixWorld();
+    if(meshWorldBox(m,_tmpBox)){ b.union(_tmpBox); any=true; }
+  }
   if(!any && EL[id] && (EL[id].children||[]).length){ for(const c of EL[id].children){ if(ritsBad(c)) continue; const bb=elBox(c,onlyVisible); if(bb){ b.union(bb); any=true; } } }
   return any?b:null;
 }
-function updateSelBox(){
-  const b=S.selected&&elBox(S.selected);
-  if(!b){ if(selBox) selBox.visible=false; return; }
-  if(!selBox){
-    selBox=new THREE.Box3Helper(new THREE.Box3(),0xF5A400);
-    selBox.material.depthTest=false; selBox.renderOrder=10; scene.add(selBox);
+/* Resplendor (glow) de selecció en espai de pantalla: dibuixa la silueta de l'element seleccionat en una màscara,
+   la difumina en dues passades gaussianes i la compon com un halo exterior daurat al voltant del contorn. */
+const SEL_GLOW={scene:null, quadScene:null, quadCam:null, quad:null, maskMat:null, blurMat:null, compMat:null,
+  rtMask:null, rtA:null, rtB:null, w:0, h:0, pairs:[], srcSet:new Set(), active:false};
+const _glowClear=new THREE.Color(0x000000), _glowPrevCol=new THREE.Color();
+function collectSelMeshes(id, out){
+  let found=false;
+  for(const m of (G.byEl[id]||[])){
+    if(!m.visible || !m.geometry || m.userData.proxy || m.userData.halo) continue;
+    out.push(m); found=true;
   }
-  selBox.box.copy(b).expandByScalar(0.04); selBox.visible=true;
+  if(!found && EL[id] && (EL[id].children||[]).length){
+    for(const c of EL[id].children){ if(!ritsBad(c)) collectSelMeshes(c,out); }
+  }
+}
+function initSelGlow(){
+  if(SEL_GLOW.scene) return;
+  SEL_GLOW.scene=new THREE.Scene(); SEL_GLOW.scene.matrixWorldAutoUpdate=false;
+  SEL_GLOW.quadScene=new THREE.Scene();
+  SEL_GLOW.quadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+  SEL_GLOW.maskMat=new THREE.MeshBasicMaterial({color:0xffffff, side:THREE.DoubleSide, depthTest:false, depthWrite:false, toneMapped:false});
+  const vs='varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }';
+  SEL_GLOW.blurMat=new THREE.ShaderMaterial({
+    depthTest:false, depthWrite:false,
+    uniforms:{tSrc:{value:null}, uStep:{value:new THREE.Vector2()}},
+    vertexShader:vs,
+    fragmentShader:`
+      uniform sampler2D tSrc; uniform vec2 uStep; varying vec2 vUv;
+      void main(){
+        float s = texture2D(tSrc, vUv).r * 0.1633;
+        s += (texture2D(tSrc, vUv + uStep * 1.0).r + texture2D(tSrc, vUv - uStep * 1.0).r) * 0.1531;
+        s += (texture2D(tSrc, vUv + uStep * 2.0).r + texture2D(tSrc, vUv - uStep * 2.0).r) * 0.1224;
+        s += (texture2D(tSrc, vUv + uStep * 3.0).r + texture2D(tSrc, vUv - uStep * 3.0).r) * 0.0816;
+        s += (texture2D(tSrc, vUv + uStep * 4.0).r + texture2D(tSrc, vUv - uStep * 4.0).r) * 0.0459;
+        s += (texture2D(tSrc, vUv + uStep * 5.0).r + texture2D(tSrc, vUv - uStep * 5.0).r) * 0.0153;
+        gl_FragColor = vec4(s, s, s, 1.0);
+      }`
+  });
+  SEL_GLOW.compMat=new THREE.ShaderMaterial({
+    transparent:true, depthTest:false, depthWrite:false, blending:THREE.NormalBlending,
+    uniforms:{tMask:{value:null}, tBlur:{value:null}, uInner:{value:new THREE.Color(0xFFD54F)}, uOuter:{value:new THREE.Color(0xF59E00)}},
+    vertexShader:vs,
+    fragmentShader:`
+      uniform sampler2D tMask; uniform sampler2D tBlur; uniform vec3 uInner; uniform vec3 uOuter; varying vec2 vUv;
+      void main(){
+        float m = texture2D(tMask, vUv).r;
+        float b = texture2D(tBlur, vUv).r;
+        float outer = max(0.0, b * (1.0 - m));
+        if(outer < 0.004) discard;
+        float a = clamp(pow(outer * 2.6, 0.65), 0.0, 0.92);
+        vec3 col = mix(uOuter, uInner, smoothstep(0.06, 0.45, outer));
+        gl_FragColor = vec4(col, a);
+        #include <colorspace_fragment>
+      }`
+  });
+  SEL_GLOW.quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2), SEL_GLOW.blurMat);
+  SEL_GLOW.quad.frustumCulled=false;
+  SEL_GLOW.quadScene.add(SEL_GLOW.quad);
+}
+function resizeSelGlow(w, h){
+  const gw=Math.max(1,Math.round(w)), gh=Math.max(1,Math.round(h));
+  if(SEL_GLOW.w===gw && SEL_GLOW.h===gh && SEL_GLOW.rtMask) return;
+  SEL_GLOW.w=gw; SEL_GLOW.h=gh;
+  for(const k of ['rtMask','rtA','rtB']) if(SEL_GLOW[k]){ SEL_GLOW[k].dispose(); SEL_GLOW[k]=null; }
+  const opt={minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter, depthBuffer:false, stencilBuffer:false};
+  const bw=Math.max(1,gw>>1), bh=Math.max(1,gh>>1);
+  SEL_GLOW.rtMask=new THREE.WebGLRenderTarget(gw,gh,opt);
+  SEL_GLOW.rtA=new THREE.WebGLRenderTarget(bw,bh,opt);
+  SEL_GLOW.rtB=new THREE.WebGLRenderTarget(bw,bh,opt);
+}
+function updateSelBox(){
+  SEL_GLOW.pairs.length=0; SEL_GLOW.srcSet.clear(); SEL_GLOW.active=false;
+  if(SEL_GLOW.scene) SEL_GLOW.scene.clear();
+  if(!S.selected || !sceneReady) return;
+  const src=[]; collectSelMeshes(S.selected, src);
+  if(!src.length) return;
+  initSelGlow();
+  for(const m of src){
+    const p=new THREE.Mesh(m.geometry, SEL_GLOW.maskMat);
+    p.matrixAutoUpdate=false; p.frustumCulled=false;
+    SEL_GLOW.scene.add(p); SEL_GLOW.pairs.push([m,p]); SEL_GLOW.srcSet.add(m);
+  }
+  SEL_GLOW.active=true;
+}
+function renderSelGlow(){
+  if(!SEL_GLOW.active || !SEL_GLOW.pairs.length) return;
+  const w=VIEW_W||renderer.domElement.clientWidth, h=VIEW_H||renderer.domElement.clientHeight;
+  if(w<2 || h<2) return;
+  resizeSelGlow(w,h);
+  let any=false;
+  for(const [src,dst] of SEL_GLOW.pairs){
+    dst.visible=src.visible;
+    if(src.visible){ dst.matrix.copy(src.matrixWorld); dst.matrixWorld.copy(src.matrixWorld); any=true; }
+  }
+  if(!any) return;
+  const prevTarget=renderer.getRenderTarget(), prevAuto=renderer.autoClear, prevShadow=renderer.shadowMap.enabled;
+  const prevAlpha=renderer.getClearAlpha(); renderer.getClearColor(_glowPrevCol);
+  try{
+    renderer.shadowMap.enabled=false;
+    renderer.autoClear=true;
+    renderer.setClearColor(_glowClear, 0);
+    renderer.setRenderTarget(SEL_GLOW.rtMask);
+    renderer.render(SEL_GLOW.scene, camera);
+    const sx=1.4/SEL_GLOW.rtA.width, sy=1.4/SEL_GLOW.rtA.height;
+    SEL_GLOW.quad.material=SEL_GLOW.blurMat;
+    SEL_GLOW.blurMat.uniforms.tSrc.value=SEL_GLOW.rtMask.texture;
+    SEL_GLOW.blurMat.uniforms.uStep.value.set(sx,0);
+    renderer.setRenderTarget(SEL_GLOW.rtA);
+    renderer.render(SEL_GLOW.quadScene, SEL_GLOW.quadCam);
+    SEL_GLOW.blurMat.uniforms.tSrc.value=SEL_GLOW.rtA.texture;
+    SEL_GLOW.blurMat.uniforms.uStep.value.set(0,sy);
+    renderer.setRenderTarget(SEL_GLOW.rtB);
+    renderer.render(SEL_GLOW.quadScene, SEL_GLOW.quadCam);
+    renderer.setRenderTarget(prevTarget);
+    renderer.autoClear=false;
+    SEL_GLOW.quad.material=SEL_GLOW.compMat;
+    SEL_GLOW.compMat.uniforms.tMask.value=SEL_GLOW.rtMask.texture;
+    SEL_GLOW.compMat.uniforms.tBlur.value=SEL_GLOW.rtB.texture;
+    renderer.render(SEL_GLOW.quadScene, SEL_GLOW.quadCam);
+  }finally{
+    renderer.shadowMap.enabled=prevShadow;
+    renderer.setClearColor(_glowPrevCol, prevAlpha);
+    renderer.autoClear=prevAuto;
+    renderer.setRenderTarget(prevTarget);
+  }
 }
 
 /* ===================================================================
@@ -1300,8 +1427,9 @@ function ensureVisible(id){
    SELECCIÓ
    =================================================================== */
 function select(id, opts={}){
+  if(id && !EL[id]) id=null;
   const related=S.related;
-  S.selected=id; S.related=new Set();
+  S.selected=id; S.related=new Set(); S.ritsHl=null;
   if(id && opts.fromList){ ensureVisible(id); }
   if(sceneReady){
     for(const key of new Set([...related,S.hover])) for(const m of (G.byEl[key]||[])) applyEmissive(m);
@@ -1437,9 +1565,14 @@ function showLeafChip(l){
   $('#leafX').onclick=hideLeafChip;
 }
 function hideLeafChip(){ LEAFCHIP=null; $('#leafChip')?.classList.add('hidden'); }
-function doHover(){
-  if(!hoverQueued) return; const {x,y}=hoverQueued; hoverQueued=null;
-  if(down && down.moved){ setHover(null); return; }
+let lastHoverAt=0;
+function doHover(now){
+  if(!hoverQueued) return;
+  if(camAnim){ hoverQueued=null; return; }
+  if(down && down.moved){ hoverQueued=null; setHover(null); return; }
+  if(now && now-lastHoverAt<35){ requestFrame(); return; }
+  lastHoverAt=now||performance.now();
+  const {x,y}=hoverQueued; hoverQueued=null;
   const id=pickAt(x,y); setHover(id, x, y);
 }
 function setHover(id,x,y){
@@ -1493,15 +1626,17 @@ function labelSet(){
   for(const id of [...s]) if(!(G.byEl[id]||[]).some(m=>m.visible)) s.delete(id);
   return s;
 }
-let curLabels=new Set(), refLabelEls=[];
+let curLabels=new Set(), refLabelEls=[], VIEW_W=0, VIEW_H=0;
 function rebuildLabels(){
   needLabels=false;
   const want=labelSet(); const box=$('#labels');
   for(const id of curLabels) if(!want.has(id)){ LBL[id].el.remove(); delete LBL[id]; }
+  const added=[];
   for(const id of want){
-    if(!LBL[id]){ const d=document.createElement('div'); d.className='lbl'; d.textContent=labelText(EL[id]); box.appendChild(d); LBL[id]={el:d}; }
+    if(!LBL[id]){ const d=document.createElement('div'); d.className='lbl'; d.textContent=labelText(EL[id]); box.appendChild(d); LBL[id]={el:d,w:0,h:0}; added.push(LBL[id]); }
     LBL[id].pos=anchorOf(id);
-    LBL[id].el.className='lbl'+(id===S.selected?' sel':S.related.has(id)?' rel':'');
+    const cls='lbl'+(id===S.selected?' sel':S.related.has(id)?' rel':'');
+    if(LBL[id].el.className!==cls){ LBL[id].el.className=cls; added.push(LBL[id]); }
   }
   curLabels=want;
   for(const r of refLabelEls) r.el.remove(); refLabelEls=[];
@@ -1514,26 +1649,41 @@ function rebuildLabels(){
     if(S.mode==='habitatge' && r.unit && r.unit!==curUnit()) show=false;
     if(S.mode==='planta' && r.floor!==S.floor) show=false;
     if(!show) continue;
-    const d=document.createElement('div'); d.className='lbl '+r.cls; d.textContent=r.text; box.appendChild(d); refLabelEls.push({el:d,pos:r.pos});
+    const d=document.createElement('div'); d.className='lbl '+r.cls; d.textContent=r.text; box.appendChild(d);
+    const item={el:d,pos:r.pos,w:0,h:0}; refLabelEls.push(item); added.push(item);
   }
+  /* mesura les mides en bloc una sola vegada (sense reflows dins placeLabels) */
+  for(const it of added){ it.el.style.display='block'; it.el.style.visibility='hidden'; }
+  for(const it of added){ it.w=it.el.offsetWidth; it.h=it.el.offsetHeight; }
+  for(const it of added){ it.el.style.visibility=''; }
 }
-function archOrIct(r){ return S.mode!=='habitatge' || r.unit===curUnit(); }
 const _v=new THREE.Vector3();
 function placeLabels(){
-  const r=$('#view3d').getBoundingClientRect(), W=r.width, H=r.height;
-  const place=(el,pos)=>{
-    if(!pos){ el.style.display='none'; return; }
+  if(!curLabels.size && !refLabelEls.length) return;
+  const W=VIEW_W||$('#view3d').clientWidth, H=VIEW_H||$('#view3d').clientHeight;
+  const proj=(pos)=>{
+    if(!pos) return null;
     _v.copy(pos).project(camera);
-    if(_v.z>1||_v.z<-1||Math.abs(_v.x)>1.1||Math.abs(_v.y)>1.1){ el.style.display='none'; return; }
-    el.style.display='block'; el.style.left=((_v.x+1)/2*W)+'px'; el.style.top=((1-_v.y)/2*H)+'px';
+    if(_v.z>1||_v.z<-1||Math.abs(_v.x)>1.1||Math.abs(_v.y)>1.1) return null;
+    return [(_v.x+1)*0.5*W, (1-_v.y)*0.5*H];
   };
   const placed=[];
   const order=[...curLabels].sort((a,b)=>(b===S.selected)-(a===S.selected) || (S.related.has(b))-(S.related.has(a)));
-  for(const id of order){ const el=LBL[id].el; place(el, LBL[id].pos); if(el.style.display==='none') continue;
-    const w=el.offsetWidth, h=el.offsetHeight, x=parseFloat(el.style.left)-w/2, y=parseFloat(el.style.top)-h;
-    if(id!==S.selected && placed.some(p=>x<p.x+p.w+2 && x+w+2>p.x && y<p.y+p.h+1 && y+h+1>p.y)){ el.style.display='none'; continue; }
-    placed.push({x,y,w,h}); }
-  for(const x of refLabelEls) place(x.el,x.pos);
+  for(const id of order){
+    const it=LBL[id], pt=proj(it.pos);
+    if(!pt){ it.el.style.display='none'; continue; }
+    const x=pt[0]-it.w/2, y=pt[1]-it.h;
+    if(id!==S.selected && placed.some(p=>x<p.x+p.w+2 && x+it.w+2>p.x && y<p.y+p.h+1 && y+it.h+1>p.y)){ it.el.style.display='none'; continue; }
+    it.el.style.display='block';
+    it.el.style.transform=`translate3d(${Math.round(x)}px,${Math.round(y)}px,0)`;
+    placed.push({x,y,w:it.w,h:it.h});
+  }
+  for(const it of refLabelEls){
+    const pt=proj(it.pos);
+    if(!pt){ it.el.style.display='none'; continue; }
+    it.el.style.display='block';
+    it.el.style.transform=`translate3d(${Math.round(pt[0]-it.w/2)}px,${Math.round(pt[1]-it.h)}px,0)`;
+  }
 }
 
 /* ===================================================================
@@ -1551,7 +1701,7 @@ function renderList(){
     let items=Object.values(EL).filter(e=>e.fam===fk && !ritsBad(e.id));
     if(fl==='none') items=items.filter(e=>e.noModel);
     else if(fl!=='any') items=items.filter(e=>!e.noModel && (e.floor===+fl || (e.vertical)));
-    if(q){ const words=q.split(/\s+/); items=items.filter(e=>{ const t=e._q ||= (x=>x+' '+x.replace(/ll/g,'l'))(norm(e.name+' '+(e.sigla||'')+' '+(e.what||''))); return words.every(w=>t.includes(w)); }); }
+    if(q){ const words=q.split(/\s+/); items=items.filter(e=>{ const t=e._q ||= (x=>x+' '+x.replace(/ll/g,'l'))(norm(e.name+' '+(e.sigla||'')+' '+(e.what||'')+' '+(e.vt?Object.values(e.vt).map(v=>(v.name||'')+' '+(v.what||'')).join(' '):''))); return words.every(w=>t.includes(w)); }); }
     items.sort((a,b)=>listOrder(a)-listOrder(b));
     h+=`<details class="fam" data-fam="${fk}" ${famOpen[fk]||q?'open':''}><summary>${famIcon({fam:fk})} ${esc(fam.name)} <span class="muted small">(${items.length})</span></summary><ul>`;
     const li=e=>{ const vis = e.noModel ? 'sense 3D' : (elVisible(e) ? '' : 'ocult');
@@ -1576,7 +1726,7 @@ function renderInfo(){
   if(!id){
     box.innerHTML = Q.active ? '' : `<div class="card"><h2>Benvingut/da</h2>
     ${CFG.welcome || `<p>Aquest model mostra la <b>ICT</b> (infraestructura comuna de telecomunicacions) d'un edifici amb soterrani d'aparcament, planta baixa amb vestíbul i botiga, i quatre plantes amb quatre habitatges per planta (A, B, C i D: 16 habitatges).</p>`}
-    <p><b>Com començar:</b></p><ol class="small"><li>Fes clic en un element de l'escena: se selecciona i la càmera s'hi apropa. El botó <b>◀</b> torna a la vista anterior.</li><li>Fes <b>doble clic</b> en una porta, un armari o una tapa per obrir-la; torna-hi a fer doble clic per tancar-la.</li><li>Amb la icona de l'<b>ull</b> tries què es veu (per exemple, treure la façana) i hi tens la llegenda de colors; amb <b>Vistes</b> vas a una planta, a un habitatge o a l'interior del RITS.</li><li>Quan acabis d'explorar, posa't a prova amb <b>Comprova què has après</b>.</li></ol>
+    <p><b>Com començar:</b></p><ol class="small"><li>Fes clic en un element de l'escena: se selecciona i la càmera s'hi apropa. El botó <b>◀</b> torna a la vista anterior.</li><li>Fes <b>doble clic</b> en una porta, un armari o una tapa per obrir-la; torna-hi a fer doble clic per tancar-la.</li><li>Amb la icona de l'<b>ull</b> tries què es veu (per exemple, treure la façana) i hi tens la llegenda de colors; amb <b>Vistes</b> vas a una planta, a ${MODEL==='cases'?'una casa':'un habitatge'} o a l'interior del ${CFG.rits}.</li><li>Quan acabis d'explorar, posa't a prova amb <b>Comprova què has après</b>.</li></ol>
     <p class="small muted">Famílies: 〰 xarxes (cables) · ◯ canalitzacions (tubs) · ▣ recintes i registres (locals i caixes) · ● punts de connexió i equips.</p></div>`;
     return;
   }
@@ -1643,7 +1793,7 @@ function updateStatus(){
   const names={oberta:S.layers.facana?CFG.whole:'Façana oberta',transp:'Transparència',ict:'Només ICT',planta:'Planta aïllada',habitatge:CFG.homeMode||'Habitatge detallat'};
   let t=`<b>${names[S.mode]}</b>`;
   if(S.mode==='planta') t+=` · ${FLOORNAME(S.floor)}`;
-  if(S.mode==='habitatge') t+=` · ${unitTitle(UNIT(curUnit()))}`;
+  if(S.mode==='habitatge'){ const u=UNIT(curUnit()); if(u) t+=` · ${unitTitle(u)}`; }
   if(S.svc!=='all') t+=` · Servei: ${SERVICES[S.svc]}`;
   if(S.selected) t+=` · ${esc(EL[S.selected].sigla||EL[S.selected].name)}`;
   $('#statusChip').innerHTML=t;
@@ -1726,8 +1876,8 @@ function bestView(id){
 }
 /* historial de navegació: càmera i context de visibilitat */
 function navState(){ return {p:camera.position.clone(), t:controls.target.clone(), mode:S.mode, floor:S.floor, unitSide:S.unitSide, selected:S.selected,
-  layers:Object.assign({},S.layers), svc:S.svc, sat:S.sat, tubesSee:S.tubesSee, open:new Map(S.openOv), leaf:new Map(S.leaf), openRec:S.openRec, openReg:S.openReg,
-  ritsRoof:S.ritsRoof, ritsFront:S.ritsFront, lift:LIFT.floor}; }
+  layers:Object.assign({},S.layers), svc:S.svc, sat:S.sat, cut:S.cut, tubesSee:S.tubesSee, open:new Map(S.openOv), leaf:new Map(S.leaf), openCanal:new Set(S.openCanal),
+  openRec:S.openRec, openReg:S.openReg, ritsRoof:S.ritsRoof, ritsFront:S.ritsFront, ritsCut:S.ritsCut, ritsXray:S.ritsXray, ritsLook:S.ritsLook, lift:LIFT.floor}; }
 function navPush(){
   if(!sceneReady) return;
   const st=navState(), l=NAV.stack[NAV.stack.length-1];
@@ -1748,12 +1898,13 @@ function navTo(id){
 }
 function navBack(){
   const s=NAV.stack.pop(); if(!s) return;
-  S.mode=s.mode; S.floor=s.floor; S.unitSide=s.unitSide; S.layers=Object.assign({},s.layers); S.svc=s.svc; S.sat=s.sat; S.tubesSee=s.tubesSee;
-  S.openOv=new Map(s.open); S.leaf=new Map(s.leaf); S.openRec=s.openRec; S.openReg=s.openReg; S.ritsRoof=s.ritsRoof; S.ritsFront=s.ritsFront; setLiftFloor(s.lift);
-  S.selected=s.selected; S.related=new Set();
+  S.mode=s.mode; S.floor=s.floor; S.unitSide=s.unitSide; S.layers=Object.assign({},s.layers); S.svc=s.svc; S.sat=s.sat; S.cut=s.cut; S.tubesSee=s.tubesSee;
+  S.openOv=new Map(s.open); S.leaf=new Map(s.leaf); S.openCanal=new Set(s.openCanal); S.openRec=s.openRec; S.openReg=s.openReg;
+  S.ritsRoof=s.ritsRoof; S.ritsFront=s.ritsFront; S.ritsCut=s.ritsCut; S.ritsXray=s.ritsXray; S.ritsLook=s.ritsLook; setLiftFloor(s.lift);
+  S.selected=s.selected; S.related=new Set(); S.ritsHl=null;
   syncControls(); applyVisibility(); renderInfo();
   if(!s.selected && !Q.active) openDrawer('right',false);
-  $('#vCenter').disabled=!s.selected;
+  $('#vCenter').disabled=!s.selected || !!EL[s.selected]?.noModel;
   flyTo(s.p,s.t); navUI(); announce('Vista anterior recuperada.');
 }
 function setNav(on){
@@ -1879,8 +2030,8 @@ function bindEvents(){
   $$('input[name=colorBy]').forEach(r=>r.addEventListener('change',()=>{ S.colorBy=$('input[name=colorBy]:checked').value; applyMaterials(); renderLegend(); }));
   $('#optAllLabels').onchange=e=>{ S.allLabels=e.target.checked; needLabels=true; invalidate(); };
   $('#optTubes').onchange=e=>{ S.tubesSee=e.target.checked; applyMaterials(); };
-  $('#optOpenRec').onchange=e=>{ S.openRec=e.target.checked; for(const k of [...S.openOv.keys()]) if(EL[k].layer==='recintes') S.openOv.delete(k); applyVisibility(); renderInfo(); };
-  $('#optOpenReg').onchange=e=>{ S.openReg=e.target.checked; for(const k of [...S.openOv.keys()]) if(EL[k].layer!=='recintes') S.openOv.delete(k); applyVisibility(); renderInfo(); };
+  $('#optOpenRec').onchange=e=>{ S.openRec=e.target.checked; for(const k of [...S.openOv.keys()]) if(EL[k]?.layer==='recintes') S.openOv.delete(k); for(const l of LEAVES) if(l.of && EL[l.of]?.layer==='recintes') S.leaf.delete(l.key); applyVisibility(); renderInfo(); };
+  $('#optOpenReg').onchange=e=>{ S.openReg=e.target.checked; for(const k of [...S.openOv.keys()]) if(EL[k]?.layer!=='recintes') S.openOv.delete(k); for(const l of LEAVES) if(l.of && EL[l.of]?.layer!=='recintes') S.leaf.delete(l.key); applyVisibility(); renderInfo(); };
   $('#optSat').onchange=e=>{ S.sat=e.target.checked; applyVisibility(); };
   if($('#optCut')) $('#optCut').onchange=e=>{ S.cut=e.target.checked; applyVisibility(); };
   $('#optReduced').onchange=e=>{ S.reduced=e.target.checked; };
@@ -1898,7 +2049,7 @@ function bindEvents(){
   $('#btnEye').onclick=()=>setPanel('eye'); $('#btnViews').onclick=()=>setPanel('views');
   $('#btnCloseAll').onclick=closeAllLeaves;
   $$('.panelClose').forEach(b=>b.onclick=()=>{ setPanel(b.dataset.panel,false); $(b.dataset.panel==='eye'?'#btnEye':'#btnViews').focus(); });
-  addEventListener('keydown',e=>{ if(e.key==='Backspace' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && !document.querySelector('dialog[open]')){ e.preventDefault(); navBack(); } });
+  addEventListener('keydown',e=>{ if(e.key==='Backspace' && !FLIGHT.enabled && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName||'') && !document.querySelector('dialog[open]')){ e.preventDefault(); navBack(); } });
   $('#infoPanel').addEventListener('click',e=>{
     const g=e.target.closest('[data-goto]'); if(g){ select(g.dataset.goto,{fromList:true}); return; }
     const ra=e.target.closest('[data-ract]'); if(ra){ ritsAction(ra.dataset.ract); return; }
@@ -1946,6 +2097,7 @@ function dolly(k){
 function onResize(){
   if(!renderer) return;
   const el=$('#view3d'), w=el.clientWidth, h=el.clientHeight;
+  VIEW_W=w; VIEW_H=h;
   const size=renderer.getSize(new THREE.Vector2());
   if(size.x!==w||size.y!==h) renderer.setSize(w,h,false);
   camera.aspect=w/Math.max(h,1); syncViewOffset(true); needLabels=true; invalidate();
@@ -1984,7 +2136,7 @@ function initGL(){
   cv.addEventListener('pointerdown',onPointerDown); cv.addEventListener('pointermove',onPointerMove);
   cv.addEventListener('pointerup',onPointerUp); cv.addEventListener('pointerleave',()=>{ hoverQueued=null; setHover(null); });
   cv.addEventListener('pointercancel',()=>{ down=null; hoverQueued=null; setHover(null); });
-  cv.addEventListener('webglcontextrestored',()=>invalidate());
+  cv.addEventListener('webglcontextrestored',()=>{ SEL_GLOW.w=0; invalidate(); });
   bindFlight(cv);
   addEventListener('resize',onResize); new ResizeObserver(onResize).observe($('#view3d'));
   return true;
@@ -2004,17 +2156,26 @@ function wheelTick(dt){
    Les malles només s'amaguen mentre dura renderer.render(): m.visible de l'aplicació no canvia.
    - La imatge només es torna a dibuixar quan alguna cosa canvia (invalidate()).
    =================================================================== */
-const OCC={cs:null, n:0, px:1}, HID=[];   // px: radi mínim a la pantalla (px CSS)
+const OCC={cs:null, n:0, px:1}, HID=[], SMALL_MESHES=[];   // px: radi mínim a la pantalla (px CSS)
 function occBoxes(){   // amb totes les tapes tancades (a l'arrencada)
   OCC.cs=[]; scene.updateMatrixWorld(true);
   for(const e of Object.values(EL)){ const own=e.lid && e.layer!=='recintes' && G.byEl[e.id]; if(!own || !own.length) continue;
-    const box=new THREE.Box3(); for(const m of own) box.union(new THREE.Box3().setFromObject(m));
-    OCC.cs.push({id:e.id, own, box:box.expandByScalar(0.001), cam:box.clone().expandByScalar(0.08), items:[]}); }
+    const box=new THREE.Box3();
+    for(const m of own) if(meshWorldBox(m,_tmpBox)) box.union(_tmpBox);
+    if(!box.isEmpty()) OCC.cs.push({id:e.id, own, box:box.expandByScalar(0.001), cam:box.clone().expandByScalar(0.08), items:[]}); }
 }
 function occAssign(){   // malles noves (p. ex. la variant de capçalera que es construeix més tard)
-  const b=new THREE.Box3();
-  for(; OCC.n<G.meshes.length; OCC.n++){ const m=G.meshes[OCC.n], d=m.userData; m.updateWorldMatrix(true,false); b.setFromObject(m); if(b.isEmpty()) continue;
-    for(const c of OCC.cs) if(c.id!==d.el && c.id!==d.lidOf && c.box.containsBox(b)) c.items.push(m); }
+  for(; OCC.n<G.meshes.length; OCC.n++){
+    const m=G.meshes[OCC.n], d=m.userData; m.updateWorldMatrix(true,false);
+    if(meshWorldBox(m,_tmpBox)){
+      for(const c of OCC.cs) if(c.id!==d.el && c.id!==d.lidOf && c.box.containsBox(_tmpBox)) c.items.push(m);
+    }
+    const g=m.geometry;
+    if(g && m.frustumCulled){
+      if(!g.boundingSphere) g.computeBoundingSphere();
+      if(g.boundingSphere && g.boundingSphere.radius<0.6 && !m.children.some(ch=>!ch.userData.proxy)) SMALL_MESHES.push(m);
+    }
+  }
 }
 function occClosed(c){
   if(!elVisible(EL[c.id]) || isOpen(c.id) || c.cam.containsPoint(camera.position)) return false;
@@ -2027,13 +2188,14 @@ function cullBegin(){
   if(!OCC.cs) occBoxes(); occAssign();
   for(const c of OCC.cs) if(occClosed(c)) for(const m of c.items) if(m.visible){ m.visible=false; HID.push(m); }
   scene.updateMatrixWorld();   // el renderer no ho torna a fer (matrixWorldAutoUpdate=false)
-  const cp=camera.position, k=renderer.domElement.clientHeight/2/Math.tan(camera.fov*Math.PI/360);
-  (function walk(o){ for(const ch of o.children){ if(!ch.visible) continue;
-    if(ch.userData.proxy) continue;
-    if(ch.isMesh && ch.frustumCulled && !ch.children.some(o=>o.visible&&!o.userData.proxy)){ const g=ch.geometry; if(!g.boundingSphere) g.computeBoundingSphere();
-      _sp.copy(g.boundingSphere).applyMatrix4(ch.matrixWorld); const d=_sp.center.distanceTo(cp);
-      if(d>_sp.radius && _sp.radius*k<OCC.px*d){ ch.visible=false; HID.push(ch); } }
-    else if(ch.children.length) walk(ch); } })(scene);
+  const cp=camera.position, k=(VIEW_H||renderer.domElement.clientHeight)/2/Math.tan(camera.fov*Math.PI/360), sel=S.selected;
+  for(let i=0;i<SMALL_MESHES.length;i++){
+    const m=SMALL_MESHES[i];
+    if(!m.visible || m.userData.el===sel || SEL_GLOW.srcSet.has(m)) continue;
+    _sp.copy(m.geometry.boundingSphere).applyMatrix4(m.matrixWorld);
+    const d=_sp.center.distanceTo(cp);
+    if(d>_sp.radius && _sp.radius*k<OCC.px*d){ m.visible=false; HID.push(m); }
+  }
 }
 function cullEnd(){ for(const m of HID) m.visible=true; HID.length=0; }
 /* Només es demana un fotograma quan cal actualitzar l'escena o comprovar el cursor. */
@@ -2057,7 +2219,7 @@ function loop(now){
     const leafMoving=leavesTick(dt);
     camera.updateMatrixWorld();
     if(leafMoving&&hoverQueued) scene.updateMatrixWorld();
-    doHover();
+    doHover(now);
     const cameraChanged=!_vm.equals(camera.matrixWorld)||!_pm.equals(camera.projectionMatrix);
     if(cameraChanged){ _vm.copy(camera.matrixWorld); _pm.copy(camera.projectionMatrix); }
     moving=cameraMoving||leafMoving||camAnim||WHEEL.d||viewOffsetMoving();
@@ -2065,7 +2227,7 @@ function loop(now){
     dirty=false;
     if(needLabels) rebuildLabels();
     placeLabels();
-    try{ cullBegin(); renderer.render(scene,camera); }finally{ cullEnd(); }
+    try{ cullBegin(); renderer.render(scene,camera); renderSelGlow(); }finally{ cullEnd(); }
     queueFlightAim();
   }finally{
     frameRequest=0;
@@ -3002,9 +3164,6 @@ function rCable(key, el, pts, color, mat, o={}){
   if(SCOPE) SCOPE.keys.push(key);
   return m;
 }
-/* camí pseudocable (recorregut del senyal dins d'un equip; sense malla) */
-function pathOnly(key, el, pts){ G.cables[key]={key, el, pts:P(pts), mesh:null}; if(SCOPE) SCOPE.keys.push(key); }
-
 /* Eix i marcs del corrugat. A cada arc circular el marc gira amb la tangent; als trams rectes es conserva. */
 function ductFrames(path){
   const first=path.curves[0].getTangent(0);
@@ -3118,10 +3277,6 @@ function clampAt(el, p, t, n, r, o={}){
   const sl=d-r*1.1; if(sl>0.001){ const st=rMesh(el,new THREE.BoxGeometry(0.008,sl,w),0xB9BEC4,'galv'); st.position.copy(p.clone().addScaledVector(n,-(r*1.1+sl/2))); st.quaternion.setFromUnitVectors(UP,n); const tq=new THREE.Quaternion().setFromUnitVectors(V(0,0,1).applyQuaternion(st.quaternion), t); if(Math.abs(t.dot(n))<0.9) st.quaternion.premultiply(tq); }
   rCyl(el,0.0045,0.004,foot.clone().addScaledVector(n,0.008),n,0x6E7378,'steel');
 }
-/* clip no aixafador per a cable coaxial */
-function cableClip(el,p,n){ const m=rMesh(el,new THREE.TorusGeometry(0.0095,0.0022,6,14,Math.PI*1.2),0xEDEDED,'plastic'); m.position.copy(p); lookL(m,p.clone().add(V(1,0,0))); m.rotateZ(Math.PI*-0.1);
-  const b=rMesh(el,new THREE.BoxGeometry(0.012,0.012,0.006),0xEDEDED,'plastic'); b.position.copy(p.clone().addScaledVector(n,-0.012)); lookL(b,p.clone().add(n)); }
-
 /* ---------- connectors F (mida real: femella hexagonal d'11 mm, rosca de 3/8") ---------- */
 const NI=0xC9CCCF;
 /* port femella d'un equip: base + rosca (sense conductor visible) */
@@ -3176,15 +3331,16 @@ function scPlug(el,tip,dir,side){ const d=dir.clone().normalize(), q=scQuat(d,si
   else { oBox(el,0.009,0.0222,0.0074,tip.clone().addScaledVector(d,0.0139),q,SC_GREEN); rCyl(el,0.0012,0.025,tip.clone().addScaledVector(d,0.0395),d,0x24803F,'plastic',{r2:0.003}); }
   return end.toArray();
 }
-function fLoad(el, base, dir, dcBlock){ dir=dir.clone().normalize();
+function fLoad(el, base, dir, dcBlock, loadEl='cap_carregues'){ dir=dir.clone().normalize();
   if(MODELS.carrega?.scene){                                     // càrrega 75 Ω 4061 (models/carrega.glb): la femella s'enrosca al port
-    const p=base.clone().addScaledVector(dir,0.0025), ms=placeModel('carrega','cap_carregues',p.x,p.y,p.z,{},new THREE.Quaternion().setFromUnitVectors(UP,dir));
-    for(const m of ms) G.pick.push(m); return; }
+    const q=new THREE.Quaternion().setFromUnitVectors(UP,dir), p=base.clone().addScaledVector(dir,0.0025), ms=placeModel('carrega',loadEl,p.x,p.y,p.z,{},q);
+    if(ms[0]){ const pg=new THREE.CylinderGeometry(0.010,0.010,0.032,8); pg.applyQuaternion(q); const c=p.clone().addScaledVector(dir,0.014); pg.translate(c.x,c.y,c.z); addProxy(ms[0],pg); }
+    return; }
   rHex(el,0.00625,0.0035,base.clone().addScaledVector(dir,0.00175),dir,NI,'nickel');
-  rHex('cap_carregues',0.00675,0.0085,base.clone().addScaledVector(dir,0.00775),dir,NI,'nickel');
+  rHex(loadEl,0.00675,0.0085,base.clone().addScaledVector(dir,0.00775),dir,NI,'nickel');
   const L = dcBlock?0.021:0.008;
-  rCyl('cap_carregues',dcBlock?0.006:0.00525,L,base.clone().addScaledVector(dir,0.012+L/2),dir,dcBlock?0xD9DCDF:NI,'nickel');
-  if(dcBlock) rCyl('cap_carregues',0.0061,0.002,base.clone().addScaledVector(dir,0.012+L*0.75),dir,0xC62828,'plastic');
+  rCyl(loadEl,dcBlock?0.006:0.00525,L,base.clone().addScaledVector(dir,0.012+L/2),dir,dcBlock?0xD9DCDF:NI,'nickel');
+  if(dcBlock) rCyl(loadEl,0.0061,0.002,base.clone().addScaledVector(dir,0.012+L*0.75),dir,0xC62828,'plastic');
 }
 /* etiqueta d'identificació de cable (brida + bandera amb text) */
 /* p és la posició aproximada: la brida s'enganxa al punt més proper del cable (key, o els cables de l'element el)
@@ -3489,7 +3645,6 @@ function euroPlug(el, x, y){ // clavilla europea (sense terra) endollada a la ba
   rBox(el,x-0.012,x+0.012,y-0.03,y-0.016,-4.678,-4.664,0x1E1E1E,'rubber');
   return V(x,y-0.03,-4.671);
 }
-function tex12(lines,o){ return textTex(lines,o); }
 /* =====================================================================
    MESCLADOR TERR + 2 SAT (model fidel a l'exemple Televes ref. 740710)
    Unitats locals: mil·límetres. Origen: centre del cos a la cara posterior
@@ -3581,7 +3736,8 @@ const MIX740710 = {
 /* model fidel del mesclador TER + 2 SAT a mida real; cx, cy: centre del cos a la placa */
 function buildMix740710(cx,cy){
   if(MODELS.mix.scene){                                                    // model glTF (models/mesclador.glb), del plànol CAD
-    const MX='cap_mix', ms=placeModel('mix',MX,cx,cy,ZP); G.pick.push(ms[0],ms[1]||ms[0]);
+    const MX='cap_mix', ms=placeModel('mix',MX,cx,cy,ZP);
+    if(ms[0]) addProxy(ms[0],new THREE.BoxGeometry(0.11,0.08,0.04).translate(cx,cy,ZP+0.015));
     halo(ms[0], new THREE.BoxGeometry(0.1,0.06,0.025).translate(cx,cy,ZP+0.0125), RFN.eq);
     const q=n=>{ const v=modelPoint('mix',n); return V(cx+v.x,cy+v.y,ZP+v.z); };
     const fe=q('forat_e'), fd=q('forat_d');
@@ -3622,7 +3778,7 @@ function buildCapVariant(v){
   const t12=(M,xc,lab,o={})=>{
     if(MODELS.t12.scene){                                                                                                      // model glTF (models/t12.glb)
       const ms=placeModel('t12',M,xc,Y0,ZB,{banda:o.band||0xF57C00});
-      for(const m of ms) G.pick.push(m);
+      if(ms[0]) addProxy(ms[0],new THREE.BoxGeometry(0.036,TH+0.004,0.108).translate(xc,Y0+TH/2,ZB+0.052));
       halo(ms[0],new THREE.BoxGeometry(0.0352,TH+0.002,0.105).translate(xc,Y0+TH/2,ZB+0.0515),RFN.eq);
       rPlane(M,0.026,0.034,V(xc,Y0+0.112,ZF+0.0006),Z,textTex(lab,{w:104,h:136,fs:[24,30,20],bold:[true,true],bg:'#F4F4F2',fg:'#1A1A1A',border:'#9E9E9E',bw:3}));
     } else {
@@ -3641,7 +3797,8 @@ function buildCapVariant(v){
   };
   const fontBox=(x0,tag,left)=>{ const FN='cap_font';
     if(MODELS.font.scene){                                                                                                   // model glTF (models/font_t12.glb)
-      const xc=x0+0.035, ms=placeModel('font',FN,xc,Y0,ZB); for(const m of ms) G.pick.push(m);
+      const xc=x0+0.035, ms=placeModel('font',FN,xc,Y0,ZB);
+      if(ms[0]) addProxy(ms[0],new THREE.BoxGeometry(0.072,TH+0.004,0.096).translate(xc,Y0+TH/2,ZB+0.047));
       halo(ms[0],new THREE.BoxGeometry(0.0702,TH+0.002,0.094).translate(xc,Y0+TH/2,ZB+0.046),RFN.dc);
       rPlane(FN,0.044,0.05,V(xc+0.00516,Y0+0.1165,ZFF+0.0012),Z,textTex([tag,'549812','24 V c.c. · 2,5 A','230 V ~ · 60 W','Classe II ▣'],{w:352,h:400,fs:[56,46,36,36,36],bold:[true,true],bg:'#202124',fg:'#ECEFF1'}));
       const d=modelPoint('font','dc'); return V(xc+d.x,Y0+d.y,ZB+d.z);
@@ -3689,7 +3846,8 @@ function buildCapVariant(v){
     /* punt d'un objecte buit del model glTF (models/avant.glb), o el valor per defecte del model procedural */
     const ap=(n,fb)=>{ const q=modelPoint('avant',n); return q ? V(1.45+q.x,16.30+q.y,ZP+q.z) : fb; };
     if(AV){
-      const ms=placeModel('avant',A,1.45,16.30,ZP); for(const m of ms) G.pick.push(m);
+      const ms=placeModel('avant',A,1.45,16.30,ZP);
+      if(ms[0]) addProxy(ms[0],new THREE.BoxGeometry(0.205,0.125,0.048).translate(1.45,16.30,ZP+0.022));
       halo(ms[0],new THREE.BoxGeometry(0.204,0.124,0.044).translate(1.45,16.30,ZP+0.021),RFN.eq);
     } else {
       const body=rBox(A,1.3825,1.5175,16.25,16.35,ZP,ZFA,GR,'zamak',{pick:true,cast:true}); boxHalo(body,RFN.eq);
@@ -3834,6 +3992,7 @@ function clearScope(){
   G.meshes=G.meshes.filter((m,i)=>{ if(!rm.has(m)) return true; if(i<OCC.n) removed++; return false; });
   OCC.n-=removed;
   for(const c of OCC.cs||[]) c.items=c.items.filter(m=>!rm.has(m));
+  for(let i=SMALL_MESHES.length-1;i>=0;i--) if(rm.has(SMALL_MESHES[i])) SMALL_MESHES.splice(i,1);
   for(const k of Object.keys(G.byEl)){ const a=G.byEl[k].filter(m=>!rm.has(m)); if(a.length) G.byEl[k]=a; else delete G.byEl[k]; }
   G.pick=G.pick.filter(p=>!rm.has(p) && !rm.has(p.parent));
   G.lids=G.lids.filter(m=>!rm.has(m));
@@ -4172,9 +4331,12 @@ async function init(){
   controls.enabled=false;
   const loading=$('#loading3d'); loading.hidden=false;
   /* La fitxa, la cerca i les activitats ja responen mentre es carreguen els equips. */
-  await Promise.all(Object.keys(MODELS).filter(k=>k!=='mix'&&(MODEL!=='cases'||k!=='deriv')).map(loadModel));
+  const toLoad=Object.keys(MODELS).filter(k=>k!=='mix'&&(MODEL!=='cases'||k!=='deriv'));
+  let loadedN=0;
+  await Promise.all(toLoad.map(k=>loadModel(k).then(()=>{ loadedN++; loading.textContent=`Carregant l’escena 3D (${loadedN}/${toLoad.length})…`; })));
   TEX.fo=makeTex('fo'); TEX.pt=makeTex('pt');
   archMats(); buildArchitecture(); buildLandscape(); buildICT(); finalizeLids(); buildRefs();
+  occBoxes(); occAssign();
   for(const m of G.arch) if(m.userData.floor===5) m.receiveShadow=true;
   sceneReady=true; controls.enabled=true; loading.hidden=true;
   $('#btnFlight').disabled=false;

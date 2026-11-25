@@ -1,7 +1,7 @@
 /* Vol lliure: moviment en metres, orientació sense roll i límits propis de cada model. */
 'use strict';
 
-const FLIGHT_KEYS=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyC','ShiftLeft','ShiftRight']);
+const FLIGHT_KEYS=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyS','KeyA','KeyD','Space','KeyC','ShiftLeft','ShiftRight']);
 const FLIGHT={enabled:false, source:null, locking:false, keys:new Set(), angles:new THREE.Euler(0,0,0,'YXZ'),
   bounds:null, right:V(0,0,0), forward:V(0,0,0), move:V(0,0,0), pad:null, padButtons:[],
   padTimer:null, aimTimer:null, aim:null, drag:null, dragged:false};
@@ -30,8 +30,8 @@ function flightMove(side,forward,vertical,distance){
 }
 function flightPrecise(){ return FLIGHT.keys.has('ShiftLeft')||FLIGHT.keys.has('ShiftRight'); }
 function flightInputFromKeys(){
-  const keys=FLIGHT.keys, n=k=>Number(keys.has(k));
-  return [n('ArrowRight')-n('ArrowLeft'),n('ArrowUp')-n('ArrowDown'),n('Space')-n('KeyC')];
+  const keys=FLIGHT.keys, has=(a,b)=>Number(keys.has(a)||keys.has(b));
+  return [has('ArrowRight','KeyD')-has('ArrowLeft','KeyA'),has('ArrowUp','KeyW')-has('ArrowDown','KeyS'),Number(keys.has('Space'))-Number(keys.has('KeyC'))];
 }
 
 function flightCandidates(){
@@ -91,9 +91,9 @@ function flightUI(message=''){
   $('#view3d').classList.toggle('freeFlight',f.enabled);
   if(!f.enabled) return;
   const action=$('#flightAction'), label=$('#flightTarget'), target=f.aim;
-  const hint={mouse:'Fletxes i roda · Espai / C · Maj per afinar · Esc per pausar',
+  const hint={mouse:'WASD / Fletxes i roda · Espai / C · Maj per afinar · Esc per pausar',
     pad:'Estics per volar i mirar · Gallets per pujar i baixar · B per pausar',
-    drag:'Arrossega per mirar · Fletxes i roda · Espai / C · Esc per pausar'};
+    drag:'Arrossega per mirar · WASD / Fletxes i roda · Espai / C · Esc per pausar'};
   $('#flightHint').textContent=message||hint[f.source]||'Clica el visor o prem Retorn. Amb el comandament, prem A.';
   const of=target?.openId, leaf=target?.leaf;
   const name=leaf?leafName(leaf):target?.id?EL[target.id].name:'';
@@ -258,8 +258,10 @@ function bindFlight(cv){
     flightMove(0,Math.sign(distance),0,Math.abs(distance));
   },{passive:false});
   addEventListener('keydown',e=>{
-    if(!FLIGHT.enabled||$('dialog[open]')||e.target!==cv||e.altKey||e.ctrlKey||e.metaKey) return;
+    if(!FLIGHT.enabled||$('dialog[open]')||e.altKey||e.ctrlKey||e.metaKey) return;
+    if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName||'')) return;
     if(e.code==='Enter'){
+      if(e.target!==cv) return;
       e.preventDefault();
       if(!e.repeat){ if(FLIGHT.source) flightSelect(); else requestFlightLock(cv); }
       return;

@@ -402,7 +402,7 @@ function buildRSC(i, C){
     for(const c of ['a','b']){
       const xc=DRV[c], yd=DRV.y, P=ports[c]={};
       if(MODELS.deriv2?.scene){
-        const ms=placeModel('deriv2',el,xc,yd,0.025); for(const m of ms) G.pick.push(m);
+        const ms=placeModel('deriv2',el,xc,yd,0.025);
         for(const [txt,dx,dy,w] of [[`${TAPC[i].db}dB`,0,-0.0033,0.0072],[`${TAPC[i].ref}/F 2D`,0.017,-0.0003,0.0186]]){
           const tm=rPlane(el,w,0.0026,V(xc+dx,yd+dy,0.025+0.0186),V(0,0,1),tapText(txt,Math.round(w*20000),52)); tm.material.alphaTest=0.5; }
         addProxy(ms[0],new THREE.BoxGeometry(0.10,0.12,0.08).translate(xc,yd,0.034));
@@ -410,7 +410,7 @@ function buildRSC(i, C){
       for(const name of ['in','t1','t2','out']){
         const mp=modelPoint('deriv2',name), q=mp||{x:DPX2[name], y:-0.0267, z:0.009}, port=V(xc+q.x,yd+q.y,0.025+q.z);
         if(name==='out'&&i===1){                                                   // final de línia: càrrega de 75 Ω
-          if(MODELS.carrega?.scene){ for(const m of placeModel('carrega',el,port.x,port.y,port.z,{},[Math.PI,0,0])) G.pick.push(m); }
+          if(MODELS.carrega?.scene){ const mc=placeModel('carrega',el,port.x,port.y,port.z,{},[Math.PI,0,0]); if(mc[0]) addProxy(mc[0],new THREE.BoxGeometry(0.024,0.036,0.024).translate(port.x,port.y-0.014,port.z)); }
           else iCyl(el,0.006,0.02,port.x,port.y-0.013,port.z,0x222222,'y',{pick:false});
           continue; }
         const cel = name==='in'||name==='out' ? 'xd_rtv' : `xs_rtv_${rsUnits(i).find(u=>sideOf(i,u)===tapSide(c,name)).id}`;

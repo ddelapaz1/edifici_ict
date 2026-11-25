@@ -13,8 +13,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 select{border:1px solid var(--bd);border-radius:8px;padding:6px 8px;background:#fff;min-height:36px}
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh}
 header{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--bd);background:#fff;min-width:0;flex-wrap:nowrap;z-index:30}
-header h1{flex:1 1 auto}
-header h1{font-size:1rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+header h1{flex:1 1 auto;font-size:1rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 header h1 small{display:block;font-weight:400;color:var(--tx2);font-size:.75rem}
 .link2d{font-size:.84rem;color:#1A5FB4;text-decoration:none;border:1px solid #BFD3EE;border-radius:8px;padding:5px 10px;white-space:nowrap;flex-shrink:0}
 .link2d:hover{background:#EAF1FB}
@@ -37,7 +36,7 @@ header h1 small{display:block;font-weight:400;color:var(--tx2);font-size:.75rem}
 #view3d canvas{display:block;width:100%;height:100%;outline:none}
 #loading3d{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;padding:6px 12px;border-radius:8px;background:#fff;white-space:nowrap;pointer-events:none}
 #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.lbl{position:absolute;transform:translate(-50%,-100%);background:rgba(255,255,255,.93);border:1px solid #B9B6B0;border-radius:6px;padding:1px 6px;font-size:12px;white-space:nowrap;color:#222;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.lbl{position:absolute;left:0;top:0;will-change:transform;background:rgba(255,255,255,.93);border:1px solid #B9B6B0;border-radius:6px;padding:1px 6px;font-size:12px;white-space:nowrap;color:#222;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .lbl.sel{border:2px solid var(--sel);font-weight:600;background:#FFF8E6}
 .lbl.rel{border-color:#2783DE}
 .lbl.ref{background:rgba(44,44,43,.78);color:#fff;border-color:transparent;font-size:11.5px}
@@ -100,7 +99,6 @@ header h1 small{display:block;font-weight:400;color:var(--tx2);font-size:.75rem}
 #left{left:0;top:0;bottom:0;width:var(--lw);border-right:1px solid var(--bd);padding:8px 12px;transform:translateX(-105%)}
 #right{right:0;top:0;bottom:0;width:var(--rw);border-left:1px solid var(--bd);padding:8px 14px;transform:translateX(105%)}
 #left.open,#right.open{transform:none}
-.drawer.open{transform:none}
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:-8px;background:#fff;padding:2px 0 4px;z-index:2}
 .dhead h2{margin:0;font-size:.98rem}
 .drawerClose{min-width:40px;min-height:40px}
@@ -160,7 +158,6 @@ dialog{border:1px solid var(--bd);border-radius:12px;max-width:760px;width:calc(
 dialog::backdrop{background:rgba(0,0,0,.3)}
 dialog h2{margin-top:0}
 .concept{border-bottom:1px solid var(--bd);padding:6px 0}
-.slider{display:flex;align-items:center;gap:6px;font-size:.84rem}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .hidden{display:none!important}
 .ritscfg summary{cursor:pointer;padding:2px 0}.ritscfg fieldset{margin:6px 0}.ritscfg .actions button.on{background:#FFE7B8;border-color:#C98A1A;color:#4A2E00}.ritscfg label.opt{display:block;margin:2px 0}

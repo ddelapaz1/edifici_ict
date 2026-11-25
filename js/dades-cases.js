@@ -201,6 +201,15 @@ for (const u of UNITS) {
    canals:[`cs_${U}`], links:[`bucle_${i}`,`pau_pt_${U}`,'pi_pt']});
   Object.assign(EL[`rtr_${U}`], {where:`Rebedor ${u.del}, a la mitgera, a prop de la porta d'entrada.`});
 }
+/* neteja enllaços heretats de l'edifici (riti → rits, i registres 3/4 inexistents) i mencions residuals al RITI */
+for (const e of Object.values(EL)) {
+  for (const k of ['links','nets','canals']) if (e[k]) {
+    e[k] = [...new Set(e[k].map(x => x==='riti' ? 'rits' : x).filter(x => x!==e.id && EL[x]))];
+  }
+}
+for (const id of ['rp_fo','pi_fo','pi_pt']) {
+  if (EL[id]?.confusion) EL[id].confusion = EL[id].confusion.replace(/\bRITI\b/g, 'RITU');
+}
 
 /* ---------------- conceptes, activitats i simplificacions ---------------- */
 { const c=CONCEPTS.find(x=>x[0]==='RITU'); if (c) c[1]=c[1].replace("No s'aplica a l'edifici del model.","És el recinte d'aquest conjunt de cases."); }

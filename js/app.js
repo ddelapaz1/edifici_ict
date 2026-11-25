@@ -3103,7 +3103,26 @@ function buildFurniture(u){
   for(let i=0;i<3;i++){ const a=-7.41+i*0.406, b=a+0.398;
     RB(a,b,0.34,0.49,1.01,1.76,AM.furn2b,0.045,0.03);                                     // 3 coixins de seient
     RB(a,b,0.49,0.82,1.60,1.78,AM.furn2b,0.05,0.032); }                                   // 3 coixins de respatller
-  E(-7.38,-7.16,0.48,0.70,1.42,1.62,AM.wallIn); E(-6.44,-6.22,0.48,0.70,1.42,1.62,AM.wallIn);   // coixins decoratius
+  E(-7.38,-7.16,0.48,0.70,1.42,1.62,AM.wallIn);                                           // coixí decoratiu
+  /* coixí amb forma de gos (60 cm de llarg, models/coixi_gos.glb) recolzat al sofà mirant cap a la sala */
+  if(MODELS.coixiGos?.scene){
+    let src=null; MODELS.coixiGos.scene.traverse(n=>{ if(!src && n.isMesh) src=n; });
+    if(src){
+      if(!AM.coixiGos){
+        if(src.material.map && renderer) src.material.map.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+        AM.coixiGos=new THREE.MeshStandardMaterial({color:0xffffff, map:src.material.map||null, roughness:0.9, metalness:0});
+        AM.list.push(AM.coixiGos);
+      }
+      const p0=UXZ(u,-6.54,1.44), pF=UXZ(u,-6.54,1.34), pC=UXZ(u,-6.80,1.44);
+      const fwd=pF.clone().sub(p0).normalize(), right=new THREE.Vector3().crossVectors(UP,fwd).normalize();
+      const flip=right.dot(pC.clone().sub(p0))<0 ? Math.PI : 0;
+      const M=new THREE.Matrix4().makeBasis(right,UP,fwd).setPosition(p0.x,y2+0.475,p0.z);
+      M.multiply(new THREE.Matrix4().makeRotationY(flip+(flip?-0.18:0.18))).multiply(new THREE.Matrix4().makeRotationX(flip?0.26:-0.26));
+      const m=new THREE.Mesh(src.geometry, AM.coixiGos);
+      m.matrixAutoUpdate=false; m.matrix.copy(M); m.matrixWorldNeedsUpdate=true;
+      addArch(m, o);
+    }
+  } else E(-6.44,-6.22,0.48,0.70,1.42,1.62,AM.wallIn);
   /* moble TV: sobre bisellat, portes laterals, forat central amb prestatge i potes fines */
   legs(-7.56,-6.64,-1.47,-1.18,0.09,AM.frame,0.028,1.3);
   RB(-7.6,-6.6,0.09,0.43,-1.5,-1.16,AM.furn,0.01,0.005);
@@ -4528,7 +4547,7 @@ async function init(){
 }
 /* ---------- models glTF opcionals (models/*.glb) ----------
    Si un fitxer no es pot carregar (no existeix, o la pàgina s'obre amb file://), es fa servir el model procedural. */
-const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}, deriv:{url:'models/derivador.glb', scene:null}, carrega:{url:'models/carrega.glb', scene:null}, conF:{url:'models/conector_f.glb', scene:null}, pauFo:{url:'models/pau_fo.glb', scene:null}, pauRtv:{url:'models/pau_rtv.glb', scene:null}, pauTba:{url:'models/pau_tba.glb', scene:null}, adSC:{url:'models/adaptador_sc.glb', scene:null}, scApc:{url:'models/sc_apc.glb', scene:null}};
+const MODELS={t12:{url:'models/t12.glb', scene:null}, font:{url:'models/font_t12.glb', scene:null}, mux:{url:'models/multiplexor.glb', scene:null}, avant:{url:'models/avant.glb', scene:null}, mix:{url:'models/mesclador.glb', scene:null}, deriv:{url:'models/derivador.glb', scene:null}, carrega:{url:'models/carrega.glb', scene:null}, conF:{url:'models/conector_f.glb', scene:null}, pauFo:{url:'models/pau_fo.glb', scene:null}, pauRtv:{url:'models/pau_rtv.glb', scene:null}, pauTba:{url:'models/pau_tba.glb', scene:null}, adSC:{url:'models/adaptador_sc.glb', scene:null}, scApc:{url:'models/sc_apc.glb', scene:null}, coixiGos:{url:'models/coixi_gos.glb', scene:null}};
 function loadModel(k){
   if(!THREE.GLTFLoader || location.protocol==='file:') return Promise.resolve();
   const m=MODELS[k];
